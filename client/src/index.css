@@ -1,0 +1,233 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(210 25% 7.8431%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(210 25% 7.8431%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(210 25% 7.8431%);
+  --primary: hsl(220 91% 59%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(210 25% 7.8431%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(240 1.9608% 90%);
+  --muted-foreground: hsl(210 25% 7.8431%);
+  --accent: hsl(220 14% 96%);
+  --accent-foreground: hsl(220 91% 59%);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(214 32% 91%);
+  --input: hsl(214 32% 91%);
+  --ring: hsl(220 91% 59%);
+  --chart-1: hsl(220 91% 59%);
+  --chart-2: hsl(159 61% 44%);
+  --chart-3: hsl(43 74% 55%);
+  --chart-4: hsl(147 60% 42%);
+  --chart-5: hsl(340 75% 51%);
+  --sidebar: hsl(0 0% 100%);
+  --sidebar-foreground: hsl(210 25% 7.8431%);
+  --sidebar-primary: hsl(220 91% 59%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(220 14% 96%);
+  --sidebar-accent-foreground: hsl(220 91% 59%);
+  --sidebar-border: hsl(214 32% 91%);
+  --sidebar-ring: hsl(220 91% 59%);
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 0.5rem;
+  --shadow-2xs: 0px 1px 2px 0px hsl(220 91% 59% / 0.05);
+  --shadow-xs: 0px 1px 2px 0px hsl(220 91% 59% / 0.05);
+  --shadow-sm: 0px 1px 3px 0px hsl(220 91% 59% / 0.1), 0px 1px 2px -1px hsl(220 91% 59% / 0.1);
+  --shadow: 0px 1px 3px 0px hsl(220 91% 59% / 0.1), 0px 1px 2px -1px hsl(220 91% 59% / 0.1);
+  --shadow-md: 0px 4px 6px -1px hsl(220 91% 59% / 0.1), 0px 2px 4px -2px hsl(220 91% 59% / 0.1);
+  --shadow-lg: 0px 10px 15px -3px hsl(220 91% 59% / 0.1), 0px 4px 6px -4px hsl(220 91% 59% / 0.1);
+  --shadow-xl: 0px 20px 25px -5px hsl(220 91% 59% / 0.1), 0px 8px 10px -6px hsl(220 91% 59% / 0.1);
+  --shadow-2xl: 0px 25px 50px -12px hsl(220 91% 59% / 0.25);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+  
+  /* Custom ServiceHub colors */
+  --success: hsl(159 61% 44%);
+  --warning: hsl(43 74% 55%);
+  --error: hsl(0 84% 60%);
+}
+
+.dark {
+  --background: hsl(224 71% 4%);
+  --foreground: hsl(213 31% 91%);
+  --card: hsl(224 71% 4%);
+  --card-foreground: hsl(213 31% 91%);
+  --popover: hsl(224 71% 4%);
+  --popover-foreground: hsl(213 31% 91%);
+  --primary: hsl(220 91% 59%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(215 28% 17%);
+  --secondary-foreground: hsl(210 20% 98%);
+  --muted: hsl(215 28% 17%);
+  --muted-foreground: hsl(217 10% 64%);
+  --accent: hsl(215 28% 17%);
+  --accent-foreground: hsl(210 20% 98%);
+  --destructive: hsl(0 63% 31%);
+  --destructive-foreground: hsl(210 20% 98%);
+  --border: hsl(215 28% 17%);
+  --input: hsl(215 28% 17%);
+  --ring: hsl(220 91% 59%);
+  --chart-1: hsl(220 70% 50%);
+  --chart-2: hsl(160 60% 45%);
+  --chart-3: hsl(30 80% 55%);
+  --chart-4: hsl(280 65% 60%);
+  --chart-5: hsl(340 75% 55%);
+  --sidebar: hsl(224 71% 4%);
+  --sidebar-foreground: hsl(213 31% 91%);
+  --sidebar-primary: hsl(220 91% 59%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(215 28% 17%);
+  --sidebar-accent-foreground: hsl(210 20% 98%);
+  --sidebar-border: hsl(215 28% 17%);
+  --sidebar-ring: hsl(220 91% 59%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+  }
+}
+
+@layer utilities {
+  .text-primary {
+    color: hsl(220 91% 59%);
+  }
+  
+  .bg-primary {
+    background-color: hsl(220 91% 59%);
+  }
+  
+  .border-primary {
+    border-color: hsl(220 91% 59%);
+  }
+  
+  .hover\:bg-primary:hover {
+    background-color: hsl(220 91% 59%);
+  }
+  
+  .hover\:text-primary:hover {
+    color: hsl(220 91% 59%);
+  }
+  
+  .text-success {
+    color: hsl(159 61% 44%);
+  }
+  
+  .bg-success {
+    background-color: hsl(159 61% 44%);
+  }
+  
+  .text-warning {
+    color: hsl(43 74% 55%);
+  }
+  
+  .bg-warning {
+    background-color: hsl(43 74% 55%);
+  }
+  
+  .text-error {
+    color: hsl(0 84% 60%);
+  }
+  
+  .bg-error {
+    background-color: hsl(0 84% 60%);
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .animate-in {
+    animation: fadeIn 0.2s ease-in-out;
+  }
+
+  .slide-in-from-right {
+    animation: slideInFromRight 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { 
+      opacity: 0; 
+      transform: translateY(-10px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  @keyframes slideInFromRight {
+    from { 
+      opacity: 0; 
+      transform: translateX(100%); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(214 32% 91%);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(220 91% 59%);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(220 91% 55%);
+}
+
+/* Focus styles */
+.focus\:ring-primary:focus {
+  --tw-ring-color: hsl(220 91% 59% / 0.5);
+}
+
+.focus\:border-primary:focus {
+  border-color: hsl(220 91% 59%);
+}
+
+/* Selection styles */
+::selection {
+  background-color: hsl(220 91% 59% / 0.3);
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
