@@ -145,18 +145,23 @@ export default function Auth() {
     const availability = Array.from(formData.getAll('availability')) as string[];
 
     const providerData = {
-      ...data,
+      businessName: data.businessName as string,
+      ownerName: data.ownerName as string,
+      email: data.email as string,
+      password: data.password as string,
+      phone: data.phone as string,
+      serviceName: data.serviceName as string,
+      serviceCategory: getServiceCategory(data.serviceName as string),
       experience: parseInt(data.experience as string),
+      description: data.description as string,
       hourlyRate: parseFloat(data.hourlyRate as string),
       availability,
-      serviceCategory: getServiceCategory(data.serviceName as string),
+      location: data.location as string,
       kycVerified: false,
-      status: 'Pending',
-      rating: null,
-      reviewCount: 0,
       kycDocuments: {
         submitted_at: new Date().toISOString(),
       },
+      status: 'Pending',
     };
 
     try {
