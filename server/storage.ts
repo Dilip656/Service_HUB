@@ -32,6 +32,7 @@ export interface IStorage {
   getServiceProviderByEmail(email: string): Promise<ServiceProvider | undefined>;
   createServiceProvider(provider: InsertServiceProvider): Promise<ServiceProvider>;
   updateProviderKycStatus(id: number, verified: boolean): Promise<void>;
+  updateProviderKycDocuments(id: number, kycDocuments: any, status: string): Promise<void>;
   updateProviderStatus(id: number, status: string): Promise<void>;
   getProvidersByService(serviceName: string): Promise<ServiceProvider[]>;
   getAllServiceProviders(): Promise<ServiceProvider[]>;
@@ -122,8 +123,17 @@ export class DatabaseStorage implements IStorage {
     if (verified) {
       updateData.status = "Active";
       updateData.kycDocuments = sql`jsonb_set(kyc_documents, '{verified_at}', '"${new Date().toISOString()}"'::jsonb)`;
+    } else {
+      updateData.status = "Rejected";
     }
     await db.update(serviceProviders).set(updateData).where(eq(serviceProviders.id, id));
+  }
+
+  async updateProviderKycDocuments(id: number, kycDocuments: any, status: string): Promise<void> {
+    await db.update(serviceProviders).set({ 
+      kycDocuments, 
+      status 
+    }).where(eq(serviceProviders.id, id));
   }
 
   async updateProviderStatus(id: number, status: string): Promise<void> {
