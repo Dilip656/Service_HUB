@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
-import { useMutation, queryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { authAPI } from '@/lib/api';
 import { useNotification } from '@/components/ui/notification';
 import { z } from 'zod';
@@ -45,7 +45,7 @@ export default function Auth() {
   const urlParams = new URLSearchParams(window.location.search);
   const mode = urlParams.get('mode');
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (mode === 'signup') {
       setIsSignup(true);
     }
