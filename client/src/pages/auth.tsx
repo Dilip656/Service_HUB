@@ -154,7 +154,7 @@ export default function Auth() {
       serviceCategory: getServiceCategory(data.serviceName as string),
       experience: parseInt(data.experience as string),
       description: data.description as string,
-      hourlyRate: parseFloat(data.hourlyRate as string),
+      hourlyRate: data.hourlyRate as string,
       availability,
       location: data.location as string,
       kycVerified: false,
