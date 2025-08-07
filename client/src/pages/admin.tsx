@@ -414,9 +414,17 @@ function ProvidersView() {
     return <div>Loading providers...</div>;
   }
 
-  const pendingKycProviders = providers?.filter((p: any) => 
-    !p.kycVerified && p.status === 'Pending KYC Review'
-  ) || [];
+  const pendingKycProviders = providers?.filter((p: any) => {
+    const hasKycDocuments = p.kycDocuments && 
+      p.kycDocuments.uploaded_documents && 
+      p.kycDocuments.uploaded_documents.length > 0;
+    const isPendingReview = p.status === 'Pending KYC Review' || 
+      (hasKycDocuments && !p.kycVerified);
+    return !p.kycVerified && isPendingReview;
+  }) || [];
+  
+  console.log('All providers:', providers);
+  console.log('Pending KYC providers:', pendingKycProviders);
   const allProviders = providers || [];
 
   return (
