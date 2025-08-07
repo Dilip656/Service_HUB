@@ -263,17 +263,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { verified, kycDocuments, status } = req.body;
       
+      console.log("KYC update request:", { id, verified, kycDocuments, status });
+      
       if (verified !== undefined) {
         // Admin approving/rejecting KYC
+        console.log(`Admin ${verified ? 'approving' : 'rejecting'} KYC for provider ${id}`);
         await storage.updateProviderKycStatus(id, verified);
       } else if (kycDocuments && status) {
         // Provider submitting KYC documents
+        console.log(`Provider ${id} submitting KYC documents`);
         await storage.updateProviderKycDocuments(id, kycDocuments, status);
+      } else {
+        console.log("Invalid KYC update request - missing required fields");
+        return res.status(400).json({ message: "Missing required fields for KYC update" });
       }
       
       res.json({ message: "KYC status updated" });
     } catch (error) {
-      res.status(400).json({ message: "Failed to update KYC status" });
+      console.error("KYC update error:", error);
+      res.status(400).json({ message: "Failed to update KYC status", error: (error as Error).message });
     }
   });
 
