@@ -77,9 +77,11 @@ export default function Auth() {
 
   const providerSignupMutation = useMutation({
     mutationFn: authAPI.registerProvider,
-    onSuccess: () => {
-      showNotification('Registration successful! Your application is under review.', 'success');
-      setIsSignup(false);
+    onSuccess: (data, variables) => {
+      // Store provider info for KYC process
+      localStorage.setItem('pendingProvider', JSON.stringify(variables));
+      showNotification('Registration successful! Please complete KYC verification.', 'success');
+      setLocation('/kyc-verification');
     },
     onError: (error: any) => {
       showNotification(error.message || 'Registration failed', 'error');

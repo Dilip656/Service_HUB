@@ -11,6 +11,7 @@ import Providers from "@/pages/providers";
 import Auth from "@/pages/auth";
 import Booking from "@/pages/booking";
 import Admin from "@/pages/admin";
+import KYCVerification from "@/pages/kyc-verification";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/auth" component={Auth} />
       <Route path="/booking" component={Booking} />
       <Route path="/admin" component={Admin} />
+      <Route path="/kyc-verification" component={KYCVerification} />
       <Route component={NotFound} />
     </Switch>
   );
