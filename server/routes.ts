@@ -261,9 +261,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/admin/providers/:id/kyc", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { verified } = req.body;
+      const { verified, kycDocuments, status } = req.body;
       
-      await storage.updateProviderKycStatus(id, verified);
+      if (verified !== undefined) {
+        // Admin approving/rejecting KYC
+        await storage.updateProviderKycStatus(id, verified);
+      } else if (kycDocuments && status) {
+        // Provider submitting KYC documents
+        await storage.updateProviderKycDocuments(id, kycDocuments, status);
+      }
+      
       res.json({ message: "KYC status updated" });
     } catch (error) {
       res.status(400).json({ message: "Failed to update KYC status" });

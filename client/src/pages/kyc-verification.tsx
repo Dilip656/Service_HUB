@@ -50,13 +50,44 @@ export default function KYCVerification() {
     }
   };
 
+  const submitKYCMutation = useMutation({
+    mutationFn: async () => {
+      if (!providerInfo.id) throw new Error('Provider information not found');
+      
+      // Update the provider's KYC documents with uploaded document info
+      const kycDocuments = {
+        submitted_at: new Date().toISOString(),
+        uploaded_documents: uploadedDocs,
+        status: 'pending_review'
+      };
+
+      const response = await fetch(`/api/admin/providers/${providerInfo.id}/kyc`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          kycDocuments,
+          status: 'Pending KYC Review'
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to submit KYC verification');
+      return response.json();
+    },
+    onSuccess: () => {
+      showNotification(
+        'KYC verification submitted successfully! Admin will review your application within 24-48 hours.',
+        'success'
+      );
+      localStorage.removeItem('pendingProvider');
+      setLocation('/auth');
+    },
+    onError: (error: any) => {
+      showNotification(error.message || 'Failed to submit KYC verification', 'error');
+    },
+  });
+
   const handleSubmitKYC = () => {
-    showNotification(
-      'KYC verification submitted successfully! We will review your application within 24-48 hours.',
-      'success'
-    );
-    localStorage.removeItem('pendingProvider');
-    setLocation('/auth');
+    submitKYCMutation.mutate();
   };
 
   return (

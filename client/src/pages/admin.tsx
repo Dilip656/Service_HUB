@@ -414,26 +414,39 @@ function ProvidersView() {
     return <div>Loading providers...</div>;
   }
 
-  const pendingProviders = providers?.filter((p: any) => !p.kycVerified) || [];
-  const approvedProviders = providers?.filter((p: any) => p.kycVerified) || [];
+  const pendingKycProviders = providers?.filter((p: any) => 
+    !p.kycVerified && p.status === 'Pending KYC Review'
+  ) || [];
+  const allProviders = providers || [];
 
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Provider Management</h2>
       
       <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Pending KYC Approvals</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Pending KYC Reviews</h3>
         <div className="bg-white rounded-lg shadow-sm border divide-y divide-gray-200">
-          {pendingProviders.length === 0 ? (
-            <div className="p-4 text-gray-500 text-center">No pending KYC approvals</div>
+          {pendingKycProviders.length === 0 ? (
+            <div className="p-4 text-gray-500 text-center">No pending KYC reviews</div>
           ) : (
-            pendingProviders.map((provider: any) => (
+            pendingKycProviders.map((provider: any) => (
               <div key={provider.id} className="flex items-center justify-between p-4">
-                <div>
+                <div className="flex-1">
                   <div className="font-medium text-gray-900">{provider.businessName}</div>
-                  <div className="text-sm text-gray-500">
-                    {provider.serviceName} • {provider.ownerName}
+                  <div className="text-sm text-gray-500 mb-2">
+                    {provider.serviceName} • {provider.ownerName} • {provider.email}
                   </div>
+                  <div className="text-xs text-gray-400">
+                    Experience: {provider.experience} years • Rate: ${provider.hourlyRate}/hr
+                  </div>
+                  {provider.kycDocuments && (
+                    <div className="mt-2">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                        <Clock className="w-3 h-3 mr-1" />
+                        KYC submitted {new Date(provider.kycDocuments.submitted_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex space-x-2">
                   <button
@@ -442,7 +455,7 @@ function ProvidersView() {
                     className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50"
                   >
                     <Check className="w-4 h-4 inline mr-1" />
-                    Approve
+                    Approve KYC
                   </button>
                   <button
                     onClick={() => handleRejectProvider(provider.id)}
@@ -483,7 +496,7 @@ function ProvidersView() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {approvedProviders.map((provider: any) => (
+              {allProviders.map((provider: any) => (
                 <tr key={provider.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div>
