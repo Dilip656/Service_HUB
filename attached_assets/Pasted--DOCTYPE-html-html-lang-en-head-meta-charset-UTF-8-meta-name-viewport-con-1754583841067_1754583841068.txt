@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Hub - Your Complete Service Solution</title>
+    <!-- Font Awesome CDN for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Your Custom CSS File -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header/Navigation Bar -->
+    <header>
+        <nav>
+            <a href="#" class="nav-link logo" data-page="home">ServiceHub</a>
+            <div class="nav-links">
+                <a href="#" class="nav-link" data-page="services">Services</a>
+                <a href="#" class="nav-link" data-page="login">Login / Sign Up</a>
+                <a href="#" class="nav-link" data-page="admin-login">Admin</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Application Container -->
+    <main id="app">
+
+        <!-- Page: Home -->
+        <section id="home" class="page active">
+            <h1>Welcome to Service Hub</h1>
+            <p>Your one-stop platform to find and book local service professionals.</p>
+            <button class="nav-link cta-button" data-page="services">Explore Services</button>
+        </section>
+
+        <!-- Page: Services (The main listing page) -->
+        <section id="services" class="page">
+            <div class="search-container"><i class="fas fa-search search-icon"></i><input type="text" id="searchInput" class="search-input" placeholder="Search for services like 'Plumbing', 'Cleaning'..."></div>
+            <div class="category-filters"><button class="filter-btn active" data-category="all">All</button><button class="filter-btn" data-category="home">Home</button><button class="filter-btn" data-category="events">Events</button><button class="filter-btn" data-category="personal">Personal</button><button class="filter-btn" data-category="business">Business</button></div>
+            <div class="services-grid" id="servicesGrid">
+                <div class="service-category" data-category="home"><div class="category-header"><i class="fas fa-home"></i><h3>Home & Property</h3></div><ul class="services-list"><li class="service-item" data-service="Plumbing"><i class="fas fa-wrench"></i> Plumbing</li><li class="service-item" data-service="Electrical Work"><i class="fas fa-bolt"></i> Electrical Work</li><li class="service-item" data-service="Painting"><i class="fas fa-paint-roller"></i> Painting</li><li class="service-item" data-service="Carpentry"><i class="fas fa-hammer"></i> Carpentry</li></ul></div>
+                <div class="service-category" data-category="events"><div class="category-header"><i class="fas fa-birthday-cake"></i><h3>Events & Celebrations</h3></div><ul class="services-list"><li class="service-item" data-service="Event Planner"><i class="fas fa-calendar-alt"></i> Event Planner</li><li class="service-item" data-service="Catering"><i class="fas fa-utensils"></i> Catering</li><li class="service-item" data-service="Photographer"><i class="fas fa-camera"></i> Photographer</li></ul></div>
+                <div class="service-category" data-category="personal"><div class="category-header"><i class="fas fa-user"></i><h3>Personal & Lifestyle</h3></div><ul class="services-list"><li class="service-item" data-service="Home Cleaning"><i class="fas fa-broom"></i> Home Cleaning</li><li class="service-item" data-service="Personal Trainer"><i class="fas fa-dumbbell"></i> Personal Trainer</li><li class="service-item" data-service="Pet Grooming"><i class="fas fa-cut"></i> Pet Grooming</li></ul></div>
+                <div class="service-category" data-category="business"><div class="category-header"><i class="fas fa-briefcase"></i><h3>Business Services</h3></div><ul class="services-list"><li class="service-item" data-service="IT Support"><i class="fas fa-laptop"></i> IT Support</li><li class="service-item" data-service="Graphic Design"><i class="fas fa-paint-brush"></i> Graphic Design</li></ul></div>
+            </div>
+        </section>
+
+        <!-- Page: Provider List -->
+        <section id="provider-list-page" class="page">
+            <button class="back-button" data-page="services"><i class="fas fa-arrow-left"></i> Back to Services</button>
+            <h2 id="provider-list-title"></h2>
+            <div id="provider-grid" class="provider-grid"></div>
+        </section>
+
+        <!-- Page: Login -->
+        <section id="login" class="page">
+            <button class="back-button" data-page="home"><i class="fas fa-arrow-left"></i> Back to Home</button>
+            <h2>Login to Your Account</h2>
+            <form id="login-form"><input type="email" name="email" placeholder="Email" required><input type="password" name="password" placeholder="Password" required><button type="submit">Login</button></form>
+            <p class="form-switch-text">Don't have an account? <a href="#" class="nav-link" data-page="signup">Sign Up</a></p>
+        </section>
+
+        <!-- Page: Sign Up -->
+        <section id="signup" class="page">
+             <button class="back-button" data-page="login"><i class="fas fa-arrow-left"></i> Back to Login</button>
+            <h2>Create an Account</h2>
+            <div class="toggle-buttons"><button id="user-signup-btn" class="active">As a User</button><button id="provider-signup-btn">As a Service Provider</button></div>
+            <form id="user-signup-form"><input type="text" name="fullName" placeholder="Full Name" required><input type="email" name="email" placeholder="Email Address" required><input type="password" name="password" placeholder="Password" required><input type="tel" name="phone" placeholder="Phone Number" required><input type="text" name="location" placeholder="City/Location" required><button type="submit">Sign Up</button></form>
+            <form id="provider-signup-form" class="hidden"><input type="text" name="businessName" placeholder="Business Name" required><input type="email" name="email" placeholder="Business Email" required><input type="password" name="password" placeholder="Password" required><input type="tel" name="phone" placeholder="Business Phone" required><input type="text" name="serviceName" placeholder="Primary Service You Offer (e.g., Plumbing)" required><input type="number" name="experience" placeholder="Years of Experience" required min="0"><textarea name="description" placeholder="Tell us about your business and services..." required></textarea><button type="submit">Register as Provider</button></form>
+        </section>
+
+        <!-- Page: e-KYC for Service Providers -->
+        <section id="ekyc" class="page">
+            <h2>Complete Your Profile (e-KYC)</h2>
+            <p>Please provide your details for verification.</p>
+            <form id="ekyc-form"><input type="text" name="legalName" placeholder="Full Legal Name (as on document)" required><input type="text" name="pan" placeholder="PAN Card Number" minlength="10" maxlength="10" required><input type="text" name="aadhar" placeholder="Aadhar Card Number" minlength="12" maxlength="12" required><label for="document-upload" class="file-upload-label">Upload Document (PAN/Aadhar)</label><input type="file" id="document-upload" name="document" accept="image/*,.pdf" required><button type="submit">Submit for Verification</button></form>
+        </section>
+
+        <!-- Page: Booking -->
+        <section id="booking" class="page">
+             <button class="back-button" id="back-to-providers-from-booking"><i class="fas fa-arrow-left"></i> Back to Providers</button>
+            <h2>Book a Service</h2>
+            <form id="booking-form"><h3 id="booking-provider-name"></h3><input type="text" name="address" placeholder="Service Address" required><input type="date" name="date" required><textarea name="requirements" placeholder="Describe your service requirements..."></textarea><button type="submit">Confirm Booking</button></form>
+        </section>
+
+        <!-- Page: Payment Gateway Simulation -->
+        <section id="payment" class="page">
+            <h2>Confirm Your Payment</h2>
+            <p>This is a simulated payment gateway.</p>
+            <div id="payment-details"></div>
+            <button id="confirm-payment-btn">Pay Now</button>
+        </section>
+
+        <!-- Page: Admin Login -->
+        <section id="admin-login" class="page">
+            <div class="admin-login-container">
+                <h2>Admin Panel Login</h2>
+                <form id="admin-login-form">
+                    <input type="text" id="admin-username" placeholder="Username" required value="admin">
+                    <input type="password" id="admin-password" placeholder="Password" required value="password">
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Page: Admin Dashboard -->
+        <section id="admin" class="page">
+            <div class="admin-layout">
+                <aside class="admin-sidebar">
+                    <div class="admin-sidebar-header"><h3>ServiceHub Admin</h3></div>
+                    <ul class="admin-menu">
+                        <li><a href="#" class="admin-menu-link active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="#" class="admin-menu-link" data-view="users"><i class="fas fa-users"></i> User Management</a></li>
+                        <li><a href="#" class="admin-menu-link" data-view="providers"><i class="fas fa-hard-hat"></i> Provider Management</a></li>
+                        <li><a href="#" class="admin-menu-link" data-view="bookings"><i class="fas fa-calendar-check"></i> Booking Management</a></li>
+                        <li><a href="#" class="admin-menu-link" data-view="payments"><i class="fas fa-credit-card"></i> Payment Management</a></li>
+                        <li><a href="#" class="admin-menu-link" data-view="reviews"><i class="fas fa-star"></i> Review Moderation</a></li>
+                        <li><a href="#" class="admin-menu-link" data-view="settings"><i class="fas fa-cog"></i> Platform Settings</a></li>
+                        <li><a href="#" class="admin-menu-link" data-view="logs"><i class="fas fa-file-alt"></i> System Logs</a></li>
+                        <li><a href="#" id="admin-logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </aside>
+                <main class="admin-main-content">
+                    <div id="admin-dashboard-view" class="admin-view active">
+                        <h3>Dashboard</h3>
+                        <div class="admin-stat-cards">
+                            <div class="stat-card"><i class="fas fa-users"></i><div><h4>Total Users</h4><p id="stat-total-users">0</p></div></div>
+                            <div class="stat-card"><i class="fas fa-hard-hat"></i><div><h4>Total Providers</h4><p id="stat-total-providers">0</p></div></div>
+                            <div class="stat-card"><i class="fas fa-calendar-check"></i><div><h4>Total Bookings</h4><p id="stat-total-bookings">0</p></div></div>
+                            <div class="stat-card"><i class="fas fa-dollar-sign"></i><div><h4>Total Revenue</h4><p id="stat-total-revenue">$0</p></div></div>
+                        </div>
+                    </div>
+                    <div id="admin-users-view" class="admin-view">
+                        <h3>User Management</h3><div class="table-container"><table class="admin-table"><thead><tr><th>User ID</th><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead><tbody id="admin-users-table-body"></tbody></table></div>
+                    </div>
+                    <div id="admin-providers-view" class="admin-view">
+                        <h3>Provider Management</h3><h4>Pending Approvals</h4><div id="admin-pending-providers-list"></div><h4>All Providers</h4><div class="table-container"><table class="admin-table"><thead><tr><th>Provider ID</th><th>Business Name</th><th>Service</th><th>Status</th><th>Actions</th></tr></thead><tbody id="admin-providers-table-body"></tbody></table></div>
+                    </div>
+                    <div id="admin-bookings-view" class="admin-view">
+                        <h3>Booking Management</h3><div class="table-container"><table class="admin-table"><thead><tr><th>Booking ID</th><th>User</th><th>Provider</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="admin-bookings-table-body"></tbody></table></div>
+                    </div>
+                    <div id="admin-payments-view" class="admin-view">
+                         <h3>Payment Management</h3><div class="table-container"><table class="admin-table"><thead><tr><th>Transaction ID</th><th>User</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="admin-payments-table-body"></tbody></table></div>
+                    </div>
+                    <div id="admin-reviews-view" class="admin-view">
+                        <h3>Review Moderation</h3><div id="admin-reviews-list"></div>
+                    </div>
+                    <div id="admin-settings-view" class="admin-view">
+                        <h3>Platform Settings</h3><div class="settings-section"><h4>Manage Service Categories</h4><div class="table-container"><table class="admin-table"><thead><tr><th>Category Name</th><th>Actions</th></tr></thead><tbody id="admin-categories-table-body"></tbody></table></div><div class="add-category-form"><input type="text" id="new-category-name" placeholder="New Category Name"><button id="add-category-btn">Add Category</button></div></div>
+                    </div>
+                    <div id="admin-logs-view" class="admin-view">
+                        <h3>System Logs</h3><pre id="log-box" class="log-box"></pre>
+                    </div>
+                </main>
+            </div>
+        </section>
+    </main>
+
+    <div id="provider-modal" class="modal">
+        <div class="modal-content"><span class="close-modal-btn">×</span><div id="provider-detail-content"></div></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

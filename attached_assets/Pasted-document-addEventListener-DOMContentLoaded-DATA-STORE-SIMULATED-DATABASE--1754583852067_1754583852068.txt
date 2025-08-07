@@ -1,0 +1,223 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DATA STORE (SIMULATED DATABASE) ---
+    let db = {
+        users: [
+            { id: 101, name: "Alice Johnson", email: "alice@example.com", status: "Active" },
+            { id: 102, name: "Bob Williams", email: "bob@example.com", status: "Active" },
+            { id: 103, name: "Charlie Brown", email: "charlie@example.com", status: "Disabled" },
+        ],
+        serviceProviders: [
+            { id: 1, businessName: "Pro Plumbers", email: "contact@proplumbers.com", serviceName: "Plumbing", experience: 8, description: "Pro Plumbers has been serving the community for over 8 years, offering reliable and fast plumbing solutions. We handle everything from leaky faucets to major pipe repairs.", rating: 4.8, reviewCount: 127, availability: ["mon", "tue", "wed", "thu", "fri"], verified: true, status: "Active" },
+            { id: 2, businessName: "Elec-Trick", email: "fix@elec-trick.com", serviceName: "Electrical Work", experience: 12, description: "With over a decade of experience, Elec-Trick provides safe and certified electrical services for residential and commercial properties. No job is too big or too small.", rating: 5.0, reviewCount: 210, availability: ["tue", "wed", "thu", "fri"], verified: true, status: "Active" },
+            { id: 3, businessName: "Paint Pros", email: "paint@pros.com", serviceName: "Painting", experience: 3, description: "Interior and exterior painting services.", verified: false, status: "Pending" },
+            { id: 4, businessName: "Clean Sweep", email: "hello@cleansweep.com", serviceName: "Home Cleaning", experience: 4, description: "We provide thorough and eco-friendly home cleaning services. Choose from weekly, bi-weekly, or one-time deep cleaning packages.", rating: 4.9, reviewCount: 150, verified: true, status: "Suspended" },
+        ],
+        bookings: [
+            { id: 1001, userId: 101, providerId: 1, date: "2025-08-10", status: "Completed" },
+            { id: 1002, userId: 102, providerId: 2, date: "2025-08-12", status: "Confirmed" },
+            { id: 1003, userId: 101, providerId: 4, date: "2025-08-11", status: "Cancelled" },
+        ],
+        payments: [
+            { id: 'txn_1', userId: 101, providerId: 1, amount: 150.00, status: 'Successful', date: '2025-08-10' },
+            { id: 'txn_2', userId: 102, providerId: 2, amount: 200.00, status: 'Successful', date: '2025-08-12' },
+        ],
+        reviews: [
+            { id: 1, userId: 101, providerId: 1, rating: 5, comment: "Excellent service! Very professional and fixed the issue quickly." },
+            { id: 2, userId: 103, providerId: 2, rating: 2, comment: "Not a great job, very messy." },
+        ],
+        categories: ["Plumbing", "Electrical Work", "Painting", "Home Cleaning", "Event Planner", "Catering", "Photographer", "Personal Trainer", "Pet Grooming", "IT Support", "Graphic Design"],
+        logs: []
+    };
+
+    let isAdminLoggedIn = false;
+    
+    // --- UTILITY FUNCTIONS ---
+    const getEl = (id) => document.getElementById(id);
+    const queryAll = (sel) => document.querySelectorAll(sel);
+
+    function showPage(pageId) {
+    if (pageId.startsWith('admin') && pageId !== 'admin-login' && !isAdminLoggedIn) {
+        alert("Please log in as admin first.");
+        showPage('admin-login');
+        return;
+    }
+
+    // Hide all pages
+    queryAll('.page').forEach(p => p.classList.remove('active'));
+
+    // Show target page
+    const targetPage = getEl(pageId);
+    if (targetPage) targetPage.classList.add('active');
+
+    // Admin dashboard
+    if (pageId === 'admin') {
+        queryAll('.admin-view').forEach(v => v.classList.remove('active'));
+        getEl('admin-dashboard-view').classList.add('active');
+        renderAdminDashboard();
+    }
+
+    // Provider list rendering
+    if (pageId === 'provider-list-page') {
+        const serviceName = sessionStorage.getItem('currentService');
+        if (serviceName) renderProvidersForService(serviceName);
+    }
+
+    // Scroll to top
+    window.scrollTo(0, 0);
+}
+
+
+
+    function addLog(action) {
+        const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        db.logs.unshift(`[${timestamp}] ${action}`);
+        if (db.logs.length > 100) db.logs.pop();
+    }
+
+    // --- INITIALIZATION ---
+    function initialize() {
+        queryAll('.nav-link, .back-button, .cta-button').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = e.target.closest('[data-page]');
+                if (target) showPage(target.getAttribute('data-page'));
+            });
+        });
+        
+        getEl('admin-login-form').addEventListener('submit', handleAdminLogin);
+        getEl('admin-logout-btn').addEventListener('click', handleAdminLogout);
+        
+        setupEventListeners();
+        
+        showPage('home');
+        addLog("INFO: Application initialized.");
+    }
+
+    function setupEventListeners() {
+        // Admin Panel Navigation
+        queryAll('.admin-menu-link').forEach(link => {
+            if (!link.id.includes('logout')) {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const viewId = link.getAttribute('data-view');
+                    queryAll('.admin-menu-link').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    queryAll('.admin-view').forEach(v => v.classList.remove('active'));
+                    getEl(`admin-${viewId}-view`).classList.add('active');
+                    renderAdminView(viewId);
+                });
+            }
+        });
+        
+        getEl('add-category-btn').addEventListener('click', handleAddCategory);
+        getEl('admin-main-content').addEventListener('click', handleAdminAction);
+        
+        // --- FIX: Restored Signup Form Toggle Logic ---
+        const userSignupBtn = getEl('user-signup-btn');
+        const providerSignupBtn = getEl('provider-signup-btn');
+        const userSignupForm = getEl('user-signup-form');
+        const providerSignupForm = getEl('provider-signup-form');
+        userSignupBtn.addEventListener('click', () => {
+            userSignupBtn.classList.add('active');
+            providerSignupBtn.classList.remove('active');
+            userSignupForm.classList.remove('hidden');
+            providerSignupForm.classList.add('hidden');
+        });
+        providerSignupBtn.addEventListener('click', () => {
+            providerSignupBtn.classList.add('active');
+            userSignupBtn.classList.remove('active');
+            providerSignupForm.classList.remove('hidden');
+            userSignupForm.classList.add('hidden');
+        });
+        
+        // --- FIX: Verified and Cleaned Services Page Logic ---
+        const searchInput = getEl('searchInput');
+        const filterButtons = queryAll('.filter-btn');
+        const servicesGrid = getEl('servicesGrid');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                const categoryToShow = this.getAttribute('data-category');
+                queryAll('.service-category').forEach(cat => {
+                    const isMatch = categoryToShow === 'all' || cat.getAttribute('data-category') === categoryToShow;
+                    cat.style.display = isMatch ? 'block' : 'none';
+                });
+            });
+        });
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            queryAll('.service-category').forEach(category => {
+                let categoryHasMatch = false;
+                category.querySelectorAll('.service-item').forEach(item => {
+                    const isVisible = item.textContent.toLowerCase().includes(searchTerm);
+                    item.style.display = isVisible ? 'flex' : 'none';
+                    if (isVisible) categoryHasMatch = true;
+                });
+                category.style.display = categoryHasMatch ? 'block' : 'none';
+            });
+        });
+        servicesGrid.addEventListener('click', (e) => {
+            const serviceItem = e.target.closest('.service-item');
+            if (serviceItem) {
+                const serviceName = serviceItem.getAttribute('data-service');
+                sessionStorage.setItem('currentService', serviceName);
+                showPage('provider-list-page', { serviceName });
+            }
+        });
+
+        // Other forms and buttons
+        userSignupForm.addEventListener('submit', (e) => { e.preventDefault(); const newId = Math.max(0, ...db.users.map(u=>u.id)) + 1; db.users.push({id: newId, name: new FormData(e.target).get('fullName'), email: new FormData(e.target).get('email'), status: "Active"}); addLog(`USER: New user signed up - ${new FormData(e.target).get('email')}.`); alert('User account created successfully! Please login.'); e.target.reset(); showPage('login'); });
+        providerSignupForm.addEventListener('submit', (e) => { e.preventDefault(); const newId = Math.max(0, ...db.serviceProviders.map(p=>p.id)) + 1; const data = Object.fromEntries(new FormData(e.target).entries()); data.id = newId; data.verified = false; data.status = "Pending"; db.serviceProviders.push(data); addLog(`PROVIDER: New provider registered - ${data.email}.`); alert('Registration successful! Your application is pending review.'); e.target.reset(); showPage('login'); });
+        getEl('login-form').addEventListener('submit', (e) => { e.preventDefault(); alert('Login successful!'); showPage('services'); });
+        getEl('booking-form').addEventListener('submit', (e) => { e.preventDefault(); alert('Booking request sent!'); showPage('services'); });
+        getEl('provider-grid').addEventListener('click', (e) => { const card = e.target.closest('.provider-card'); if (card) { const providerEmail = card.getAttribute('data-provider-email'); sessionStorage.setItem('currentProviderEmail', providerEmail); showProviderDetail(providerEmail); } });
+        setupModalListeners();
+    }
+    
+    // --- ADMIN LOGIC ---
+    function handleAdminLogin(e) { e.preventDefault(); const username = getEl('admin-username').value; const pass = getEl('admin-password').value; if (username === 'admin' && pass === 'password') { isAdminLoggedIn = true; addLog("AUTH: Admin login successful."); showPage('admin'); } else { alert('Invalid admin credentials.'); addLog("AUTH: Failed admin login attempt."); } }
+    function handleAdminLogout(e) { e.preventDefault(); isAdminLoggedIn = false; addLog("AUTH: Admin logged out."); showPage('home'); }
+    function renderAdminView(viewId) { switch(viewId) { case 'dashboard': renderAdminDashboard(); break; case 'users': renderUsersTable(); break; case 'providers': renderProvidersContent(); break; case 'bookings': renderBookingsTable(); break; case 'payments': renderPaymentsTable(); break; case 'reviews': renderReviewsList(); break; case 'settings': renderCategoriesTable(); break; case 'logs': renderLogs(); break; } }
+    
+    function handleAdminAction(e) {
+        const button = e.target.closest('.action-btn');
+        if (!button) return;
+
+        const action = Array.from(button.classList).find(c => c !== 'action-btn' && !c.startsWith('fa'));
+        const id = parseInt(button.closest('[data-id]').dataset.id);
+
+        if (confirm(`Are you sure you want to ${action.replace('_', ' ')} this item?`)) {
+            switch(action) {
+                case 'disable': { const user = db.users.find(u => u.id === id); if (user) { user.status = user.status === "Active" ? "Disabled" : "Active"; addLog(`USER: Toggled status for user ID ${id} to ${user.status}.`); renderUsersTable(); } break; }
+                case 'delete_user': { db.users = db.users.filter(u => u.id !== id); addLog(`USER: Deleted user ID ${id}.`); renderUsersTable(); break; }
+                case 'approve': { const provider = db.serviceProviders.find(p => p.id === id); if (provider) { provider.verified = true; provider.status = "Active"; addLog(`PROVIDER: Approved provider ID ${id}.`); renderProvidersContent(); } break; }
+                case 'reject': { db.serviceProviders = db.serviceProviders.filter(p => p.id !== id); addLog(`PROVIDER: Rejected provider ID ${id}.`); renderProvidersContent(); break; }
+                case 'suspend': { const provider = db.serviceProviders.find(p => p.id === id); if (provider) { provider.status = provider.status === "Active" ? "Suspended" : "Active"; addLog(`PROVIDER: Toggled status for provider ID ${id} to ${provider.status}.`); renderProvidersContent(); } break; }
+                case 'delete_provider': { db.serviceProviders = db.serviceProviders.filter(p => p.id !== id); addLog(`PROVIDER: Deleted provider ID ${id}.`); renderProvidersContent(); break; }
+                case 'delete_review': { db.reviews = db.reviews.filter(r => r.id !== id); addLog(`REVIEW: Deleted review ID ${id}.`); renderReviewsList(); break; }
+                case 'delete_category': { const categoryName = button.closest('[data-name]').dataset.name; db.categories = db.categories.filter(c => c !== categoryName); addLog(`SETTINGS: Deleted category "${categoryName}".`); renderCategoriesTable(); break; }
+            }
+        }
+    }
+
+    function handleAddCategory() { const input = getEl('new-category-name'); const newCategory = input.value.trim(); if (newCategory && !db.categories.includes(newCategory)) { db.categories.push(newCategory); addLog(`SETTINGS: Added new category "${newCategory}".`); renderCategoriesTable(); input.value = ''; } else { alert("Category name cannot be empty or already exist."); } }
+
+    // --- ADMIN RENDER FUNCTIONS ---
+    function renderAdminDashboard() { getEl('stat-total-users').textContent = db.users.length; getEl('stat-total-providers').textContent = db.serviceProviders.length; getEl('stat-total-bookings').textContent = db.bookings.length; const totalRevenue = db.payments.reduce((sum, p) => p.status === 'Successful' ? sum + p.amount : sum, 0); getEl('stat-total-revenue').textContent = `$${totalRevenue.toLocaleString()}`; }
+    function renderUsersTable() { getEl('admin-users-table-body').innerHTML = db.users.map(user => `<tr data-id="${user.id}"><td>${user.id}</td><td>${user.name}</td><td>${user.email}</td><td><span class="status-${user.status.toLowerCase()}">${user.status}</span></td><td><button class="action-btn disable" title="${user.status === 'Active' ? 'Disable' : 'Enable'}"><i class="fas fa-ban"></i></button><button class="action-btn delete_user" title="Delete"><i class="fas fa-trash"></i></button></td></tr>`).join(''); }
+    function renderProvidersContent() { getEl('admin-pending-providers-list').innerHTML = db.serviceProviders.filter(p => !p.verified).map(p => `<div class="pending-item" data-id="${p.id}"><span>${p.businessName} (${p.serviceName})</span><div><button class="action-btn approve" title="Approve"><i class="fas fa-check"></i></button><button class="action-btn reject" title="Reject"><i class="fas fa-times"></i></button></div></div>`).join('') || "<p>No pending approvals.</p>"; getEl('admin-providers-table-body').innerHTML = db.serviceProviders.filter(p => p.verified).map(p => `<tr data-id="${p.id}"><td>${p.id}</td><td>${p.businessName}</td><td>${p.serviceName}</td><td><span class="status-${p.status.toLowerCase()}">${p.status}</span></td><td><button class="action-btn suspend" title="${p.status === 'Active' ? 'Suspend' : 'Unsuspend'}"><i class="fas fa-ban"></i></button><button class="action-btn delete_provider" title="Delete"><i class="fas fa-trash"></i></button></td></tr>`).join(''); }
+    function renderBookingsTable() { getEl('admin-bookings-table-body').innerHTML = db.bookings.map(b => { const user = db.users.find(u => u.id === b.userId) || {name: 'N/A'}; const provider = db.serviceProviders.find(p => p.id === b.providerId) || {businessName: 'N/A'}; return `<tr data-id="${b.id}"><td>${b.id}</td><td>${user.name}</td><td>${provider.businessName}</td><td>${b.date}</td><td><span class="status-${b.status.toLowerCase()}">${b.status}</span></td><td><button class="action-btn delete_booking" title="Cancel Booking"><i class="fas fa-times"></i></button></td></tr>`; }).join(''); }
+    function renderPaymentsTable() { getEl('admin-payments-table-body').innerHTML = db.payments.map(p => { const user = db.users.find(u => u.id === p.userId) || {name: 'N/A'}; return `<tr data-id="${p.id}"><td>${p.id}</td><td>${user.name}</td><td>$${p.amount.toFixed(2)}</td><td><span class="status-${p.status.toLowerCase()}">${p.status}</span></td><td>${p.date}</td><td><button class="action-btn refund" title="Issue Refund"><i class="fas fa-undo"></i></button></td></tr>`; }).join(''); }
+    function renderReviewsList() { getEl('admin-reviews-list').innerHTML = db.reviews.map(r => { const user = db.users.find(u => u.id === r.userId) || {name: 'N/A'}; const provider = db.serviceProviders.find(p => p.id === r.providerId) || {businessName: 'N/A'}; return `<div class="review-card" data-id="${r.id}"><div class="review-card-header"><div><strong>${provider.businessName}</strong> reviewed by <strong>${user.name}</strong><p>Rating: ${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</p></div><div class="review-card-actions"><button class="action-btn delete_review" title="Delete"><i class="fas fa-trash"></i></button></div></div><p>"${r.comment}"</p></div>`; }).join('') || "<p>No reviews to moderate.</p>"; }
+    function renderCategoriesTable() { getEl('admin-categories-table-body').innerHTML = db.categories.map(c => `<tr data-name="${c}"><td>${c}</td><td><button class="action-btn delete_category" title="Delete"><i class="fas fa-trash"></i></button></td></tr>`).join(''); }
+    function renderLogs() { getEl('log-box').textContent = db.logs.join('\n'); }
+
+    // --- MODAL AND USER-FACING RENDER FUNCTIONS ---
+    function setupModalListeners() { const modal = getEl('provider-modal'); const closeBtn = modal.querySelector('.close-modal-btn'); closeBtn.addEventListener('click', () => modal.style.display = 'none'); window.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; }); }
+    function showProviderDetail(providerEmail) { const provider = db.serviceProviders.find(p => p.email === providerEmail); if (!provider) return; const modal = getEl('provider-modal'); const content = getEl('provider-detail-content'); const dayLabels = { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' }; content.innerHTML = `<div class="provider-detail-header"><div class="provider-detail-avatar">${(provider.businessName.charAt(0))}${provider.businessName.split(' ')[1] ? provider.businessName.split(' ')[1].charAt(0) : ''}</div><div class="provider-detail-info"><h2>${provider.businessName}</h2><p>${provider.serviceName} Specialist</p></div></div><div style="margin: 30px 0;"><h3>About Us</h3><p style="line-height: 1.6; color: #64748b;">${provider.description}</p></div><div class="modal-grid"><div><h3>Details</h3><p><strong>Experience:</strong> ${provider.experience} years</p><p><strong>Rating:</strong> ${provider.rating}/5.0 (${provider.reviewCount} reviews)</p></div><div><h3>Availability</h3><div class="provider-services">${(provider.availability || []).map(day => `<span class="service-tag">${dayLabels[day] || day}</span>`).join('')}</div></div></div><div class="modal-actions"><button class="book-now-btn" data-provider-name="${provider.businessName}">Book Now</button></div>`; modal.querySelector('.book-now-btn').addEventListener('click', (e) => { const providerName = e.target.getAttribute('data-provider-name'); getEl('booking-provider-name').textContent = `Booking with: ${providerName}`; modal.style.display = 'none'; showPage('booking'); }); modal.style.display = 'block'; }
+    function renderProvidersForService(serviceName) { const providerGrid = getEl('provider-grid'); getEl('provider-list-title').textContent = `Professionals for: ${serviceName}`; const providers = db.serviceProviders.filter(p => p.verified && p.serviceName === serviceName); if (providers.length === 0) { providerGrid.innerHTML = `<p style="text-align: center;">Sorry, no verified providers found for this service yet.</p>`; return; } providerGrid.innerHTML = providers.map(provider => `<div class="provider-card" data-provider-email="${provider.email}"><div><h3>${provider.businessName}</h3><p class="experience">${provider.experience} years of experience</p></div><button class="view-profile-btn">View Profile</button></div>`).join(''); }
+
+    // Initialize App
+    initialize();
+});
