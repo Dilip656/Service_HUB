@@ -24,7 +24,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/register/provider", async (req, res) => {
     try {
+      console.log("Provider registration request body:", req.body);
       const providerData = insertServiceProviderSchema.parse(req.body);
+      console.log("Parsed provider data:", providerData);
+      
       const existingProvider = await storage.getServiceProviderByEmail(providerData.email);
       
       if (existingProvider) {
@@ -34,7 +37,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const provider = await storage.createServiceProvider(providerData);
       res.json({ provider: { id: provider.id, businessName: provider.businessName, email: provider.email } });
     } catch (error) {
-      res.status(400).json({ message: "Invalid data provided" });
+      console.error("Provider registration error:", error);
+      if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
+        return res.status(400).json({ 
+          message: "Invalid data provided",
+          errors: error.errors
+        });
+      }
+      res.status(400).json({ message: "Invalid data provided", error: error.message });
     }
   });
 
