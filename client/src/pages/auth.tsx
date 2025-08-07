@@ -27,9 +27,9 @@ const providerSignupSchema = z.object({
   phone: z.string().min(10, 'Phone number must be at least 10 digits'),
   serviceName: z.string().min(1, 'Please select a service'),
   serviceCategory: z.string().min(1, 'Service category is required'),
-  experience: z.number().min(0, 'Experience must be a positive number'),
+  experience: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, 'Experience must be a positive number'),
   description: z.string().min(20, 'Description must be at least 20 characters'),
-  hourlyRate: z.number().min(1, 'Hourly rate must be greater than 0'),
+  hourlyRate: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Hourly rate must be greater than 0'),
   location: z.string().min(2, 'Location is required'),
   availability: z.array(z.string()).min(1, 'Please select at least one availability day'),
 });
@@ -140,13 +140,14 @@ export default function Auth() {
 
   const handleProviderSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const data = Object.fromEntries(formData.entries());
+    const htmlFormData = new FormData(e.target as HTMLFormElement);
+    const data = Object.fromEntries(htmlFormData.entries());
     
     // Handle availability checkboxes
-    const availability = Array.from(formData.getAll('availability')) as string[];
+    const availability = Array.from(htmlFormData.getAll('availability')) as string[];
 
-    const providerData = {
+    // First validate with string values
+    const formData = {
       businessName: data.businessName as string,
       ownerName: data.ownerName as string,
       email: data.email as string,
@@ -154,20 +155,26 @@ export default function Auth() {
       phone: data.phone as string,
       serviceName: data.serviceName as string,
       serviceCategory: getServiceCategory(data.serviceName as string),
-      experience: parseInt(data.experience as string),
+      experience: data.experience as string,
       description: data.description as string,
       hourlyRate: data.hourlyRate as string,
       availability,
       location: data.location as string,
-      kycVerified: false,
-      kycDocuments: {
-        submitted_at: new Date().toISOString(),
-      },
-      status: 'Pending',
     };
 
     try {
-      providerSignupSchema.parse(providerData);
+      providerSignupSchema.parse(formData);
+      
+      // Convert data for backend after validation
+      const providerData = {
+        ...formData,
+        experience: parseInt(data.experience as string),
+        kycVerified: false,
+        kycDocuments: {
+          submitted_at: new Date().toISOString(),
+        },
+        status: 'Pending',
+      };
       setFormErrors({});
       providerSignupMutation.mutate(providerData);
     } catch (error) {
