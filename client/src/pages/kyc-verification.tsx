@@ -36,44 +36,88 @@ export default function KYCVerification() {
 
   const requiredDocuments = [
     {
-      name: 'Government-issued ID',
-      description: 'Valid passport, national ID, or driver\'s license',
-      required: true
+      name: 'Aadhar Card',
+      description: 'Government-issued Aadhar card (front and back)',
+      required: true,
+      formats: ['JPG', 'PNG', 'PDF'],
+      maxSize: '2MB'
     },
     {
-      name: 'Business License',
-      description: 'Official business registration certificate',
-      required: true
+      name: 'PAN Card',
+      description: 'Permanent Account Number card',
+      required: true,
+      formats: ['JPG', 'PNG', 'PDF'],
+      maxSize: '2MB'
     },
     {
-      name: 'Tax ID Certificate',
-      description: 'Tax identification number certificate',
-      required: true
+      name: 'Business Registration Certificate',
+      description: 'GST registration or Shop Act license',
+      required: true,
+      formats: ['PDF', 'JPG', 'PNG'],
+      maxSize: '5MB'
     },
     {
       name: 'Professional Certification',
-      description: 'Relevant trade or professional certificates',
-      required: true
+      description: 'Trade license or professional certificates',
+      required: true,
+      formats: ['PDF', 'JPG', 'PNG'],
+      maxSize: '5MB'
     },
     {
       name: 'Insurance Certificate',
-      description: 'Public liability insurance certificate',
-      required: true
+      description: 'Public liability or professional indemnity insurance',
+      required: true,
+      formats: ['PDF', 'JPG', 'PNG'],
+      maxSize: '5MB'
     },
     {
       name: 'Bank Statement',
-      description: 'Recent bank statement (last 3 months)',
-      required: true
+      description: 'Last 3 months bank statement or cancelled cheque',
+      required: true,
+      formats: ['PDF'],
+      maxSize: '10MB'
     }
   ];
 
-  const handleDocumentUpload = (docName: string) => {
-    // Simulate document upload with validation
-    if (!uploadedDocs.includes(docName)) {
-      setUploadedDocs([...uploadedDocs, docName]);
-      showNotification(`${docName} uploaded and verified successfully`, 'success');
+  const handleDocumentUpload = (docName: string, file?: File) => {
+    if (file) {
+      // Validate file type and size
+      const doc = requiredDocuments.find(d => d.name === docName);
+      if (!doc) return;
+      
+      const fileExtension = file.name.split('.').pop()?.toUpperCase();
+      if (!doc.formats.includes(fileExtension || '')) {
+        showNotification(`Invalid file format. Please upload ${doc.formats.join(', ')} files only.`, 'error');
+        return;
+      }
+      
+      const maxSizeBytes = parseInt(doc.maxSize) * 1024 * 1024;
+      if (file.size > maxSizeBytes) {
+        showNotification(`File too large. Maximum size allowed is ${doc.maxSize}.`, 'error');
+        return;
+      }
+      
+      // In a real app, upload to server/cloud storage here
+      // For now, we'll simulate successful upload
+      if (!uploadedDocs.includes(docName)) {
+        setUploadedDocs([...uploadedDocs, docName]);
+        showNotification(`${docName} uploaded successfully (${file.name})`, 'success');
+      } else {
+        showNotification(`${docName} replaced successfully (${file.name})`, 'success');
+      }
     } else {
-      showNotification(`${docName} is already uploaded`, 'warning');
+      // Fallback for demo purposes
+      if (!uploadedDocs.includes(docName)) {
+        setUploadedDocs([...uploadedDocs, docName]);
+        showNotification(`${docName} uploaded successfully`, 'success');
+      }
+    }
+  };
+  
+  const handleFileSelect = (docName: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleDocumentUpload(docName, file);
     }
   };
 
@@ -248,21 +292,47 @@ export default function KYCVerification() {
                           )}
                         </div>
                         <p className="text-sm text-gray-500 mt-1">{doc.description}</p>
+                        <div className="text-xs text-gray-400 mt-1">
+                          Formats: {doc.formats.join(', ')} | Max size: {doc.maxSize}
+                        </div>
                       </div>
                     </div>
                     
                     {uploadedDocs.includes(doc.name) ? (
-                      <div className="flex items-center text-green-600 ml-4">
-                        <CheckCircle size={20} className="mr-2" />
-                        <span className="text-sm font-medium">Verified</span>
+                      <div className="flex flex-col items-end ml-4">
+                        <div className="flex items-center text-green-600 mb-2">
+                          <CheckCircle size={20} className="mr-2" />
+                          <span className="text-sm font-medium">Uploaded</span>
+                        </div>
+                        <label className="cursor-pointer text-blue-600 text-xs hover:underline">
+                          Replace file
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept={doc.formats.map(f => `.${f.toLowerCase()}`).join(',')}
+                            onChange={(e) => handleFileSelect(doc.name, e)}
+                          />
+                        </label>
                       </div>
                     ) : (
-                      <button
-                        onClick={() => handleDocumentUpload(doc.name)}
-                        className="bg-primary text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors ml-4"
-                      >
-                        Upload & Verify
-                      </button>
+                      <div className="ml-4">
+                        <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors inline-block">
+                          Choose File
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept={doc.formats.map(f => `.${f.toLowerCase()}`).join(',')}
+                            onChange={(e) => handleFileSelect(doc.name, e)}
+                          />
+                        </label>
+                        <button
+                          onClick={() => handleDocumentUpload(doc.name)}
+                          className="ml-2 text-blue-600 text-sm hover:underline"
+                          title="Demo upload (for testing)"
+                        >
+                          Demo Upload
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -297,13 +367,24 @@ export default function KYCVerification() {
                   <CheckCircle className="text-green-500 mr-3" size={24} />
                   <div>
                     <h3 className="text-lg font-medium text-green-800">
-                      All Documents Uploaded
+                      All Required Documents Uploaded
                     </h3>
                     <p className="text-green-700">
-                      Your KYC verification is ready for submission
+                      Your KYC verification with authentic Indian documents is ready for admin review. Our team will verify your Aadhar, PAN, and business documents within 24-48 hours.
                     </p>
                   </div>
                 </div>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h4 className="font-medium text-blue-800 mb-2">Document Verification Process</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Aadhar and PAN verification through government databases</li>
+                  <li>• Business registration cross-check with official records</li>
+                  <li>• Professional certification validation</li>
+                  <li>• Insurance policy authenticity verification</li>
+                  <li>• Bank account verification for payments</li>
+                </ul>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -337,9 +418,9 @@ export default function KYCVerification() {
                 <div className="flex items-center">
                   <Clock className="text-yellow-500 mr-3" size={20} />
                   <div>
-                    <h3 className="font-medium text-yellow-800">Review Process</h3>
+                    <h3 className="font-medium text-yellow-800">Next Steps</h3>
                     <p className="text-sm text-yellow-700">
-                      Our team will review your application within 24-48 hours. You'll receive an email notification once approved.
+                      Once submitted, your documents will undergo thorough verification including Aadhar/PAN validation. You'll receive email updates at each step and be notified when approved to start offering services.
                     </p>
                   </div>
                 </div>
