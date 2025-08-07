@@ -119,14 +119,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProviderKycStatus(id: number, verified: boolean): Promise<void> {
-    const updateData: any = { kycVerified: verified };
-    if (verified) {
-      updateData.status = "Active";
-      updateData.kycDocuments = sql`jsonb_set(kyc_documents, '{verified_at}', '"${new Date().toISOString()}"'::jsonb)`;
-    } else {
-      updateData.status = "Rejected";
+    console.log(`Updating KYC status for provider ${id} to ${verified ? 'verified' : 'rejected'}`);
+    
+    try {
+      if (verified) {
+        // Get current KYC documents and add verified timestamp
+        const [provider] = await db.select().from(serviceProviders).where(eq(serviceProviders.id, id));
+        const currentKyc = provider?.kycDocuments || {};
+        const updatedKyc = { ...currentKyc, verified_at: new Date().toISOString() };
+        
+        await db.update(serviceProviders).set({ 
+          kycVerified: true, 
+          status: "Active",
+          kycDocuments: updatedKyc
+        }).where(eq(serviceProviders.id, id));
+      } else {
+        await db.update(serviceProviders).set({ 
+          kycVerified: false, 
+          status: "Rejected" 
+        }).where(eq(serviceProviders.id, id));
+      }
+      
+      console.log(`Successfully updated provider ${id} KYC status to ${verified ? 'approved' : 'rejected'}`);
+    } catch (error) {
+      console.error(`Error updating KYC status for provider ${id}:`, error);
+      throw error;
     }
-    await db.update(serviceProviders).set(updateData).where(eq(serviceProviders.id, id));
   }
 
   async updateProviderKycDocuments(id: number, kycDocuments: any, status: string): Promise<void> {

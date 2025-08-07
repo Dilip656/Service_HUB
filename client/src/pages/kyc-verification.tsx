@@ -35,18 +35,45 @@ export default function KYCVerification() {
   ];
 
   const requiredDocuments = [
-    'Business License',
-    'Tax ID Certificate',
-    'Professional Certification',
-    'Insurance Certificate',
-    'Identity Verification',
+    {
+      name: 'Government-issued ID',
+      description: 'Valid passport, national ID, or driver\'s license',
+      required: true
+    },
+    {
+      name: 'Business License',
+      description: 'Official business registration certificate',
+      required: true
+    },
+    {
+      name: 'Tax ID Certificate',
+      description: 'Tax identification number certificate',
+      required: true
+    },
+    {
+      name: 'Professional Certification',
+      description: 'Relevant trade or professional certificates',
+      required: true
+    },
+    {
+      name: 'Insurance Certificate',
+      description: 'Public liability insurance certificate',
+      required: true
+    },
+    {
+      name: 'Bank Statement',
+      description: 'Recent bank statement (last 3 months)',
+      required: true
+    }
   ];
 
-  const handleDocumentUpload = (docType: string) => {
-    // Simulate document upload
-    if (!uploadedDocs.includes(docType)) {
-      setUploadedDocs([...uploadedDocs, docType]);
-      showNotification(`${docType} uploaded successfully`, 'success');
+  const handleDocumentUpload = (docName: string) => {
+    // Simulate document upload with validation
+    if (!uploadedDocs.includes(docName)) {
+      setUploadedDocs([...uploadedDocs, docName]);
+      showNotification(`${docName} uploaded and verified successfully`, 'success');
+    } else {
+      showNotification(`${docName} is already uploaded`, 'warning');
     }
   };
 
@@ -208,25 +235,33 @@ export default function KYCVerification() {
               <div className="space-y-4">
                 {requiredDocuments.map((doc) => (
                   <div
-                    key={doc}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                    key={doc.name}
+                    className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:border-primary/30 transition-colors"
                   >
-                    <div className="flex items-center">
-                      <FileText className="text-gray-400 mr-3" size={20} />
-                      <span className="font-medium text-gray-700">{doc}</span>
+                    <div className="flex items-start flex-1">
+                      <FileText className="text-gray-400 mr-3 mt-1" size={20} />
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <span className="font-medium text-gray-700">{doc.name}</span>
+                          {doc.required && (
+                            <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">Required</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">{doc.description}</p>
+                      </div>
                     </div>
                     
-                    {uploadedDocs.includes(doc) ? (
-                      <div className="flex items-center text-green-600">
+                    {uploadedDocs.includes(doc.name) ? (
+                      <div className="flex items-center text-green-600 ml-4">
                         <CheckCircle size={20} className="mr-2" />
-                        <span className="text-sm font-medium">Uploaded</span>
+                        <span className="text-sm font-medium">Verified</span>
                       </div>
                     ) : (
                       <button
-                        onClick={() => handleDocumentUpload(doc)}
-                        className="bg-primary text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
+                        onClick={() => handleDocumentUpload(doc.name)}
+                        className="bg-primary text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors ml-4"
                       >
-                        Upload
+                        Upload & Verify
                       </button>
                     )}
                   </div>
@@ -242,10 +277,10 @@ export default function KYCVerification() {
                 </button>
                 <button
                   onClick={() => setCurrentStep(3)}
-                  disabled={uploadedDocs.length < requiredDocuments.length}
+                  disabled={uploadedDocs.length < requiredDocuments.filter(doc => doc.required).length}
                   className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continue to Review
+                  Continue to Review ({uploadedDocs.length}/{requiredDocuments.filter(doc => doc.required).length})
                 </button>
               </div>
             </div>
@@ -283,7 +318,7 @@ export default function KYCVerification() {
                 </div>
                 
                 <div>
-                  <h3 className="font-medium text-gray-700 mb-4">Documents Uploaded</h3>
+                  <h3 className="font-medium text-gray-700 mb-4">Documents Verified ({uploadedDocs.length})</h3>
                   <div className="bg-gray-50 p-4 rounded-lg">
                     {uploadedDocs.map((doc) => (
                       <div key={doc} className="flex items-center text-sm text-green-600 mb-1">
@@ -291,6 +326,9 @@ export default function KYCVerification() {
                         {doc}
                       </div>
                     ))}
+                    {uploadedDocs.length === 0 && (
+                      <p className="text-gray-500 text-sm">No documents uploaded yet</p>
+                    )}
                   </div>
                 </div>
               </div>
