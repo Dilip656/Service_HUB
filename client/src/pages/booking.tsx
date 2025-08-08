@@ -33,7 +33,7 @@ export default function Booking() {
 
   useEffect(() => {
     const name = sessionStorage.getItem('currentProviderName') || 'Service Provider';
-    const rate = sessionStorage.getItem('currentProviderRate') || '500';
+    const rate = sessionStorage.getItem('currentProviderRate') || '100';
     setProviderName(name);
     setProviderRate(rate);
     updateEstimatedAmount(rate, '2'); // Default 2 hours
