@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
+import { reviewAPI } from '@/lib/api';
 
 // Form validation schema for profile updates
 const profileUpdateSchema = z.object({
@@ -25,6 +26,10 @@ export default function UserDashboard() {
   const [activeTab, setActiveTab] = useState(tabParam || 'overview');
   
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
   const queryClient = useQueryClient();
 
   // Get current user
@@ -104,6 +109,46 @@ export default function UserDashboard() {
       return response.json();
     },
   });
+
+  // Review submission mutation
+  const submitReviewMutation = useMutation({
+    mutationFn: (reviewData: any) => reviewAPI.createReview(reviewData),
+    onSuccess: () => {
+      showNotification('Review submitted successfully!', 'success');
+      setIsRatingModalOpen(false);
+      setRating(0);
+      setComment('');
+      setSelectedBooking(null);
+      // Invalidate bookings to refresh any rating status
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings/user', user.id] });
+    },
+    onError: (error: any) => {
+      showNotification(error.message || 'Failed to submit review', 'error');
+    },
+  });
+
+  const handleRateService = (booking: any) => {
+    setSelectedBooking(booking);
+    setIsRatingModalOpen(true);
+  };
+
+  const handleSubmitReview = () => {
+    if (!selectedBooking || rating === 0) {
+      showNotification('Please select a rating', 'error');
+      return;
+    }
+
+    const reviewData = {
+      bookingId: selectedBooking.id,
+      userId: user.id,
+      providerId: selectedBooking.providerId,
+      rating: rating,
+      comment: comment || 'No comment provided',
+      status: 'pending'
+    };
+
+    submitReviewMutation.mutate(reviewData);
+  };
 
   const formatAmountInINR = (amount: string | number) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -293,6 +338,15 @@ export default function UserDashboard() {
                       <div className="text-sm font-medium text-gray-900 mt-1">
                         {formatAmountInINR(booking.amount || 0)}
                       </div>
+                      {booking.status.toLowerCase() === 'completed' && (
+                        <button
+                          onClick={() => handleRateService(booking)}
+                          className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
+                          data-testid="button-rate-service-overview"
+                        >
+                          Rate Service
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -355,6 +409,15 @@ export default function UserDashboard() {
                       <div className="text-sm font-medium text-gray-900 mt-2">
                         {formatAmountInINR(booking.amount || 0)}
                       </div>
+                      {booking.status.toLowerCase() === 'completed' && (
+                        <button
+                          onClick={() => handleRateService(booking)}
+                          className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
+                          data-testid="button-rate-service"
+                        >
+                          Rate Service
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -571,6 +634,79 @@ export default function UserDashboard() {
               </div>
             </form>
           )}
+        </div>
+      )}
+
+      {/* Rating Modal */}
+      {isRatingModalOpen && selectedBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Rate Your Service</h3>
+            
+            <div className="mb-4">
+              <h4 className="font-medium text-gray-900 mb-2">{selectedBooking.serviceName}</h4>
+              <p className="text-sm text-gray-600">
+                Booked on {selectedBooking.bookingDate} at {selectedBooking.bookingTime}
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                How would you rate this service?
+              </label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className={`text-2xl ${
+                      star <= rating ? 'text-yellow-400' : 'text-gray-300'
+                    } hover:text-yellow-400 transition-colors`}
+                    data-testid={`star-${star}`}
+                  >
+                    <Star className={`w-8 h-8 ${star <= rating ? 'fill-current' : ''}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Add a comment (optional)
+              </label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Share your experience..."
+                data-testid="textarea-comment"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleSubmitReview}
+                disabled={rating === 0 || submitReviewMutation.isPending}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                data-testid="button-submit-review"
+              >
+                {submitReviewMutation.isPending ? 'Submitting...' : 'Submit Review'}
+              </button>
+              <button
+                onClick={() => {
+                  setIsRatingModalOpen(false);
+                  setRating(0);
+                  setComment('');
+                  setSelectedBooking(null);
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                data-testid="button-cancel-review"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
