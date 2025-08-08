@@ -52,10 +52,30 @@ export const initializeRazorpayPayment = (
 
 export const loadRazorpayScript = () => {
   return new Promise((resolve) => {
+    // Check if Razorpay is already loaded
+    if (typeof (window as any).Razorpay !== 'undefined') {
+      resolve(true);
+      return;
+    }
+
+    // Check if script already exists
+    const existingScript = document.querySelector('script[src*="razorpay"]');
+    if (existingScript) {
+      resolve(true);
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
+    script.async = true;
+    script.onload = () => {
+      console.log('Razorpay script loaded');
+      resolve(true);
+    };
+    script.onerror = () => {
+      console.error('Failed to load Razorpay script');
+      resolve(false);
+    };
+    document.head.appendChild(script);
   });
 };
