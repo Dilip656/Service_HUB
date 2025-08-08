@@ -161,11 +161,11 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
 
 // Insert schemas - Manual definitions to avoid drizzle-zod version issues
 export const insertUserSchema = z.object({
-  name: z.string(),
-  email: z.string().email(),
-  password: z.string(),
-  phone: z.string().optional(),
-  location: z.string().optional(),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  phone: z.string().regex(/^\d{10,15}$/, 'Phone number must be 10-15 digits'),
+  location: z.string().min(2, 'Location is required'),
   status: z.string().default("Active"),
 });
 

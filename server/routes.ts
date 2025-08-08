@@ -8,7 +8,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/register/user", async (req, res) => {
     try {
+      console.log("User registration request body:", req.body);
       const userData = insertUserSchema.parse(req.body);
+      console.log("Parsed user data:", userData);
+      
       const existingUser = await storage.getUserByEmail(userData.email);
       
       if (existingUser) {
@@ -18,7 +21,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userData);
       res.json({ user: { id: user.id, name: user.name, email: user.email } });
     } catch (error) {
-      res.status(400).json({ message: "Invalid data provided" });
+      console.error("User registration error:", error);
+      if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
+        return res.status(400).json({ 
+          message: "Invalid data provided",
+          errors: error.errors
+        });
+      }
+      res.status(400).json({ message: "Invalid data provided", error: (error as Error).message });
     }
   });
 
