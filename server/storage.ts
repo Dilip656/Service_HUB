@@ -19,7 +19,7 @@ import {
   type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ilike, sql } from "drizzle-orm";
+import { eq, desc, and, or, ilike, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -442,15 +442,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getConversation(senderId: number, receiverId: number, senderType: string, receiverType: string): Promise<Message[]> {
+    // Get messages in both directions for a complete conversation
     return await db
       .select()
       .from(messages)
       .where(
         and(
-          eq(messages.senderId, senderId),
-          eq(messages.receiverId, receiverId),
-          eq(messages.senderType, senderType),
-          eq(messages.receiverType, receiverType)
+          // Messages from sender to receiver OR from receiver to sender
+          or(
+            and(
+              eq(messages.senderId, senderId),
+              eq(messages.receiverId, receiverId),
+              eq(messages.senderType, senderType),
+              eq(messages.receiverType, receiverType)
+            ),
+            and(
+              eq(messages.senderId, receiverId),
+              eq(messages.receiverId, senderId),
+              eq(messages.senderType, receiverType),
+              eq(messages.receiverType, senderType)
+            )
+          )
         )
       )
       .orderBy(desc(messages.createdAt));
