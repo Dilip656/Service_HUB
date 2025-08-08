@@ -17,6 +17,7 @@ import UserDashboard from "@/pages/user-dashboard";
 import ProviderDashboard from "@/pages/provider-dashboard";
 import NotFound from "@/pages/not-found";
 import PaymentInfo from "@/pages/payment-info";
+import PaymentTest from "@/pages/PaymentTest";
 import { PaymentCallback } from "@/components/payment";
 
 function Router() {
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/provider-dashboard" component={ProviderDashboard} />
       <Route path="/payment-callback" component={PaymentCallback} />
       <Route path="/payment-info" component={PaymentInfo} />
+      <Route path="/payment-test" component={PaymentTest} />
       <Route component={NotFound} />
     </Switch>
   );
