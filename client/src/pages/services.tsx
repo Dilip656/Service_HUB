@@ -96,97 +96,133 @@ export default function Services() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      {/* Search and Filters */}
-      <div className="mb-8">
-        <div className="relative mb-6">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search for services like 'Plumbing', 'Cleaning', 'Photography'..."
-            className="block w-full pl-10 pr-3 py-4 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary text-lg"
-          />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Hero Header */}
+      <div className="bg-gradient-primary text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-slide-up">
+            Browse Our Services
+          </h1>
+          <p className="text-xl opacity-90 max-w-2xl mx-auto">
+            Discover trusted professionals for all your service needs
+          </p>
         </div>
-        
-        <div className="flex flex-wrap gap-3 justify-center">
-          <button
-            onClick={() => setActiveFilter('all')}
-            className={`px-6 py-2 rounded-full border transition-colors ${
-              activeFilter === 'all'
-                ? 'bg-primary text-white border-primary'
-                : 'border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
-            }`}
-          >
-            All Services
-          </button>
-          {serviceCategories.map((category) => (
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+        {/* Search and Filters */}
+        <div className="mb-12 animate-slide-up">
+          <div className="relative mb-8">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-6 w-6 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search for services like 'Plumbing', 'Cleaning', 'Photography'..."
+              className="block w-full pl-12 pr-4 py-5 bg-white border border-gray-200 rounded-2xl focus:ring-primary focus:border-primary text-lg shadow-card hover:shadow-elevated transition-all"
+              data-testid="input-search-services"
+            />
+          </div>
+          
+          <div className="flex flex-wrap gap-3 justify-center">
             <button
-              key={category.category}
-              onClick={() => setActiveFilter(category.category)}
-              className={`px-6 py-2 rounded-full border transition-colors ${
-                activeFilter === category.category
-                  ? 'bg-primary text-white border-primary'
-                  : 'border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
+              onClick={() => setActiveFilter('all')}
+              className={`px-8 py-3 rounded-full border-2 transition-all font-semibold hover-lift ${
+                activeFilter === 'all'
+                  ? 'bg-primary text-white border-primary shadow-glow'
+                  : 'bg-white border-gray-200 text-gray-700 hover:border-primary hover:text-primary hover:shadow-card'
               }`}
+              data-testid="filter-all"
             >
-              <i className={`${category.icon} mr-2`}></i>
-              {category.name}
+              All Services
             </button>
+            {serviceCategories.map((category) => (
+              <button
+                key={category.category}
+                onClick={() => setActiveFilter(category.category)}
+                className={`px-8 py-3 rounded-full border-2 transition-all font-semibold hover-lift inline-flex items-center ${
+                  activeFilter === category.category
+                    ? 'bg-primary text-white border-primary shadow-glow'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-primary hover:text-primary hover:shadow-card'
+                }`}
+                data-testid={`filter-${category.category}`}
+              >
+                <i className={`${category.icon} mr-2`}></i>
+                {category.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Services Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredCategories.map((category, index) => (
+            <div
+              key={category.category}
+              className="bg-white rounded-3xl shadow-card hover-lift transition-all duration-300 overflow-hidden animate-scale-in group"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 border-b">
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mr-4 shadow-glow group-hover:shadow-elevated transition-all">
+                    <i className={`${category.icon} text-white text-2xl`}></i>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">{category.name}</h3>
+                    <p className="text-gray-600 text-sm">{category.services.length} Services</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-8">
+                <div className="space-y-4">
+                  {category.services.map((service) => {
+                    const providerCount = getProviderCount(service.name);
+                    return (
+                      <div
+                        key={service.name}
+                        onClick={() => handleServiceClick(service.name)}
+                        className="flex items-center p-4 rounded-xl hover:bg-gradient-primary hover:text-white cursor-pointer transition-all group/item hover-scale"
+                        data-testid={`service-${service.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <div className="w-10 h-10 bg-gray-100 group-hover/item:bg-white/20 rounded-lg flex items-center justify-center mr-4 transition-all">
+                          <i className={`${service.icon} text-gray-600 group-hover/item:text-white transition-colors`}></i>
+                        </div>
+                        <div className="flex-1">
+                          <span className="font-semibold text-lg">{service.name}</span>
+                          <div className="text-sm opacity-80">
+                            {providerCount > 0 ? `${providerCount} Available` : 'Coming Soon'}
+                          </div>
+                        </div>
+                        <div className="ml-auto">
+                          <span className={`text-sm px-3 py-1 rounded-full font-medium transition-all ${
+                            providerCount > 0 
+                              ? 'bg-green-100 text-green-700 group-hover/item:bg-white/20 group-hover/item:text-white'
+                              : 'bg-gray-100 text-gray-500 group-hover/item:bg-white/20 group-hover/item:text-white'
+                          }`}>
+                            {providerCount > 0 ? `${providerCount} Pro${providerCount > 1 ? 's' : ''}` : 'Soon'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
-      </div>
 
-      {/* Services Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCategories.map((category) => (
-          <div
-            key={category.category}
-            className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow"
-          >
-            <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
-                  <i className={`${category.icon} text-primary text-xl`}></i>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900">{category.name}</h3>
-              </div>
+        {filteredCategories.length === 0 && (
+          <div className="text-center py-16 animate-slide-up">
+            <div className="text-gray-400 mb-6">
+              <Search className="w-20 h-20 mx-auto" />
             </div>
-            <div className="p-6">
-              <div className="space-y-3">
-                {category.services.map((service) => (
-                  <div
-                    key={service.name}
-                    onClick={() => handleServiceClick(service.name)}
-                    className="flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group"
-                  >
-                    <i className={`${service.icon} w-5 text-gray-500 group-hover:text-white mr-3`}></i>
-                    <span className="font-medium flex-1">{service.name}</span>
-                    <div className="ml-auto">
-                      <span className="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">
-                        {getProviderCount(service.name)} Providers
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <h3 className="text-2xl font-semibold text-gray-600 mb-3">No services found</h3>
+            <p className="text-gray-500 text-lg">Try adjusting your search terms or filters to find what you're looking for.</p>
           </div>
-        ))}
+        )}
       </div>
-
-      {filteredCategories.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <Search className="w-16 h-16 mx-auto" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">No services found</h3>
-          <p className="text-gray-500">Try adjusting your search terms or filters.</p>
-        </div>
-      )}
     </div>
   );
 }
