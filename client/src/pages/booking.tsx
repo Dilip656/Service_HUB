@@ -9,6 +9,8 @@ import { queryClient } from '@/lib/queryClient';
 import { z } from 'zod';
 
 const bookingSchema = z.object({
+  customerName: z.string().min(2, 'Please enter your full name'),
+  customerPhone: z.string().min(10, 'Please enter a valid phone number').max(15, 'Phone number is too long'),
   serviceAddress: z.string().min(10, 'Please provide a complete address'),
   bookingDate: z.string().min(1, 'Please select a date'),
   bookingTime: z.string().min(1, 'Please select a time'),
@@ -26,6 +28,8 @@ export default function Booking() {
   const [bookingData, setBookingData] = useState<any>(null);
   const [estimatedAmount, setEstimatedAmount] = useState('0');
   const [estimatedHours, setEstimatedHours] = useState('2');
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
 
   useEffect(() => {
     const name = sessionStorage.getItem('currentProviderName') || 'Service Provider';
@@ -33,6 +37,14 @@ export default function Booking() {
     setProviderName(name);
     setProviderRate(rate);
     updateEstimatedAmount(rate, '2'); // Default 2 hours
+
+    // Pre-populate customer details if user is logged in
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      setCustomerName(user.name || '');
+      setCustomerPhone(user.phone || '');
+    }
   }, []);
 
   const bookingMutation = useMutation({
@@ -99,14 +111,7 @@ export default function Booking() {
       return;
     }
 
-    // Get current authenticated user and validate required info
     const user = JSON.parse(userStr);
-    if (!user.name || !user.phone) {
-      showNotification('Please complete your profile with name and phone number before booking', 'error');
-      setLocation('/user-dashboard?tab=profile');
-      return;
-    }
-
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
 
@@ -122,13 +127,11 @@ export default function Booking() {
         return;
       }
 
-      // User validation already done above
-
       bookingMutation.mutate({
         userId: user.id,
         providerId: parseInt(providerId),
-        customerName: user.name,
-        customerPhone: user.phone,
+        customerName: data.customerName as string,
+        customerPhone: data.customerPhone as string,
         serviceName,
         bookingDate: data.bookingDate as string,
         bookingTime: data.bookingTime as string,
@@ -164,6 +167,42 @@ export default function Booking() {
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold text-primary">Booking with: {providerName}</h3>
             <p className="text-gray-600">Service details will be confirmed by the provider</p>
+          </div>
+          
+          {/* Customer Information */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Your Full Name</label>
+              <input
+                type="text"
+                name="customerName"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                required
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                placeholder="Enter your full name"
+                data-testid="input-customer-name"
+              />
+              {formErrors.customerName && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.customerName}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+              <input
+                type="tel"
+                name="customerPhone"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                required
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                placeholder="Enter your phone number"
+                data-testid="input-customer-phone"
+              />
+              {formErrors.customerPhone && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.customerPhone}</p>
+              )}
+            </div>
           </div>
           
           <div>
