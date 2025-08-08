@@ -226,6 +226,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Utility route to recalculate all provider ratings
+  app.post("/api/admin/recalculate-ratings", async (req, res) => {
+    try {
+      await storage.recalculateAllProviderRatings();
+      res.json({ message: "All provider ratings recalculated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to recalculate ratings" });
+    }
+  });
+
   // User profile routes
   app.put("/api/users/:id", async (req, res) => {
     try {

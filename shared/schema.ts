@@ -74,7 +74,7 @@ export const payments = pgTable("payments", {
 
 export const reviews = pgTable("reviews", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-  bookingId: integer("booking_id").notNull(),
+  bookingId: integer("booking_id"), // Made optional for direct reviews
   userId: integer("user_id").notNull(),
   providerId: integer("provider_id").notNull(),
   rating: integer("rating").notNull(),
@@ -196,10 +196,10 @@ export const insertPaymentSchema = z.object({
 });
 
 export const insertReviewSchema = z.object({
-  bookingId: z.number(),
+  bookingId: z.number().optional(), // Made optional for direct reviews
   userId: z.number(),
   providerId: z.number(),
-  rating: z.number(),
+  rating: z.number().min(1).max(5),
   comment: z.string(),
   status: z.string().default("pending"),
 });

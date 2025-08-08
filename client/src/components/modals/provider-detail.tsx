@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { X, Star, Shield, Clock, Phone, Mail, MapPin, DollarSign } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Star, Shield, Clock, Phone, Mail, MapPin, DollarSign, MessageSquare } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { ServiceProvider } from '@shared/schema';
 import { useNotification } from '@/components/ui/notification';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { reviewAPI } from '@/lib/api';
 
 interface ProviderDetailModalProps {
   provider: ServiceProvider | null;
@@ -13,6 +15,59 @@ interface ProviderDetailModalProps {
 export default function ProviderDetailModal({ provider, isOpen, onClose }: ProviderDetailModalProps) {
   const [, setLocation] = useLocation();
   const { showNotification } = useNotification();
+  const queryClient = useQueryClient();
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  
+  // Get reviews for this provider
+  const { data: reviews } = useQuery({
+    queryKey: ['/api/reviews', provider?.id],
+    queryFn: () => reviewAPI.getReviews(provider!.id),
+    enabled: !!provider?.id && isOpen,
+  });
+
+  // Review submission mutation
+  const submitReviewMutation = useMutation({
+    mutationFn: (reviewData: any) => reviewAPI.createReview(reviewData),
+    onSuccess: () => {
+      showNotification('Review submitted successfully!', 'success');
+      setIsRatingModalOpen(false);
+      setRating(0);
+      setComment('');
+      queryClient.invalidateQueries({ queryKey: ['/api/reviews', provider?.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/providers'] });
+    },
+    onError: (error: any) => {
+      showNotification(error.message || 'Failed to submit review', 'error');
+    },
+  });
+
+  const handleSubmitReview = () => {
+    if (!provider || rating === 0) {
+      showNotification('Please select a rating', 'error');
+      return;
+    }
+
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      showNotification('Please sign in to submit a review', 'error');
+      return;
+    }
+
+    const user = JSON.parse(userStr);
+    const reviewData = {
+      userId: user.id,
+      providerId: provider.id,
+      rating: rating,
+      comment: comment || 'No comment provided',
+      status: 'pending'
+    };
+
+    submitReviewMutation.mutate(reviewData);
+  };
+
+  const approvedReviews = reviews?.filter((review: any) => review.status === 'approved') || [];
 
   if (!isOpen || !provider) return null;
 
@@ -121,26 +176,71 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Rating & Reviews</h3>
-                <div className="flex items-center mb-2">
-                  <div className="flex text-yellow-400 text-lg mr-3">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-5 h-5 ${
-                          i < Math.floor(Number(provider.rating) || 0) ? 'fill-current' : ''
-                        }`}
-                      />
-                    ))}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <div className="flex text-yellow-400 text-lg mr-3">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 ${
+                            i < Math.floor(Number(provider.rating) || 0) ? 'fill-current' : ''
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-2xl font-bold text-gray-900">
+                      {provider.rating || 'New'}
+                    </span>
                   </div>
-                  <span className="text-2xl font-bold text-gray-900">
-                    {provider.rating || 'New'}
-                  </span>
+                  <button
+                    onClick={() => setIsRatingModalOpen(true)}
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    <Star className="w-4 h-4 inline mr-1" />
+                    Rate Service
+                  </button>
                 </div>
                 {provider.reviewCount ? (
-                  <p className="text-gray-600">{provider.reviewCount} reviews</p>
+                  <p className="text-gray-600 mb-4">{provider.reviewCount} reviews</p>
                 ) : (
-                  <p className="text-gray-600">No reviews yet</p>
+                  <p className="text-gray-600 mb-4">No reviews yet</p>
                 )}
+                
+                {/* Reviews List */}
+                <div className="max-h-48 overflow-y-auto space-y-3">
+                  {approvedReviews.length > 0 ? (
+                    approvedReviews.slice(0, 3).map((review: any) => (
+                      <div key={review.id} className="border-l-4 border-blue-200 pl-3 py-2">
+                        <div className="flex items-center mb-1">
+                          <div className="flex text-yellow-400 text-sm mr-2">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-3 h-3 ${
+                                  i < review.rating ? 'fill-current' : ''
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm font-medium text-gray-900">
+                            {review.rating}/5
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700">{review.comment}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(review.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">No reviews available yet</p>
+                  )}
+                  {approvedReviews.length > 3 && (
+                    <p className="text-sm text-blue-600 cursor-pointer hover:underline">
+                      View all {approvedReviews.length} reviews
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -216,6 +316,67 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
             </div>
           )}
         </div>
+        
+        {/* Rating Modal */}
+        {isRatingModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Rate {provider?.businessName}</h3>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  How would you rate this service provider?
+                </label>
+                <div className="flex gap-1 justify-center">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setRating(star)}
+                      className={`text-3xl ${
+                        star <= rating ? 'text-yellow-400' : 'text-gray-300'
+                      } hover:text-yellow-400 transition-colors`}
+                    >
+                      <Star className={`w-8 h-8 ${star <= rating ? 'fill-current' : ''}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Add a comment (optional)
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Share your experience..."
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSubmitReview}
+                  disabled={rating === 0 || submitReviewMutation.isPending}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {submitReviewMutation.isPending ? 'Submitting...' : 'Submit Review'}
+                </button>
+                <button
+                  onClick={() => {
+                    setIsRatingModalOpen(false);
+                    setRating(0);
+                    setComment('');
+                  }}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

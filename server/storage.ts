@@ -309,7 +309,39 @@ export class DatabaseStorage implements IStorage {
       .insert(reviews)
       .values(insertReview)
       .returning();
+    
+    // Update provider rating and review count
+    await this.updateProviderRating(insertReview.providerId);
+    
     return review;
+  }
+
+  async updateProviderRating(providerId: number): Promise<void> {
+    // Get all approved reviews for this provider
+    const providerReviews = await db
+      .select()
+      .from(reviews)
+      .where(and(
+        eq(reviews.providerId, providerId),
+        eq(reviews.status, "approved")
+      ));
+    
+    const reviewCount = providerReviews.length;
+    let averageRating = null;
+    
+    if (reviewCount > 0) {
+      const totalRating = providerReviews.reduce((sum, review) => sum + review.rating, 0);
+      averageRating = (totalRating / reviewCount).toFixed(2);
+    }
+    
+    // Update provider with new rating and review count
+    await db
+      .update(serviceProviders)
+      .set({ 
+        rating: averageRating,
+        reviewCount: reviewCount
+      })
+      .where(eq(serviceProviders.id, providerId));
   }
 
   async getProviderReviews(providerId: number): Promise<Review[]> {
@@ -321,11 +353,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateReviewStatus(id: number, status: string): Promise<void> {
+    // Get the review to find the provider ID
+    const [review] = await db.select().from(reviews).where(eq(reviews.id, id));
+    
     await db.update(reviews).set({ status }).where(eq(reviews.id, id));
+    
+    // If status changed to approved or unapproved, update provider rating
+    if (review && (status === "approved" || status === "pending")) {
+      await this.updateProviderRating(review.providerId);
+    }
   }
 
   async getAllReviews(): Promise<Review[]> {
     return await db.select().from(reviews).orderBy(desc(reviews.createdAt));
+  }
+
+  async recalculateAllProviderRatings(): Promise<void> {
+    const allProviders = await db.select().from(serviceProviders);
+    
+    for (const provider of allProviders) {
+      await this.updateProviderRating(provider.id);
+    }
   }
 
   // Dashboard Stats
