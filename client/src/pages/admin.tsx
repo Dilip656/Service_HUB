@@ -416,11 +416,10 @@ function ProvidersView() {
 
   const pendingKycProviders = providers?.filter((p: any) => {
     const hasKycDocuments = p.kycDocuments && 
-      p.kycDocuments.uploaded_documents && 
-      p.kycDocuments.uploaded_documents.length > 0;
-    const isPendingReview = p.status === 'Pending KYC Review' || 
-      (hasKycDocuments && !p.kycVerified);
-    return !p.kycVerified && isPendingReview;
+      (p.kycDocuments.uploaded_documents && p.kycDocuments.uploaded_documents.length > 0 ||
+       p.kycDocuments.status === 'pending_review');
+    const isPendingReview = p.status === 'Pending KYC Review' || p.status === 'Pending';
+    return !p.kycVerified && (isPendingReview || hasKycDocuments);
   }) || [];
   
   console.log('All providers:', providers);
