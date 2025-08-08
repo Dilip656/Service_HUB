@@ -19,7 +19,7 @@ import {
   type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, sql } from "drizzle-orm";
+import { eq, desc, and, or, ilike, sql, ne } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -320,13 +320,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProviderRating(providerId: number): Promise<void> {
-    // Get all approved reviews for this provider
+    // Get all approved reviews for this provider (excluding rejected ones)
     const providerReviews = await db
       .select()
       .from(reviews)
       .where(and(
         eq(reviews.providerId, providerId),
-        eq(reviews.status, "approved")
+        ne(reviews.status, "rejected")
       ));
     
     const reviewCount = providerReviews.length;
@@ -348,10 +348,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProviderReviews(providerId: number): Promise<Review[]> {
+    // Return all reviews except rejected ones
     return await db
       .select()
       .from(reviews)
-      .where(eq(reviews.providerId, providerId))
+      .where(and(
+        eq(reviews.providerId, providerId),
+        ne(reviews.status, "rejected")
+      ))
       .orderBy(desc(reviews.createdAt));
   }
 
@@ -361,8 +365,8 @@ export class DatabaseStorage implements IStorage {
     
     await db.update(reviews).set({ status }).where(eq(reviews.id, id));
     
-    // If status changed to approved or unapproved, update provider rating
-    if (review && (status === "approved" || status === "pending")) {
+    // Update provider rating whenever review status changes
+    if (review) {
       await this.updateProviderRating(review.providerId);
     }
   }

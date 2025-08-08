@@ -146,8 +146,7 @@ export default function UserDashboard() {
       userId: user.id,
       providerId: selectedBooking.providerId,
       rating: rating,
-      comment: comment || 'No comment provided',
-      status: 'pending'
+      comment: comment || 'No comment provided'
     };
 
     submitReviewMutation.mutate(reviewData);

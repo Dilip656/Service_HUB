@@ -62,14 +62,13 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
       userId: user.id,
       providerId: provider.id,
       rating: rating,
-      comment: comment || 'No comment provided',
-      status: 'pending'
+      comment: comment || 'No comment provided'
     };
 
     submitReviewMutation.mutate(reviewData);
   };
 
-  const approvedReviews = reviews?.filter((review: any) => review.status === 'approved') || [];
+  const visibleReviews = reviews?.filter((review: any) => review.status !== 'rejected') || [];
 
   if (!isOpen || !provider) return null;
 
@@ -210,8 +209,8 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
                 
                 {/* Reviews List */}
                 <div className="max-h-48 overflow-y-auto space-y-3">
-                  {approvedReviews.length > 0 ? (
-                    approvedReviews.slice(0, 3).map((review: any) => (
+                  {visibleReviews.length > 0 ? (
+                    visibleReviews.slice(0, 3).map((review: any) => (
                       <div key={review.id} className="border-l-4 border-blue-200 pl-3 py-2">
                         <div className="flex items-center mb-1">
                           <div className="flex text-yellow-400 text-sm mr-2">
@@ -237,9 +236,9 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
                   ) : (
                     <p className="text-sm text-gray-500 italic">No reviews available yet</p>
                   )}
-                  {approvedReviews.length > 3 && (
+                  {visibleReviews.length > 3 && (
                     <p className="text-sm text-blue-600 cursor-pointer hover:underline">
-                      View all {approvedReviews.length} reviews
+                      View all {visibleReviews.length} reviews
                     </p>
                   )}
                 </div>
