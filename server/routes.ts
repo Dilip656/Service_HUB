@@ -63,6 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password, type } = req.body;
+      console.log("Login attempt:", { email, type, passwordLength: password?.length });
       
       if (type === "admin") {
         const admin = await storage.validateAdminCredentials(email, password);
@@ -74,20 +75,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (type === "provider") {
         const provider = await storage.getServiceProviderByEmail(email);
+        console.log("Provider found:", provider ? { id: provider.id, email: provider.email, hasPassword: !!provider.password } : "not found");
         if (provider && provider.password === password) {
           res.json({ user: { id: provider.id, name: provider.businessName, email: provider.email, type: "provider" } });
         } else {
+          console.log("Provider login failed - password match:", provider ? provider.password === password : "no provider");
           res.status(401).json({ message: "Invalid credentials" });
         }
       } else {
         const user = await storage.getUserByEmail(email);
+        console.log("User found:", user ? { id: user.id, email: user.email, hasPassword: !!user.password } : "not found");
         if (user && user.password === password) {
           res.json({ user: { id: user.id, name: user.name, email: user.email, type: "user" } });
         } else {
+          console.log("User login failed - password match:", user ? user.password === password : "no user");
           res.status(401).json({ message: "Invalid credentials" });
         }
       }
     } catch (error) {
+      console.error("Login error:", error);
       res.status(400).json({ message: "Login failed" });
     }
   });
