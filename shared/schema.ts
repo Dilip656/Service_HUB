@@ -79,7 +79,7 @@ export const reviews = pgTable("reviews", {
   providerId: integer("provider_id").notNull(),
   rating: integer("rating").notNull(),
   comment: text("comment").notNull(),
-  status: text("status").notNull().default("pending"),
+  status: text("status").notNull().default("approved"),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
