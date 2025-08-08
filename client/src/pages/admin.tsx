@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
-import { adminAPI, authAPI, providerAPI, bookingAPI, paymentAPI, reviewAPI } from '@/lib/api';
+import { adminAPI, authAPI, providerAPI, bookingAPI, paymentAPI, reviewAPI, servicesAPI } from '@/lib/api';
 import { useNotification } from '@/components/ui/notification';
 import { useLocation } from 'wouter';
 import { RealPaymentSetup } from '@/components/payment';
 import AdminSettingsComponent from './admin-settings';
+import { ServicesView } from './admin-services';
 import { 
   Shield, 
   Users, 
@@ -20,7 +21,9 @@ import {
   X,
   Clock,
   LogOut,
-  Settings
+  Settings,
+  Wrench,
+  Plus
 } from 'lucide-react';
 
 export default function Admin() {
@@ -160,6 +163,14 @@ export default function Admin() {
               <Star className="w-5 h-5 mr-3" /> Reviews
             </button>
             <button
+              onClick={() => setActiveView('services')}
+              className={`w-full flex items-center px-6 py-3 text-left hover:bg-gray-800 transition-colors ${
+                activeView === 'services' ? 'bg-primary text-white font-bold' : 'text-gray-300'
+              }`}
+            >
+              <Wrench className="w-5 h-5 mr-3" /> Services Management
+            </button>
+            <button
               onClick={() => setActiveView('settings')}
               className={`w-full flex items-center px-6 py-3 text-left hover:bg-gray-800 transition-colors ${
                 activeView === 'settings' ? 'bg-primary text-white font-bold' : 'text-gray-300'
@@ -192,6 +203,7 @@ export default function Admin() {
           {activeView === 'bookings' && <BookingsView />}
           {activeView === 'payments' && <PaymentsView />}
           {activeView === 'reviews' && <ReviewsView />}
+          {activeView === 'services' && <ServicesView />}
           {activeView === 'settings' && <AdminSettingsComponent />}
         </main>
       </div>

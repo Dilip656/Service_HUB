@@ -5,6 +5,7 @@ import {
   payments, 
   reviews,
   messages,
+  services,
   type User, 
   type InsertUser,
   type ServiceProvider,
@@ -19,7 +20,9 @@ import {
   type InsertMessage,
   adminSettings,
   type AdminSettings,
-  type InsertAdminSettings
+  type InsertAdminSettings,
+  type Service,
+  type InsertService
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, sql, ne } from "drizzle-orm";
@@ -83,6 +86,13 @@ export interface IStorage {
   createAdminSettings(settings: InsertAdminSettings): Promise<AdminSettings>;
   updateAdminSettings(id: number, settings: Partial<InsertAdminSettings>): Promise<AdminSettings>;
   validateAdminCredentials(email: string, password: string): Promise<AdminSettings | undefined>;
+
+  // Services
+  getAllServices(): Promise<Service[]>;
+  getActiveServices(): Promise<Service[]>;
+  createService(service: InsertService): Promise<Service>;
+  updateService(id: number, serviceData: Partial<InsertService>): Promise<Service>;
+  deleteService(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -534,6 +544,32 @@ export class DatabaseStorage implements IStorage {
         eq(adminSettings.isActive, true)
       ));
     return admin || undefined;
+  }
+
+  // Services
+  async getAllServices(): Promise<Service[]> {
+    return await db.select().from(services).orderBy(desc(services.createdAt));
+  }
+
+  async getActiveServices(): Promise<Service[]> {
+    return await db.select().from(services).where(eq(services.isActive, true)).orderBy(services.name);
+  }
+
+  async createService(insertService: InsertService): Promise<Service> {
+    const [service] = await db.insert(services).values(insertService).returning();
+    return service;
+  }
+
+  async updateService(id: number, serviceData: Partial<InsertService>): Promise<Service> {
+    const [service] = await db.update(services).set({
+      ...serviceData,
+      updatedAt: sql`now()`
+    }).where(eq(services.id, id)).returning();
+    return service;
+  }
+
+  async deleteService(id: number): Promise<void> {
+    await db.delete(services).where(eq(services.id, id));
   }
 }
 

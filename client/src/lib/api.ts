@@ -170,3 +170,27 @@ export const messageAPI = {
     return res.json();
   },
 };
+
+// Services API
+export const servicesAPI = {
+  getAllServices: async (activeOnly: boolean = false) => {
+    const params = activeOnly ? '?active=true' : '';
+    const res = await apiRequest("GET", `/api/services${params}`);
+    return res.json();
+  },
+
+  createService: async (serviceData: any) => {
+    const res = await apiRequest("POST", "/api/services", serviceData);
+    return res.json();
+  },
+
+  updateService: async (id: number, serviceData: any) => {
+    const res = await apiRequest("PUT", `/api/services/${id}`, serviceData);
+    return res.json();
+  },
+
+  deleteService: async (id: number) => {
+    const res = await apiRequest("DELETE", `/api/services/${id}`);
+    return res.json();
+  },
+};
