@@ -484,6 +484,33 @@ export default function Auth() {
           <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
           <p className="mt-2 text-gray-600">Sign in to your ServiceHub account</p>
         </div>
+        
+        {/* Account Type Toggle */}
+        <div className="flex bg-gray-100 p-1 rounded-lg">
+          <button
+            type="button"
+            onClick={() => setIsProvider(false)}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              !isProvider
+                ? 'bg-white text-primary shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Customer Login
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsProvider(true)}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              isProvider
+                ? 'bg-white text-primary shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Provider Login
+          </button>
+        </div>
+
         <form onSubmit={handleLogin} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
