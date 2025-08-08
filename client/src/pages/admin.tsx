@@ -323,6 +323,8 @@ function UsersView() {
     return <div>Loading users...</div>;
   }
 
+  console.log('Users data:', users);
+
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-6">User Management</h2>
