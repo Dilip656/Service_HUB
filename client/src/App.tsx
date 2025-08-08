@@ -13,6 +13,7 @@ import Booking from "@/pages/booking";
 import Admin from "@/pages/admin";
 import KYCVerification from "@/pages/kyc-verification";
 import NotFound from "@/pages/not-found";
+import { PaymentCallback } from "@/components/payment";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/booking" component={Booking} />
       <Route path="/admin" component={Admin} />
       <Route path="/kyc-verification" component={KYCVerification} />
+      <Route path="/payment-callback" component={PaymentCallback} />
       <Route component={NotFound} />
     </Switch>
   );
