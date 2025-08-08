@@ -16,7 +16,7 @@ const userSignupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters').regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one uppercase letter, one lowercase letter, and one number'),
-  phone: z.string().regex(/^\d{10,15}$/, 'Phone number must be 10-15 digits'),
+  phone: z.string().regex(/^(\+91[- ]?)?[6-9]\d{9}$/, 'Please enter a valid Indian phone number (10 digits starting with 6-9 or with +91)'),
   location: z.string().min(2, 'Location is required'),
 });
 
@@ -25,12 +25,12 @@ const providerSignupSchema = z.object({
   ownerName: z.string().min(2, 'Owner name is required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters').regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one uppercase letter, one lowercase letter, and one number'),
-  phone: z.string().regex(/^\d{10,15}$/, 'Phone number must be 10-15 digits'),
+  phone: z.string().regex(/^(\+91[- ]?)?[6-9]\d{9}$/, 'Please enter a valid Indian phone number (10 digits starting with 6-9 or with +91)'),
   serviceName: z.string().min(1, 'Please select a service'),
   serviceCategory: z.string().min(1, 'Service category is required'),
   experience: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 50, 'Experience must be between 0 and 50 years'),
   description: z.string().min(20, 'Description must be at least 20 characters'),
-  hourlyRate: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) <= 10000, 'Hourly rate must be between $1 and $10,000'),
+  hourlyRate: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) <= 50000, 'Hourly rate must be between ₹1 and ₹50,000'),
   location: z.string().min(2, 'Location is required'),
   availability: z.array(z.string()).min(1, 'Please select at least one availability day'),
 });
@@ -425,7 +425,7 @@ export default function Auth() {
                   {formErrors.experience && <p className="text-red-500 text-sm mt-1">{formErrors.experience}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate ($)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate (₹)</label>
                   <input
                     type="number"
                     name="hourlyRate"
