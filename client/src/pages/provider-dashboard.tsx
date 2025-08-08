@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Calendar, Clock, MapPin, DollarSign, Star, ChevronRight, User, TrendingUp, Shield, Users, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, DollarSign, Star, ChevronRight, User, TrendingUp, Shield, Users, CheckCircle, MessageSquare } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useNotification } from '@/components/ui/notification';
 import { queryClient } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { messageAPI } from '@/lib/api';
+import MessagingModal from '@/components/modals/messaging-modal';
 
 const profileUpdateSchema = z.object({
   businessName: z.string().min(2, 'Business name must be at least 2 characters'),
@@ -22,6 +24,8 @@ export default function ProviderDashboard() {
   const { showNotification } = useNotification();
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isMessagingModalOpen, setIsMessagingModalOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
   // Get current provider
   const userStr = localStorage.getItem('user');
@@ -58,6 +62,27 @@ export default function ProviderDashboard() {
       const response = await fetch(`/api/payments/provider/${user.id}`);
       if (!response.ok) throw new Error('Failed to fetch payments');
       return response.json();
+    },
+  });
+
+  // Fetch provider's messages
+  const { data: messages, isLoading: messagesLoading } = useQuery({
+    queryKey: ['/api/messages/user', user.id, 'provider'],
+    queryFn: async () => {
+      const response = await fetch(`/api/messages/user/${user.id}/provider`);
+      if (!response.ok) throw new Error('Failed to fetch messages');
+      return response.json();
+    },
+  });
+
+  // Get unread message count
+  const { data: unreadCount } = useQuery({
+    queryKey: ['/api/messages/unread', user.id, 'provider'],
+    queryFn: async () => {
+      const response = await fetch(`/api/messages/unread/${user.id}/provider`);
+      if (!response.ok) throw new Error('Failed to fetch unread count');
+      const data = await response.json();
+      return data.count;
     },
   });
 
@@ -310,6 +335,23 @@ export default function ProviderDashboard() {
             Earnings
           </button>
           <button
+            onClick={() => setActiveTab('messages')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'messages'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-center">
+              Messages
+              {unreadCount > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+          </button>
+          <button
             onClick={() => setActiveTab('profile')}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'profile'
@@ -550,6 +592,115 @@ export default function ProviderDashboard() {
         </div>
       )}
 
+      {activeTab === 'messages' && (
+        <div className="bg-white rounded-xl border p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Customer Messages</h2>
+          </div>
+          
+          {messagesLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse p-4 border rounded-lg">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div>
+              {messages && messages.length > 0 ? (
+                <div className="space-y-4">
+                  {/* Group messages by sender to create conversations */}
+                  {Object.entries(
+                    messages.reduce((acc: any, message: any) => {
+                      const key = `${message.senderId}-${message.senderType}`;
+                      if (!acc[key]) {
+                        acc[key] = {
+                          senderId: message.senderId,
+                          senderType: message.senderType,
+                          senderName: message.senderName || `User ${message.senderId}`,
+                          messages: [],
+                          lastMessageDate: message.createdAt,
+                          unreadCount: 0
+                        };
+                      }
+                      acc[key].messages.push(message);
+                      if (new Date(message.createdAt) > new Date(acc[key].lastMessageDate)) {
+                        acc[key].lastMessageDate = message.createdAt;
+                      }
+                      if (!message.isRead) {
+                        acc[key].unreadCount += 1;
+                      }
+                      return acc;
+                    }, {})
+                  )
+                    .sort(([, a]: any, [, b]: any) => new Date(b.lastMessageDate).getTime() - new Date(a.lastMessageDate).getTime())
+                    .map(([key, conversation]: any) => (
+                    <div key={key} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                              <User className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900 flex items-center">
+                                {conversation.senderName}
+                                {conversation.unreadCount > 0 && (
+                                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                    {conversation.unreadCount}
+                                  </span>
+                                )}
+                              </h4>
+                              <p className="text-sm text-gray-600">
+                                {conversation.messages[conversation.messages.length - 1]?.subject}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(conversation.lastMessageDate).toLocaleDateString()} at {new Date(conversation.lastMessageDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-2 text-sm text-gray-700">
+                            <strong>Latest:</strong> {conversation.messages[conversation.messages.length - 1]?.message.substring(0, 100)}
+                            {conversation.messages[conversation.messages.length - 1]?.message.length > 100 && '...'}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-500">
+                            {conversation.messages.length} message{conversation.messages.length !== 1 ? 's' : ''}
+                          </span>
+                          <button
+                            onClick={() => {
+                              setSelectedCustomer({
+                                id: conversation.senderId,
+                                name: conversation.senderName,
+                                type: conversation.senderType
+                              });
+                              setIsMessagingModalOpen(true);
+                            }}
+                            className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center"
+                          >
+                            <MessageSquare className="w-3 h-3 mr-1" />
+                            Reply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">No messages yet</h3>
+                  <p className="text-gray-500">Customer messages will appear here when they contact you</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === 'profile' && provider && (
         <div className="bg-white rounded-xl border p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Business Profile</h3>
@@ -747,6 +898,25 @@ export default function ProviderDashboard() {
             </form>
           )}
         </div>
+      )}
+      
+      {/* Messaging Modal */}
+      {isMessagingModalOpen && selectedCustomer && (
+        <MessagingModal
+          isOpen={isMessagingModalOpen}
+          onClose={() => {
+            setIsMessagingModalOpen(false);
+            setSelectedCustomer(null);
+            // Refresh messages and unread count after closing modal
+            queryClient.invalidateQueries({ queryKey: ['/api/messages/user', user.id, 'provider'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/messages/unread', user.id, 'provider'] });
+          }}
+          receiverId={selectedCustomer.id}
+          receiverType={selectedCustomer.type}
+          receiverName={selectedCustomer.name}
+          senderType="provider"
+          senderId={user.id}
+        />
       )}
     </div>
   );
