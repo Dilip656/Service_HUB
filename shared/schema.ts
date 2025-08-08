@@ -130,34 +130,64 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
   }),
 }));
 
-// Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
+// Insert schemas - Manual definitions to avoid drizzle-zod version issues
+export const insertUserSchema = z.object({
+  name: z.string(),
+  email: z.string().email(),
+  password: z.string(),
+  phone: z.string().optional(),
+  location: z.string().optional(),
+  status: z.string().default("Active"),
 });
 
-export const insertServiceProviderSchema = createInsertSchema(serviceProviders).omit({
-  id: true,
-  createdAt: true,
-  rating: true,
-  reviewCount: true,
-  lastBooking: true,
+export const insertServiceProviderSchema = z.object({
+  businessName: z.string(),
+  ownerName: z.string(),
+  email: z.string().email(),
+  password: z.string(),
+  phone: z.string(),
+  serviceName: z.string(),
+  serviceCategory: z.string(),
+  experience: z.number(),
+  description: z.string(),
+  hourlyRate: z.string(), // Using string for decimal compatibility
+  availability: z.array(z.string()).optional(),
+  location: z.string(),
+  kycVerified: z.boolean().default(false),
+  kycDocuments: z.any().optional(),
+  status: z.string().default("Pending"),
 });
 
-export const insertBookingSchema = createInsertSchema(bookings).omit({
-  id: true,
-  createdAt: true,
-  completedAt: true,
-  cancelledAt: true,
+export const insertBookingSchema = z.object({
+  userId: z.number(),
+  providerId: z.number(),
+  serviceName: z.string(),
+  bookingDate: z.string(),
+  bookingTime: z.string(),
+  serviceAddress: z.string(),
+  requirements: z.string().optional(),
+  status: z.string().default("Pending"),
+  amount: z.string().optional(), // Using string for decimal compatibility
 });
 
-export const insertPaymentSchema = createInsertSchema(payments).omit({
-  createdAt: true,
+export const insertPaymentSchema = z.object({
+  id: z.string(),
+  bookingId: z.number(),
+  userId: z.number(),
+  providerId: z.number(),
+  amount: z.string(), // Using string for decimal compatibility
+  paymentMethod: z.string(),
+  status: z.string().default("Pending"),
+  transactionDate: z.date().optional(),
 });
 
-export const insertReviewSchema = createInsertSchema(reviews).omit({
-  id: true,
-  createdAt: true,
+export const insertReviewSchema = z.object({
+  bookingId: z.number(),
+  userId: z.number(),
+  providerId: z.number(),
+  rating: z.number(),
+  comment: z.string(),
+  status: z.string().default("pending"),
 });
 
 // Types
