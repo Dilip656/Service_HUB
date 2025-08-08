@@ -4,12 +4,14 @@ import { Link, useLocation } from 'wouter';
 import { useMutation } from '@tanstack/react-query';
 import { bookingAPI } from '@/lib/api';
 import { useNotification } from '@/components/ui/notification';
+import { PaymentModal } from '@/components/payment';
 import { z } from 'zod';
 
 const bookingSchema = z.object({
   serviceAddress: z.string().min(10, 'Please provide a complete address'),
   bookingDate: z.string().min(1, 'Please select a date'),
   bookingTime: z.string().min(1, 'Please select a time'),
+  estimatedHours: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Please select estimated hours'),
   requirements: z.string().optional(),
 });
 
@@ -17,25 +19,67 @@ export default function Booking() {
   const [, setLocation] = useLocation();
   const { showNotification } = useNotification();
   const [providerName, setProviderName] = useState('');
+  const [providerRate, setProviderRate] = useState('');
   const [formErrors, setFormErrors] = useState<any>({});
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [bookingData, setBookingData] = useState<any>(null);
+  const [estimatedAmount, setEstimatedAmount] = useState('0');
+  const [estimatedHours, setEstimatedHours] = useState('2');
 
   useEffect(() => {
     const name = sessionStorage.getItem('currentProviderName') || 'Service Provider';
+    const rate = sessionStorage.getItem('currentProviderRate') || '500';
     setProviderName(name);
+    setProviderRate(rate);
+    updateEstimatedAmount(rate, '2'); // Default 2 hours
   }, []);
 
   const bookingMutation = useMutation({
     mutationFn: bookingAPI.createBooking,
-    onSuccess: () => {
-      showNotification('Booking request submitted successfully!', 'success');
-      sessionStorage.removeItem('currentProviderId');
-      sessionStorage.removeItem('currentProviderName');
-      setLocation('/services');
+    onSuccess: (data) => {
+      showNotification('Booking created successfully!', 'success');
+      // Store booking data for payment
+      setBookingData({
+        bookingId: data.id,
+        providerId: data.providerId,
+        userId: data.userId,
+        amount: estimatedAmount,
+        serviceName: data.serviceName
+      });
+      setShowPaymentModal(true);
     },
     onError: (error: any) => {
       showNotification(error.message || 'Booking failed', 'error');
     },
   });
+
+  const updateEstimatedAmount = (rate: string, hours: string) => {
+    const rateNum = parseFloat(rate) || 0;
+    const hoursNum = parseFloat(hours) || 0;
+    const total = rateNum * hoursNum;
+    setEstimatedAmount(total.toString());
+  };
+
+  const handleHoursChange = (hours: string) => {
+    setEstimatedHours(hours);
+    updateEstimatedAmount(providerRate, hours);
+  };
+
+  const handlePaymentSuccess = () => {
+    sessionStorage.removeItem('currentProviderId');
+    sessionStorage.removeItem('currentProviderName');
+    sessionStorage.removeItem('currentProviderRate');
+    sessionStorage.removeItem('currentService');
+    setLocation('/services');
+  };
+
+  const formatAmountInINR = (amount: string) => {
+    const num = parseFloat(amount);
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+    }).format(num);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +110,7 @@ export default function Booking() {
         serviceAddress: data.serviceAddress as string,
         requirements: data.requirements as string,
         status: 'Pending',
-        amount: '0', // Will be calculated by provider
+        amount: estimatedAmount
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -144,6 +188,34 @@ export default function Booking() {
           </div>
           
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Hours</label>
+            <select
+              name="estimatedHours"
+              value={estimatedHours}
+              onChange={(e) => handleHoursChange(e.target.value)}
+              required
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+            >
+              <option value="1">1 hour</option>
+              <option value="2">2 hours</option>
+              <option value="3">3 hours</option>
+              <option value="4">4 hours</option>
+              <option value="6">6 hours</option>
+              <option value="8">8 hours (Full day)</option>
+            </select>
+            {formErrors.estimatedHours && (
+              <p className="text-red-500 text-sm mt-1">{formErrors.estimatedHours}</p>
+            )}
+            <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+              <div className="text-sm text-gray-600">Rate: ₹{providerRate}/hour</div>
+              <div className="text-lg font-semibold text-primary">
+                Estimated Total: {formatAmountInINR(estimatedAmount)}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Final amount may vary based on actual work done</div>
+            </div>
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Service Requirements</label>
             <textarea
               name="requirements"
@@ -165,6 +237,16 @@ export default function Booking() {
           </button>
         </form>
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && bookingData && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          bookingDetails={bookingData}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 }

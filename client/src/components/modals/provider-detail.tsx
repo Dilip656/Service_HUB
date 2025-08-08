@@ -17,6 +17,7 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
   const handleBookNow = () => {
     sessionStorage.setItem('currentProviderId', provider.id.toString());
     sessionStorage.setItem('currentProviderName', provider.businessName);
+    sessionStorage.setItem('currentProviderRate', provider.hourlyRate);
     onClose();
     setLocation('/booking');
   };

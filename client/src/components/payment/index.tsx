@@ -1,0 +1,1 @@
+export { default as PaymentModal } from './payment-modal';
