@@ -79,38 +79,30 @@ export default function KYCVerification() {
     }
   ];
 
-  const handleDocumentUpload = (docName: string, file?: File) => {
-    if (file) {
-      // Validate file type and size
-      const doc = requiredDocuments.find(d => d.name === docName);
-      if (!doc) return;
-      
-      const fileExtension = file.name.split('.').pop()?.toUpperCase();
-      if (!doc.formats.includes(fileExtension || '')) {
-        showNotification(`Invalid file format. Please upload ${doc.formats.join(', ')} files only.`, 'error');
-        return;
-      }
-      
-      const maxSizeBytes = parseInt(doc.maxSize) * 1024 * 1024;
-      if (file.size > maxSizeBytes) {
-        showNotification(`File too large. Maximum size allowed is ${doc.maxSize}.`, 'error');
-        return;
-      }
-      
-      // In a real app, upload to server/cloud storage here
-      // For now, we'll simulate successful upload
-      if (!uploadedDocs.includes(docName)) {
-        setUploadedDocs([...uploadedDocs, docName]);
-        showNotification(`${docName} uploaded successfully (${file.name})`, 'success');
-      } else {
-        showNotification(`${docName} replaced successfully (${file.name})`, 'success');
-      }
+  const handleDocumentUpload = (docName: string, file: File) => {
+    // Validate file type and size
+    const doc = requiredDocuments.find(d => d.name === docName);
+    if (!doc) return;
+    
+    const fileExtension = file.name.split('.').pop()?.toUpperCase();
+    if (!doc.formats.includes(fileExtension || '')) {
+      showNotification(`Invalid file format. Please upload ${doc.formats.join(', ')} files only.`, 'error');
+      return;
+    }
+    
+    const maxSizeBytes = parseInt(doc.maxSize) * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      showNotification(`File too large. Maximum size allowed is ${doc.maxSize}.`, 'error');
+      return;
+    }
+    
+    // In a real app, upload to server/cloud storage here
+    // For now, we'll simulate successful upload
+    if (!uploadedDocs.includes(docName)) {
+      setUploadedDocs([...uploadedDocs, docName]);
+      showNotification(`${docName} uploaded successfully (${file.name})`, 'success');
     } else {
-      // Fallback for demo purposes
-      if (!uploadedDocs.includes(docName)) {
-        setUploadedDocs([...uploadedDocs, docName]);
-        showNotification(`${docName} uploaded successfully`, 'success');
-      }
+      showNotification(`${docName} replaced successfully (${file.name})`, 'success');
     }
   };
   
@@ -325,13 +317,6 @@ export default function KYCVerification() {
                             onChange={(e) => handleFileSelect(doc.name, e)}
                           />
                         </label>
-                        <button
-                          onClick={() => handleDocumentUpload(doc.name)}
-                          className="ml-2 text-blue-600 text-sm hover:underline"
-                          title="Demo upload (for testing)"
-                        >
-                          Demo Upload
-                        </button>
                       </div>
                     )}
                   </div>

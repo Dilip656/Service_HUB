@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, Star, Shield, Clock, Phone, Mail, MapPin, DollarSign } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { ServiceProvider } from '@shared/schema';
+import { useNotification } from '@/components/ui/notification';
 
 interface ProviderDetailModalProps {
   provider: ServiceProvider | null;
@@ -11,13 +12,24 @@ interface ProviderDetailModalProps {
 
 export default function ProviderDetailModal({ provider, isOpen, onClose }: ProviderDetailModalProps) {
   const [, setLocation] = useLocation();
+  const { showNotification } = useNotification();
 
   if (!isOpen || !provider) return null;
 
   const handleBookNow = () => {
+    // Check if user is authenticated before booking
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      showNotification('Please sign in to book a service', 'error');
+      onClose();
+      setLocation('/auth?mode=signin&redirect=booking');
+      return;
+    }
+
     sessionStorage.setItem('currentProviderId', provider.id.toString());
     sessionStorage.setItem('currentProviderName', provider.businessName);
     sessionStorage.setItem('currentProviderRate', provider.hourlyRate);
+    sessionStorage.setItem('currentService', provider.serviceName);
     onClose();
     setLocation('/booking');
   };
