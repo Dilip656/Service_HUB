@@ -4,6 +4,7 @@ import { queryClient } from '@/lib/queryClient';
 import { adminAPI, authAPI, providerAPI, bookingAPI, paymentAPI, reviewAPI } from '@/lib/api';
 import { useNotification } from '@/components/ui/notification';
 import { useLocation } from 'wouter';
+import { RealPaymentSetup } from '@/components/payment';
 import { 
   Shield, 
   Users, 
@@ -17,7 +18,8 @@ import {
   Check,
   X,
   Clock,
-  LogOut
+  LogOut,
+  Settings
 } from 'lucide-react';
 
 export default function Admin() {
@@ -26,6 +28,7 @@ export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
   const [loginForm, setLoginForm] = useState({ email: 'admin@servicehub.com', password: 'admin123' });
+  const [showPaymentSetup, setShowPaymentSetup] = useState(false);
 
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
@@ -157,6 +160,12 @@ export default function Admin() {
             </button>
             <div className="border-t border-gray-700 mt-6">
               <button
+                onClick={() => setShowPaymentSetup(true)}
+                className="w-full flex items-center px-6 py-3 text-left text-gray-300 hover:bg-gray-800 transition-colors"
+              >
+                <Settings className="w-5 h-5 mr-3" /> Payment Setup
+              </button>
+              <button
                 onClick={handleLogout}
                 className="w-full flex items-center px-6 py-3 text-left text-gray-300 hover:bg-gray-800 transition-colors"
               >
@@ -176,6 +185,24 @@ export default function Admin() {
           {activeView === 'reviews' && <ReviewsView />}
         </main>
       </div>
+
+      {/* Payment Setup Modal */}
+      <RealPaymentSetup
+        isOpen={showPaymentSetup}
+        onClose={() => setShowPaymentSetup(false)}
+        onSetupComplete={(config) => {
+          // Save payment configuration to localStorage
+          localStorage.setItem('merchantUpiId', config.merchantUpiId);
+          localStorage.setItem('merchantName', config.merchantName);
+          if (config.razorpayKeyId) {
+            localStorage.setItem('razorpayKeyId', config.razorpayKeyId);
+          }
+          if (config.bankDetails) {
+            localStorage.setItem('bankDetails', JSON.stringify(config.bankDetails));
+          }
+          setShowPaymentSetup(false);
+        }}
+      />
     </div>
   );
 }

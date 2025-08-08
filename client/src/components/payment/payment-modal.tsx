@@ -176,8 +176,8 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
       return;
     }
 
-    // Create proper UPI payment intent URLs using helper
-    const merchantUpiId = 'servicehub@okaxis'; // Demo UPI ID
+    // Get merchant UPI ID from configuration or use demo
+    const merchantUpiId = localStorage.getItem('merchantUpiId') || 'servicehub@okaxis'; // Demo UPI ID
     
     // Validate UPI ID for generic UPI option
     if (method === 'upi') {
