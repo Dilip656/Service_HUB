@@ -689,7 +689,7 @@ function PaymentsView() {
                 <td className="px-6 py-4 text-sm text-gray-900">{payment.id}</td>
                 <td className="px-6 py-4 text-sm text-gray-900">{getUserName(payment.userId)}</td>
                 <td className="px-6 py-4 text-sm text-gray-900">
-                  ${Number(payment.amount).toFixed(2)}
+                  ₹{Number(payment.amount).toFixed(2)}
                 </td>
                 <td className="px-6 py-4">
                   <span

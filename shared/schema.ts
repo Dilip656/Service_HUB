@@ -59,8 +59,13 @@ export const payments = pgTable("payments", {
   userId: integer("user_id").notNull(),
   providerId: integer("provider_id").notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  paymentMethod: text("payment_method").notNull(),
+  currency: text("currency").notNull().default("INR"),
+  paymentMethod: text("payment_method").notNull(), // PhonePe, Paytm, GooglePay, UPI, etc.
+  paymentGateway: text("payment_gateway").notNull(), // For storing gateway provider
+  transactionId: text("transaction_id"), // Gateway transaction ID
+  gatewayPaymentId: text("gateway_payment_id"), // Gateway specific payment ID
   status: text("status").notNull().default("Pending"),
+  failureReason: text("failure_reason"), // Reason for failed payments
   transactionDate: timestamp("transaction_date").default(sql`now()`).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
@@ -176,8 +181,13 @@ export const insertPaymentSchema = z.object({
   userId: z.number(),
   providerId: z.number(),
   amount: z.string(), // Using string for decimal compatibility
-  paymentMethod: z.string(),
+  currency: z.string().default("INR"),
+  paymentMethod: z.string(), // PhonePe, Paytm, GooglePay, UPI, etc.
+  paymentGateway: z.string(), // Gateway provider
+  transactionId: z.string().optional(),
+  gatewayPaymentId: z.string().optional(),
   status: z.string().default("Pending"),
+  failureReason: z.string().optional(),
   transactionDate: z.date().optional(),
 });
 
