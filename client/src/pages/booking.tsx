@@ -83,6 +83,15 @@ export default function Booking() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if user is authenticated first
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      showNotification('Please sign in to book a service', 'error');
+      setLocation('/auth?mode=signin&redirect=booking');
+      return;
+    }
+
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
 
@@ -98,8 +107,8 @@ export default function Booking() {
         return;
       }
 
-      // Get current user (in a real app, this would be from authentication)
-      const user = JSON.parse(localStorage.getItem('user') || '{"id": 1}');
+      // Get current authenticated user
+      const user = JSON.parse(userStr);
 
       bookingMutation.mutate({
         userId: user.id,

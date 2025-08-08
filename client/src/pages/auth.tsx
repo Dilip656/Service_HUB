@@ -44,6 +44,7 @@ export default function Auth() {
   // Check URL params
   const urlParams = new URLSearchParams(window.location.search);
   const mode = urlParams.get('mode');
+  const redirect = urlParams.get('redirect');
   
   useEffect(() => {
     if (mode === 'signup') {
@@ -57,7 +58,9 @@ export default function Auth() {
     onSuccess: (data) => {
       showNotification('Login successful!', 'success');
       localStorage.setItem('user', JSON.stringify(data.user));
-      setLocation('/services');
+      // Redirect to original page if specified, otherwise to services
+      const redirectPath = redirect === 'booking' ? '/booking' : '/services';
+      setLocation(redirectPath);
     },
     onError: (error: any) => {
       showNotification(error.message || 'Login failed', 'error');
