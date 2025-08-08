@@ -99,6 +99,13 @@ export default function Booking() {
       return;
     }
 
+    // Get current authenticated user and validate required info
+    const user = JSON.parse(userStr);
+    if (!user.name || !user.phone) {
+      showNotification('Please complete your profile with name and phone number before booking', 'error');
+      return;
+    }
+
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
 
@@ -114,14 +121,13 @@ export default function Booking() {
         return;
       }
 
-      // Get current authenticated user
-      const user = JSON.parse(userStr);
+      // User validation already done above
 
       bookingMutation.mutate({
         userId: user.id,
         providerId: parseInt(providerId),
         customerName: user.name,
-        customerPhone: user.phone || '',
+        customerPhone: user.phone,
         serviceName,
         bookingDate: data.bookingDate as string,
         bookingTime: data.bookingTime as string,
