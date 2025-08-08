@@ -83,6 +83,18 @@ export const reviews = pgTable("reviews", {
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
+export const messages = pgTable("messages", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  senderId: integer("sender_id").notNull(),
+  receiverId: integer("receiver_id").notNull(),
+  senderType: text("sender_type").notNull(), // 'user' or 'provider'
+  receiverType: text("receiver_type").notNull(), // 'user' or 'provider'
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -204,6 +216,16 @@ export const insertReviewSchema = z.object({
   status: z.string().default("pending"),
 });
 
+export const insertMessageSchema = z.object({
+  senderId: z.number(),
+  receiverId: z.number(),
+  senderType: z.enum(["user", "provider"]),
+  receiverType: z.enum(["user", "provider"]),
+  subject: z.string().min(1, "Subject is required"),
+  message: z.string().min(1, "Message is required"),
+  isRead: z.boolean().default(false),
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -219,3 +241,6 @@ export type Payment = typeof payments.$inferSelect;
 
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
+
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Message = typeof messages.$inferSelect;

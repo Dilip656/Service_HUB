@@ -4,6 +4,7 @@ import {
   bookings, 
   payments, 
   reviews,
+  messages,
   type User, 
   type InsertUser,
   type ServiceProvider,
@@ -13,7 +14,9 @@ import {
   type Payment,
   type InsertPayment,
   type Review,
-  type InsertReview
+  type InsertReview,
+  type Message,
+  type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike, sql } from "drizzle-orm";
@@ -396,6 +399,69 @@ export class DatabaseStorage implements IStorage {
       totalBookings: bookingCount.count,
       totalRevenue: Number(revenueSum.sum) || 0,
     };
+  }
+
+  // Messages
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const [message] = await db
+      .insert(messages)
+      .values(insertMessage)
+      .returning();
+    return message;
+  }
+
+  async getMessagesForUser(userId: number, userType: 'user' | 'provider'): Promise<Message[]> {
+    return await db
+      .select()
+      .from(messages)
+      .where(
+        userType === 'user' 
+          ? and(
+              eq(messages.senderId, userId),
+              eq(messages.senderType, 'user')
+            )
+          : and(
+              eq(messages.senderId, userId),
+              eq(messages.senderType, 'provider')
+            )
+      )
+      .orderBy(desc(messages.createdAt));
+  }
+
+  async getConversation(senderId: number, receiverId: number, senderType: string, receiverType: string): Promise<Message[]> {
+    return await db
+      .select()
+      .from(messages)
+      .where(
+        and(
+          eq(messages.senderId, senderId),
+          eq(messages.receiverId, receiverId),
+          eq(messages.senderType, senderType),
+          eq(messages.receiverType, receiverType)
+        )
+      )
+      .orderBy(desc(messages.createdAt));
+  }
+
+  async markMessageAsRead(messageId: number): Promise<void> {
+    await db
+      .update(messages)
+      .set({ isRead: true })
+      .where(eq(messages.id, messageId));
+  }
+
+  async getUnreadMessageCount(userId: number, userType: 'user' | 'provider'): Promise<number> {
+    const [result] = await db
+      .select({ count: sql<number>`cast(count(*) as integer)` })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.receiverId, userId),
+          eq(messages.receiverType, userType),
+          eq(messages.isRead, false)
+        )
+      );
+    return result.count;
   }
 }
 

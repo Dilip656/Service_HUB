@@ -5,6 +5,7 @@ import { ServiceProvider } from '@shared/schema';
 import { useNotification } from '@/components/ui/notification';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reviewAPI } from '@/lib/api';
+import MessagingModal from './messaging-modal';
 
 interface ProviderDetailModalProps {
   provider: ServiceProvider | null;
@@ -19,6 +20,7 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [isMessagingModalOpen, setIsMessagingModalOpen] = useState(false);
   
   // Get reviews for this provider
   const { data: reviews } = useQuery({
@@ -298,7 +300,19 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
               >
                 Book Now
               </button>
-              <button className="text-primary border border-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary/5 transition-colors">
+              <button 
+                onClick={() => {
+                  const userStr = localStorage.getItem('user');
+                  if (!userStr) {
+                    showNotification('Please sign in to send a message', 'error');
+                    onClose();
+                    setLocation('/auth?mode=signin');
+                    return;
+                  }
+                  setIsMessagingModalOpen(true);
+                }}
+                className="text-primary border border-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
+              >
                 Send Message
               </button>
             </div>
@@ -377,6 +391,26 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
             </div>
           </div>
         )}
+        
+        {/* Messaging Modal */}
+        {isMessagingModalOpen && (() => {
+          const userStr = localStorage.getItem('user');
+          const user = userStr ? JSON.parse(userStr) : null;
+          
+          if (!user) return null;
+          
+          return (
+            <MessagingModal
+              isOpen={isMessagingModalOpen}
+              onClose={() => setIsMessagingModalOpen(false)}
+              receiverId={provider.id}
+              receiverType="provider"
+              receiverName={provider.businessName}
+              senderType="user"
+              senderId={user.id}
+            />
+          );
+        })()}
       </div>
     </div>
   );
