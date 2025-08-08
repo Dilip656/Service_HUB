@@ -54,8 +54,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password, type } = req.body;
       
       if (type === "admin") {
-        // Simple admin check - in production, use proper authentication
-        if (email === "admin@servicehub.com" && password === "admin123") {
+        // More secure admin check with stronger password
+        if (email === "admin@servicehub.com" && password === "ServiceHub@Admin2025!") {
           return res.json({ user: { id: 1, email, role: "admin" } });
         }
         return res.status(401).json({ message: "Invalid admin credentials" });
