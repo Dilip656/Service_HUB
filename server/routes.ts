@@ -61,11 +61,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid admin credentials" });
       }
       
-      const user = await storage.getUserByEmail(email);
-      if (user && user.password === password) {
-        res.json({ user: { id: user.id, name: user.name, email: user.email } });
+      if (type === "provider") {
+        const provider = await storage.getServiceProviderByEmail(email);
+        if (provider && provider.password === password) {
+          res.json({ user: { id: provider.id, name: provider.businessName, email: provider.email, type: "provider" } });
+        } else {
+          res.status(401).json({ message: "Invalid credentials" });
+        }
       } else {
-        res.status(401).json({ message: "Invalid credentials" });
+        const user = await storage.getUserByEmail(email);
+        if (user && user.password === password) {
+          res.json({ user: { id: user.id, name: user.name, email: user.email, type: "user" } });
+        } else {
+          res.status(401).json({ message: "Invalid credentials" });
+        }
       }
     } catch (error) {
       res.status(400).json({ message: "Login failed" });

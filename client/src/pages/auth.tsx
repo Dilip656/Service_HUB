@@ -14,8 +14,8 @@ const loginSchema = z.object({
 const userSignupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  password: z.string().min(6, 'Password must be at least 6 characters').regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+  phone: z.string().regex(/^\d{10,15}$/, 'Phone number must be 10-15 digits'),
   location: z.string().min(2, 'Location is required'),
 });
 
@@ -23,13 +23,13 @@ const providerSignupSchema = z.object({
   businessName: z.string().min(2, 'Business name is required'),
   ownerName: z.string().min(2, 'Owner name is required'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  password: z.string().min(6, 'Password must be at least 6 characters').regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+  phone: z.string().regex(/^\d{10,15}$/, 'Phone number must be 10-15 digits'),
   serviceName: z.string().min(1, 'Please select a service'),
   serviceCategory: z.string().min(1, 'Service category is required'),
-  experience: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, 'Experience must be a positive number'),
+  experience: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 50, 'Experience must be between 0 and 50 years'),
   description: z.string().min(20, 'Description must be at least 20 characters'),
-  hourlyRate: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Hourly rate must be greater than 0'),
+  hourlyRate: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) <= 10000, 'Hourly rate must be between $1 and $10,000'),
   location: z.string().min(2, 'Location is required'),
   availability: z.array(z.string()).min(1, 'Please select at least one availability day'),
 });
@@ -77,9 +77,9 @@ export default function Auth() {
 
   const providerSignupMutation = useMutation({
     mutationFn: authAPI.registerProvider,
-    onSuccess: (data, variables) => {
+    onSuccess: (data: any, variables) => {
       // Store provider info for KYC process including the returned ID
-      const providerInfo = { ...variables, id: data.provider.id };
+      const providerInfo = { ...variables, id: data.provider?.id };
       localStorage.setItem('pendingProvider', JSON.stringify(providerInfo));
       showNotification('Registration successful! Please complete KYC verification.', 'success');
       setLocation('/kyc-verification');
