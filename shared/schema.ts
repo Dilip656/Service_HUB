@@ -41,6 +41,8 @@ export const bookings = pgTable("bookings", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id").notNull(),
   providerId: integer("provider_id").notNull(),
+  customerName: text("customer_name").notNull(),
+  customerPhone: text("customer_phone").notNull(),
   serviceName: text("service_name").notNull(),
   bookingDate: text("booking_date").notNull(),
   bookingTime: text("booking_time").notNull(),
@@ -166,6 +168,8 @@ export const insertServiceProviderSchema = z.object({
 export const insertBookingSchema = z.object({
   userId: z.number(),
   providerId: z.number(),
+  customerName: z.string(),
+  customerPhone: z.string(),
   serviceName: z.string(),
   bookingDate: z.string(),
   bookingTime: z.string(),

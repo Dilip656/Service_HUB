@@ -323,6 +323,10 @@ export default function ProviderDashboard() {
                         <MapPin className="w-4 h-4 mr-1" />
                         {booking.serviceAddress}
                       </div>
+                      <div className="flex items-center text-sm text-gray-500 mt-1">
+                        <User className="w-4 h-4 mr-1" />
+                        {booking.customerName} • {booking.customerPhone}
+                      </div>
                     </div>
                     <div className="text-right">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
@@ -376,7 +380,11 @@ export default function ProviderDashboard() {
                         </div>
                         <div className="flex items-center">
                           <Users className="w-4 h-4 mr-2" />
-                          Customer ID: {booking.userId}
+                          Customer: {booking.customerName}
+                        </div>
+                        <div className="flex items-center">
+                          <Users className="w-4 h-4 mr-2" />
+                          Phone: {booking.customerPhone}
                         </div>
                       </div>
                       {booking.requirements && (
