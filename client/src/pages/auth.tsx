@@ -53,13 +53,24 @@ export default function Auth() {
   }, [mode]);
 
   const loginMutation = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      authAPI.login(email, password),
+    mutationFn: ({ email, password, type }: { email: string; password: string; type: string }) =>
+      authAPI.login(email, password, type),
     onSuccess: (data) => {
       showNotification('Login successful!', 'success');
       localStorage.setItem('user', JSON.stringify(data.user));
-      // Redirect to original page if specified, otherwise to services
-      const redirectPath = redirect === 'booking' ? '/booking' : '/services';
+      
+      // Redirect based on user type and original request
+      let redirectPath = '/services';
+      if (redirect === 'booking') {
+        redirectPath = '/booking';
+      } else if (data.user.type === 'user') {
+        redirectPath = '/user-dashboard';
+      } else if (data.user.type === 'provider') {
+        redirectPath = '/provider-dashboard';
+      } else if (data.user.role === 'admin') {
+        redirectPath = '/admin';
+      }
+      
       setLocation(redirectPath);
     },
     onError: (error: any) => {
@@ -100,9 +111,11 @@ export default function Auth() {
     try {
       loginSchema.parse(data);
       setFormErrors({});
+      const userType = isProvider ? 'provider' : 'user';
       loginMutation.mutate({
         email: data.email as string,
         password: data.password as string,
+        type: userType
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
