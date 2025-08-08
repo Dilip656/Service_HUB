@@ -226,6 +226,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User profile routes
+  app.put("/api/users/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = {
+        name: req.body.name,
+        phone: req.body.phone,
+        location: req.body.location
+      };
+      
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof typeof updateData] === undefined) {
+          delete updateData[key as keyof typeof updateData];
+        }
+      });
+      
+      const updatedUser = await storage.updateUser(id, updateData);
+      res.json({ 
+        user: { 
+          id: updatedUser.id, 
+          name: updatedUser.name, 
+          email: updatedUser.email,
+          phone: updatedUser.phone,
+          location: updatedUser.location,
+          type: "user"
+        } 
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update user profile" });
+    }
+  });
+
   // Admin routes
   app.get("/api/admin/stats", async (req, res) => {
     try {

@@ -1,13 +1,31 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Calendar, Clock, MapPin, DollarSign, Star, ChevronRight, User, History, CreditCard } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Calendar, Clock, MapPin, DollarSign, Star, ChevronRight, User, History, CreditCard, Save } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useNotification } from '@/components/ui/notification';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { apiRequest } from '@/lib/queryClient';
+
+// Form validation schema for profile updates
+const profileUpdateSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  phone: z.string().regex(/^\d{10,15}$/, 'Phone number must be 10-15 digits'),
+  location: z.string().min(2, 'Location is required'),
+});
 
 export default function UserDashboard() {
   const [, setLocation] = useLocation();
   const { showNotification } = useNotification();
-  const [activeTab, setActiveTab] = useState('overview');
+  
+  // Check for tab parameter in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || 'overview');
+  
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const queryClient = useQueryClient();
 
   // Get current user
   const userStr = localStorage.getItem('user');
@@ -16,6 +34,56 @@ export default function UserDashboard() {
     return null;
   }
   const user = JSON.parse(userStr);
+
+  // Form setup for profile editing
+  const form = useForm({
+    resolver: zodResolver(profileUpdateSchema),
+    defaultValues: {
+      name: user.name || '',
+      phone: user.phone || '',
+      location: user.location || '',
+    },
+  });
+
+  // Profile update mutation
+  const profileUpdateMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof profileUpdateSchema>) => {
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (response: any) => {
+      // Update localStorage with new user data
+      const updatedUser = { ...user, ...response.user };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Reset form with new values
+      form.reset({
+        name: response.user.name,
+        phone: response.user.phone,
+        location: response.user.location,
+      });
+      
+      setIsEditingProfile(false);
+      showNotification('Profile updated successfully!', 'success');
+      
+      // Refresh any relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    },
+    onError: () => {
+      showNotification('Failed to update profile. Please try again.', 'error');
+    },
+  });
 
   // Fetch user's bookings
   const { data: bookings, isLoading: bookingsLoading } = useQuery({
@@ -143,6 +211,16 @@ export default function UserDashboard() {
           >
             Payment History
           </button>
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'profile'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Profile
+          </button>
         </nav>
       </div>
 
@@ -163,7 +241,10 @@ export default function UserDashboard() {
                 <History className="h-6 w-6 text-green-500 mx-auto mb-2" />
                 <span className="text-sm font-medium text-gray-700">View History</span>
               </button>
-              <button className="w-full p-4 border border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors">
+              <button 
+                onClick={() => setActiveTab('profile')}
+                className="w-full p-4 border border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors"
+              >
                 <User className="h-6 w-6 text-purple-500 mx-auto mb-2" />
                 <span className="text-sm font-medium text-gray-700">Update Profile</span>
               </button>
@@ -342,6 +423,153 @@ export default function UserDashboard() {
               <h4 className="text-lg font-medium text-gray-600 mb-2">No payments yet</h4>
               <p className="text-gray-500">Your payment history will appear here</p>
             </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'profile' && (
+        <div className="bg-white rounded-xl border p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Profile Information</h3>
+            {!isEditingProfile && (
+              <button
+                onClick={() => setIsEditingProfile(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                data-testid="button-edit-profile"
+              >
+                Edit Profile
+              </button>
+            )}
+          </div>
+
+          {!isEditingProfile ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                  <div className="text-gray-900" data-testid="text-user-name">
+                    {user.name || 'Not provided'}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <div className="text-gray-900" data-testid="text-user-email">
+                    {user.email}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <div className="text-gray-900" data-testid="text-user-phone">
+                    {user.phone || 'Not provided'}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <div className="text-gray-900" data-testid="text-user-location">
+                    {user.location || 'Not provided'}
+                  </div>
+                </div>
+              </div>
+              
+              {(!user.name || !user.phone) && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <User className="h-5 w-5 text-yellow-400" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-yellow-800">
+                        Complete Your Profile
+                      </h3>
+                      <div className="mt-2 text-sm text-yellow-700">
+                        <p>Please add your name and phone number to book services on our platform.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <form
+              onSubmit={form.handleSubmit((data) => profileUpdateMutation.mutate(data))}
+              className="space-y-6"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Name *
+                  </label>
+                  <input
+                    {...form.register('name')}
+                    type="text"
+                    id="name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter your full name"
+                    data-testid="input-name"
+                  />
+                  {form.formState.errors.name && (
+                    <p className="mt-1 text-sm text-red-600">{String(form.formState.errors.name.message)}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number *
+                  </label>
+                  <input
+                    {...form.register('phone')}
+                    type="tel"
+                    id="phone"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter your phone number"
+                    data-testid="input-phone"
+                  />
+                  {form.formState.errors.phone && (
+                    <p className="mt-1 text-sm text-red-600">{String(form.formState.errors.phone.message)}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                  Location *
+                </label>
+                <input
+                  {...form.register('location')}
+                  type="text"
+                  id="location"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter your city and area"
+                  data-testid="input-location"
+                />
+                {form.formState.errors.location && (
+                  <p className="mt-1 text-sm text-red-600">{String(form.formState.errors.location.message)}</p>
+                )}
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="submit"
+                  disabled={profileUpdateMutation.isPending}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  data-testid="button-save-profile"
+                >
+                  <Save className="w-4 h-4" />
+                  {profileUpdateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditingProfile(false);
+                    form.reset();
+                  }}
+                  className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                  data-testid="button-cancel-edit"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           )}
         </div>
       )}

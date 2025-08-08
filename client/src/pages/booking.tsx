@@ -103,6 +103,7 @@ export default function Booking() {
     const user = JSON.parse(userStr);
     if (!user.name || !user.phone) {
       showNotification('Please complete your profile with name and phone number before booking', 'error');
+      setLocation('/user-dashboard?tab=profile');
       return;
     }
 
