@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, Clock, MapPin, DollarSign, Star, ChevronRight, User, History, CreditCard, Save } from 'lucide-react';
+import { Calendar, Clock, MapPin, DollarSign, Star, ChevronRight, User, History, CreditCard, Save, MessageSquare } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useNotification } from '@/components/ui/notification';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
-import { reviewAPI } from '@/lib/api';
+import { reviewAPI, messageAPI } from '@/lib/api';
+import MessagingModal from '@/components/modals/messaging-modal';
 
 // Form validation schema for profile updates
 const profileUpdateSchema = z.object({
@@ -30,6 +31,8 @@ export default function UserDashboard() {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [isMessagingModalOpen, setIsMessagingModalOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<any>(null);
   const queryClient = useQueryClient();
 
   // Get current user
@@ -255,6 +258,16 @@ export default function UserDashboard() {
             }`}
           >
             Payment History
+          </button>
+          <button
+            onClick={() => setActiveTab('messages')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'messages'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Messages
           </button>
           <button
             onClick={() => setActiveTab('profile')}
@@ -490,6 +503,27 @@ export default function UserDashboard() {
         </div>
       )}
 
+      {activeTab === 'messages' && (
+        <div className="bg-white rounded-xl border p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
+            <button
+              onClick={() => setLocation('/services')}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+            >
+              Browse Services
+            </button>
+          </div>
+          
+          <div className="text-center py-8">
+            <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-medium text-gray-600 mb-2">Start a conversation</h3>
+            <p className="text-gray-500 mb-4">Send messages to service providers to discuss your requirements</p>
+            <p className="text-sm text-gray-400">Messages will appear here once you start chatting with providers</p>
+          </div>
+        </div>
+      )}
+
       {activeTab === 'profile' && (
         <div className="bg-white rounded-xl border p-6">
           <div className="flex items-center justify-between mb-6">
@@ -708,6 +742,22 @@ export default function UserDashboard() {
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Messaging Modal */}
+      {isMessagingModalOpen && selectedProvider && (
+        <MessagingModal
+          isOpen={isMessagingModalOpen}
+          onClose={() => {
+            setIsMessagingModalOpen(false);
+            setSelectedProvider(null);
+          }}
+          receiverId={selectedProvider.id}
+          receiverType="provider"
+          receiverName={selectedProvider.name}
+          senderType="user"
+          senderId={user.id}
+        />
       )}
     </div>
   );

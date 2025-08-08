@@ -142,3 +142,31 @@ export const adminAPI = {
     return res.json();
   },
 };
+
+// Message API
+export const messageAPI = {
+  sendMessage: async (messageData: any) => {
+    const res = await apiRequest("POST", "/api/messages", messageData);
+    return res.json();
+  },
+
+  getMessagesForUser: async (userId: number, userType: 'user' | 'provider') => {
+    const res = await apiRequest("GET", `/api/messages/user/${userId}/${userType}`);
+    return res.json();
+  },
+
+  getConversation: async (senderId: number, receiverId: number, senderType: string, receiverType: string) => {
+    const res = await apiRequest("GET", `/api/messages/conversation/${senderId}/${receiverId}/${senderType}/${receiverType}`);
+    return res.json();
+  },
+
+  markAsRead: async (messageId: number) => {
+    const res = await apiRequest("PUT", `/api/messages/${messageId}/read`);
+    return res.json();
+  },
+
+  getUnreadCount: async (userId: number, userType: 'user' | 'provider') => {
+    const res = await apiRequest("GET", `/api/messages/unread/${userId}/${userType}`);
+    return res.json();
+  },
+};

@@ -236,6 +236,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Message routes
+  app.post("/api/messages", async (req, res) => {
+    try {
+      const messageData = req.body;
+      const message = await storage.createMessage(messageData);
+      res.json(message);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to send message" });
+    }
+  });
+
+  app.get("/api/messages/user/:userId/:userType", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const userType = req.params.userType as 'user' | 'provider';
+      
+      const messages = await storage.getMessagesForUser(userId, userType);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.get("/api/messages/conversation/:senderId/:receiverId/:senderType/:receiverType", async (req, res) => {
+    try {
+      const senderId = parseInt(req.params.senderId);
+      const receiverId = parseInt(req.params.receiverId);
+      const senderType = req.params.senderType;
+      const receiverType = req.params.receiverType;
+      
+      const conversation = await storage.getConversation(senderId, receiverId, senderType, receiverType);
+      res.json(conversation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch conversation" });
+    }
+  });
+
+  app.put("/api/messages/:id/read", async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      await storage.markMessageAsRead(messageId);
+      res.json({ message: "Message marked as read" });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to mark message as read" });
+    }
+  });
+
+  app.get("/api/messages/unread/:userId/:userType", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const userType = req.params.userType as 'user' | 'provider';
+      
+      const count = await storage.getUnreadMessageCount(userId, userType);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch unread message count" });
+    }
+  });
+
   // User profile routes
   app.put("/api/users/:id", async (req, res) => {
     try {
