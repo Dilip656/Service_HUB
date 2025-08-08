@@ -132,37 +132,42 @@ export default function MessagingModal({
             </div>
           ) : (
             <div className="space-y-4">
-              {messages.reverse().map((msg: any) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${
-                    msg.senderId === senderId ? 'justify-end' : 'justify-start'
-                  }`}
-                >
+              {messages.reverse().map((msg: any) => {
+                // Check if this message was sent by the current user
+                const isMyMessage = msg.senderId === senderId && msg.senderType === senderType;
+                
+                return (
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      msg.senderId === senderId
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-900'
+                    key={msg.id}
+                    className={`flex ${
+                      isMyMessage ? 'justify-end' : 'justify-start'
                     }`}
                   >
-                    {msg.subject && msg.subject !== 'Message' && (
-                      <p className="font-semibold text-sm mb-1">{msg.subject}</p>
-                    )}
-                    <p className="text-sm">{msg.message}</p>
-                    <p
-                      className={`text-xs mt-1 ${
-                        msg.senderId === senderId ? 'text-blue-200' : 'text-gray-500'
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        isMyMessage
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-900'
                       }`}
                     >
-                      {new Date(msg.createdAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
+                      {msg.subject && msg.subject !== 'Message' && (
+                        <p className="font-semibold text-sm mb-1">{msg.subject}</p>
+                      )}
+                      <p className="text-sm">{msg.message}</p>
+                      <p
+                        className={`text-xs mt-1 ${
+                          isMyMessage ? 'text-blue-200' : 'text-gray-500'
+                        }`}
+                      >
+                        {new Date(msg.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
           )}
