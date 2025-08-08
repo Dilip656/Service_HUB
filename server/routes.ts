@@ -45,7 +45,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errors: error.errors
         });
       }
-      res.status(400).json({ message: "Invalid data provided", error: error.message });
+      res.status(400).json({ message: "Invalid data provided", error: (error as Error).message });
     }
   });
 
