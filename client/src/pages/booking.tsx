@@ -120,6 +120,8 @@ export default function Booking() {
       bookingMutation.mutate({
         userId: user.id,
         providerId: parseInt(providerId),
+        customerName: user.name,
+        customerPhone: user.phone || '',
         serviceName,
         bookingDate: data.bookingDate as string,
         bookingTime: data.bookingTime as string,
