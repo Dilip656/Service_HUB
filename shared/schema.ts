@@ -95,6 +95,16 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 });
 
+export const adminSettings = pgTable("admin_settings", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  name: text("name").notNull().default("Admin"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -244,3 +254,13 @@ export type Review = typeof reviews.$inferSelect;
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+
+export const insertAdminSettingsSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().default("Admin"),
+  isActive: z.boolean().default(true),
+});
+
+export type InsertAdminSettings = z.infer<typeof insertAdminSettingsSchema>;
+export type AdminSettings = typeof adminSettings.$inferSelect;

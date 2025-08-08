@@ -16,7 +16,10 @@ import {
   type Review,
   type InsertReview,
   type Message,
-  type InsertMessage
+  type InsertMessage,
+  adminSettings,
+  type AdminSettings,
+  type InsertAdminSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, sql, ne } from "drizzle-orm";
@@ -74,6 +77,12 @@ export interface IStorage {
     totalBookings: number;
     totalRevenue: number;
   }>;
+
+  // Admin Settings
+  getAdminSettings(): Promise<AdminSettings | undefined>;
+  createAdminSettings(settings: InsertAdminSettings): Promise<AdminSettings>;
+  updateAdminSettings(id: number, settings: Partial<InsertAdminSettings>): Promise<AdminSettings>;
+  validateAdminCredentials(email: string, password: string): Promise<AdminSettings | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -491,6 +500,40 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return result.count;
+  }
+
+  // Admin Settings
+  async getAdminSettings(): Promise<AdminSettings | undefined> {
+    const [admin] = await db.select().from(adminSettings).where(eq(adminSettings.isActive, true));
+    return admin || undefined;
+  }
+
+  async createAdminSettings(insertAdminSettings: InsertAdminSettings): Promise<AdminSettings> {
+    const [admin] = await db
+      .insert(adminSettings)
+      .values(insertAdminSettings)
+      .returning();
+    return admin;
+  }
+
+  async updateAdminSettings(id: number, settingsData: Partial<InsertAdminSettings>): Promise<AdminSettings> {
+    const [admin] = await db.update(adminSettings).set({
+      ...settingsData,
+      updatedAt: sql`now()`
+    }).where(eq(adminSettings.id, id)).returning();
+    return admin;
+  }
+
+  async validateAdminCredentials(email: string, password: string): Promise<AdminSettings | undefined> {
+    const [admin] = await db
+      .select()
+      .from(adminSettings)
+      .where(and(
+        eq(adminSettings.email, email),
+        eq(adminSettings.password, password),
+        eq(adminSettings.isActive, true)
+      ));
+    return admin || undefined;
   }
 }
 

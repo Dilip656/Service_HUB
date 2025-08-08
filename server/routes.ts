@@ -54,9 +54,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password, type } = req.body;
       
       if (type === "admin") {
-        // More secure admin check with stronger password
-        if (email === "admin@servicehub.com" && password === "ServiceHub@Admin2025!") {
-          return res.json({ user: { id: 1, email, role: "admin" } });
+        const admin = await storage.validateAdminCredentials(email, password);
+        if (admin) {
+          return res.json({ user: { id: admin.id, email: admin.email, name: admin.name, role: "admin" } });
         }
         return res.status(401).json({ message: "Invalid admin credentials" });
       }
@@ -384,6 +384,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  // Admin Settings Management
+  app.get("/api/admin/settings", async (req, res) => {
+    try {
+      const adminSettings = await storage.getAdminSettings();
+      if (!adminSettings) {
+        return res.status(404).json({ message: "Admin settings not found" });
+      }
+      // Don't send password back to client
+      const { password, ...safeSettings } = adminSettings;
+      res.json(safeSettings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch admin settings" });
+    }
+  });
+
+  app.post("/api/admin/settings", async (req, res) => {
+    try {
+      const { email, password, name } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // Check if admin settings already exist
+      const existingAdmin = await storage.getAdminSettings();
+      if (existingAdmin) {
+        return res.status(400).json({ message: "Admin settings already exist. Use PUT to update." });
+      }
+
+      const adminSettings = await storage.createAdminSettings({
+        email,
+        password,
+        name: name || "Admin",
+        isActive: true,
+      });
+
+      const { password: _, ...safeSettings } = adminSettings;
+      res.json(safeSettings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create admin settings" });
+    }
+  });
+
+  app.put("/api/admin/settings/:id", async (req, res) => {
+    try {
+      const adminId = parseInt(req.params.id);
+      const { email, password, name, currentPassword } = req.body;
+      
+      // Verify current password before allowing changes
+      if (currentPassword) {
+        const existingAdmin = await storage.getAdminSettings();
+        if (!existingAdmin || existingAdmin.password !== currentPassword) {
+          return res.status(401).json({ message: "Current password is incorrect" });
+        }
+      }
+
+      const updateData: any = {};
+      if (email) updateData.email = email;
+      if (password) updateData.password = password;
+      if (name) updateData.name = name;
+
+      const updatedAdmin = await storage.updateAdminSettings(adminId, updateData);
+      const { password: _, ...safeSettings } = updatedAdmin;
+      res.json(safeSettings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update admin settings" });
     }
   });
 
