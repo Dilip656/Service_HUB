@@ -105,6 +105,16 @@ export const adminSettings = pgTable("admin_settings", {
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
+export const services = pgTable("services", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: text("name").notNull().unique(),
+  category: text("category").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -262,5 +272,15 @@ export const insertAdminSettingsSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
+export const insertServiceSchema = z.object({
+  name: z.string().min(2, 'Service name must be at least 2 characters'),
+  category: z.string().min(1, 'Category is required'),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
 export type InsertAdminSettings = z.infer<typeof insertAdminSettingsSchema>;
 export type AdminSettings = typeof adminSettings.$inferSelect;
+
+export type InsertService = z.infer<typeof insertServiceSchema>;
+export type Service = typeof services.$inferSelect;
