@@ -163,7 +163,7 @@ export default function Providers() {
                   
                   <div className="flex items-center justify-between">
                     <div className="text-lg font-semibold text-primary">
-                      ${provider.hourlyRate}/hour
+                      ₹{provider.hourlyRate}/hour
                     </div>
                     <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                       View Profile

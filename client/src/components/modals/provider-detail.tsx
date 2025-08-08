@@ -154,7 +154,7 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
                   </div>
                   <div className="flex items-center">
                     <DollarSign className="w-5 h-5 text-primary mr-3" />
-                    <span><strong>Rate:</strong> ${provider.hourlyRate}/hour</span>
+                    <span><strong>Rate:</strong> ₹{provider.hourlyRate}/hour</span>
                   </div>
                 </div>
               </div>
