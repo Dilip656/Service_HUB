@@ -4,12 +4,19 @@ import { useState, useEffect } from 'react';
 export default function Header() {
   const [location] = useLocation();
   const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
-      setUser(JSON.parse(userStr));
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('user');
+      }
     }
+    setIsLoading(false);
   }, []);
 
   return (
@@ -22,8 +29,8 @@ export default function Header() {
             </Link>
           </div>
           <div className="flex items-center space-x-4">
-            {/* Only show Browse Services to non-provider users */}
-            {(!user || user.type !== 'provider') && (
+            {/* Only show Browse Services to non-provider users - don't show during loading */}
+            {!isLoading && (!user || (user as any).type !== 'provider') && (
               <Link 
                 href="/services" 
                 className={`text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium ${
@@ -34,10 +41,10 @@ export default function Header() {
               </Link>
             )}
             
-            {user ? (
+            {!isLoading && user ? (
               <>
                 <Link 
-                  href={user.type === 'provider' ? '/provider-dashboard' : '/user-dashboard'}
+                  href={(user as any).type === 'provider' ? '/provider-dashboard' : '/user-dashboard'}
                   className={`text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium ${
                     location === '/user-dashboard' || location === '/provider-dashboard' ? 'text-primary' : ''
                   }`}
@@ -56,7 +63,7 @@ export default function Header() {
                   Logout
                 </button>
               </>
-            ) : (
+            ) : !isLoading ? (
               <>
                 <Link 
                   href="/auth" 
@@ -73,7 +80,7 @@ export default function Header() {
                   Get Started
                 </Link>
               </>
-            )}
+            ) : null}
             
             <Link 
               href="/admin" 

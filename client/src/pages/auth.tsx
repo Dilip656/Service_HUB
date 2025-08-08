@@ -63,9 +63,9 @@ export default function Auth() {
       let redirectPath = '/services';
       if (redirect === 'booking') {
         redirectPath = '/booking';
-      } else if (data.user.type === 'user') {
+      } else if ((data.user as any).type === 'user') {
         redirectPath = '/user-dashboard';
-      } else if (data.user.type === 'provider') {
+      } else if ((data.user as any).type === 'provider') {
         redirectPath = '/provider-dashboard';
       } else if (data.user.role === 'admin') {
         redirectPath = '/admin';
