@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { authAPI } from '@/lib/api';
 import { useNotification } from '@/components/ui/notification';
+import { Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -40,6 +41,9 @@ export default function Auth() {
   const [isSignup, setIsSignup] = useState(false);
   const [isProvider, setIsProvider] = useState(false);
   const [formErrors, setFormErrors] = useState<any>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showProviderPassword, setShowProviderPassword] = useState(false);
 
   // Check URL params
   const urlParams = new URLSearchParams(window.location.search);
@@ -282,12 +286,21 @@ export default function Auth() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    required
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showSignupPassword ? "text" : "password"}
+                      name="password"
+                      required
+                      className="w-full px-3 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showSignupPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                   {formErrors.password && <p className="text-red-500 text-sm mt-1">{formErrors.password}</p>}
                 </div>
                 <div>
@@ -355,12 +368,21 @@ export default function Auth() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    required
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showProviderPassword ? "text" : "password"}
+                      name="password"
+                      required
+                      className="w-full px-3 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowProviderPassword(!showProviderPassword)}
+                      className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showProviderPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                   {formErrors.password && <p className="text-red-500 text-sm mt-1">{formErrors.password}</p>}
                 </div>
                 <div>
@@ -525,12 +547,21 @@ export default function Auth() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <input
-                type="password"
-                name="password"
-                required
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  required
+                  className="w-full px-3 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
               {formErrors.password && <p className="text-red-500 text-sm mt-1">{formErrors.password}</p>}
             </div>
           </div>
