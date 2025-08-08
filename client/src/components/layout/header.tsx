@@ -22,14 +22,17 @@ export default function Header() {
             </Link>
           </div>
           <div className="flex items-center space-x-4">
-            <Link 
-              href="/services" 
-              className={`text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium ${
-                location === '/services' ? 'text-primary' : ''
-              }`}
-            >
-              Browse Services
-            </Link>
+            {/* Only show Browse Services to non-provider users */}
+            {(!user || user.type !== 'provider') && (
+              <Link 
+                href="/services" 
+                className={`text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium ${
+                  location === '/services' ? 'text-primary' : ''
+                }`}
+              >
+                Browse Services
+              </Link>
+            )}
             
             {user ? (
               <>

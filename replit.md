@@ -27,6 +27,7 @@ ServiceHub is a professional service marketplace platform that connects users wi
 - **✓ Enhanced Header Navigation** - Added dynamic dashboard links and user-specific welcome message
 - **✓ Fixed Messaging System** - Resolved conversation retrieval to show messages in both directions between users and providers
 - **✓ Fixed Message UI Layout** - Messages now properly display on different sides based on sender (user messages right/blue, provider messages left/gray)
+- **✓ Role-Based Navigation** - Hide "Browse Services" tab for service providers as they provide services rather than book them
 
 # User Preferences
 
