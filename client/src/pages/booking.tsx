@@ -152,55 +152,142 @@ export default function Booking() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <Link href="/providers">
-        <button className="flex items-center text-gray-600 hover:text-primary mb-6 transition-colors">
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Providers
-        </button>
-      </Link>
-      
-      <div className="bg-white rounded-xl shadow-sm border p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Book Service</h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-primary">Booking with: {providerName}</h3>
-            <p className="text-gray-600">Service details will be confirmed by the provider</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Hero Header */}
+      <div className="bg-gradient-primary text-white py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Link href="/providers">
+            <button className="flex items-center text-white/80 hover:text-white mb-6 transition-colors hover-lift">
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back to Providers
+            </button>
+          </Link>
+          <div className="text-center animate-slide-up">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Book Your Service
+            </h1>
+            <p className="text-xl opacity-90">
+              Complete your booking details and secure payment
+            </p>
           </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+        {/* Service Details Card */}
+        <div className="mb-8 animate-slide-up">
+          <div className="bg-white rounded-3xl shadow-card p-8 hover-lift transition-all">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+              <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center mr-3">
+                <i className="fas fa-tools text-white"></i>
+              </div>
+              Service Details
+            </h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mr-4">
+                  <i className="fas fa-clipboard-list text-primary"></i>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600">Service</div>
+                  <div className="text-xl font-semibold text-primary">
+                    {sessionStorage.getItem('currentService') || 'Selected Service'}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl">
+                <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center mr-4">
+                  <i className="fas fa-user-check text-green-600"></i>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600">Provider</div>
+                  <div className="text-xl font-semibold text-gray-900">{providerName}</div>
+                </div>
+              </div>
+              <div className="flex items-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl">
+                <div className="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center mr-4">
+                  <i className="fas fa-rupee-sign text-yellow-600"></i>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600">Hourly Rate</div>
+                  <div className="text-xl font-semibold text-gray-900">₹{providerRate}/hour</div>
+                </div>
+              </div>
+              <div className="flex items-center p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl">
+                <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mr-4">
+                  <i className="fas fa-calculator text-purple-600"></i>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600">Estimated Total</div>
+                  <div className="text-xl font-semibold text-primary">{formatAmountInINR(estimatedAmount)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Booking Form */}
+        <div className="bg-white rounded-3xl shadow-card p-8 animate-scale-in">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
+            <div className="w-10 h-10 bg-gradient-secondary rounded-xl flex items-center justify-center mr-3">
+              <i className="fas fa-edit text-white"></i>
+            </div>
+            Booking Information
+          </h2>
+        
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100">
+              <h3 className="text-xl font-bold text-primary flex items-center">
+                <i className="fas fa-handshake text-primary mr-3"></i>
+                Booking with: {providerName}
+              </h3>
+              <p className="text-gray-600 mt-2">Service details will be confirmed by the provider</p>
+            </div>
           
           {/* Customer Information */}
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Your Full Name</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                <i className="fas fa-user text-primary mr-2"></i>
+                Your Full Name
+              </label>
               <input
                 type="text"
                 name="customerName"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 required
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:ring-primary focus:border-primary text-lg transition-all hover:border-gray-300 bg-gray-50/50"
                 placeholder="Enter your full name"
                 data-testid="input-customer-name"
               />
               {formErrors.customerName && (
-                <p className="text-red-500 text-sm mt-1">{formErrors.customerName}</p>
+                <p className="text-red-500 text-sm mt-2 flex items-center">
+                  <i className="fas fa-exclamation-circle mr-1"></i>
+                  {formErrors.customerName}
+                </p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                <i className="fas fa-phone text-primary mr-2"></i>
+                Phone Number
+              </label>
               <input
                 type="tel"
                 name="customerPhone"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 required
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:ring-primary focus:border-primary text-lg transition-all hover:border-gray-300 bg-gray-50/50"
                 placeholder="Enter your phone number"
                 data-testid="input-customer-phone"
               />
               {formErrors.customerPhone && (
-                <p className="text-red-500 text-sm mt-1">{formErrors.customerPhone}</p>
+                <p className="text-red-500 text-sm mt-2 flex items-center">
+                  <i className="fas fa-exclamation-circle mr-1"></i>
+                  {formErrors.customerPhone}
+                </p>
               )}
             </div>
           </div>
@@ -292,14 +379,30 @@ export default function Booking() {
             )}
           </div>
           
-          <button
-            type="submit"
-            disabled={bookingMutation.isPending}
-            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
-          >
-            {bookingMutation.isPending ? 'Confirming Booking...' : 'Confirm Booking'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={bookingMutation.isPending}
+              className="w-full bg-gradient-primary text-white py-5 px-6 rounded-2xl text-xl font-bold hover:shadow-glow transition-all disabled:opacity-50 disabled:cursor-not-allowed hover-lift flex items-center justify-center"
+              data-testid="button-book-service"
+            >
+              {bookingMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                  Creating Booking...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-calendar-check mr-3"></i>
+                  Book Service for {formatAmountInINR(estimatedAmount)}
+                </>
+              )}
+            </button>
+            <p className="text-center text-gray-600 text-sm mt-4 flex items-center justify-center">
+              <i className="fas fa-shield-alt text-green-500 mr-2"></i>
+              Secure booking with instant payment processing
+            </p>
+          </form>
+        </div>
       </div>
 
       {/* Payment Modal */}

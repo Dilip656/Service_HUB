@@ -180,106 +180,126 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, {user.name}!</h1>
-        <p className="text-gray-600">Manage your bookings and track service history</p>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-xl border p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Calendar className="h-8 w-8 text-blue-500" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-semibold text-gray-900">{bookings?.length || 0}</h3>
-              <p className="text-sm text-gray-600">Total Bookings</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Star className="h-8 w-8 text-green-500" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-semibold text-gray-900">{completedBookings}</h3>
-              <p className="text-sm text-gray-600">Completed Services</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <DollarSign className="h-8 w-8 text-purple-500" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-semibold text-gray-900">{formatAmountInINR(totalSpent)}</h3>
-              <p className="text-sm text-gray-600">Total Spent</p>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Hero Header */}
+      <div className="bg-gradient-primary text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center animate-slide-up">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Welcome Back, {user.name}!
+            </h1>
+            <p className="text-xl opacity-90">
+              Manage your bookings and track service history
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'overview'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab('bookings')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'bookings'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            My Bookings
-          </button>
-          <button
-            onClick={() => setActiveTab('payments')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'payments'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Payment History
-          </button>
-          <button
-            onClick={() => setActiveTab('messages')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'messages'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Messages
-          </button>
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'profile'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Profile
-          </button>
-        </nav>
-      </div>
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 animate-slide-up">
+          <div className="bg-white rounded-3xl shadow-card p-8 hover-lift transition-all">
+            <div className="flex items-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-glow">
+                <Calendar className="h-8 w-8 text-white" />
+              </div>
+              <div className="ml-6">
+                <h3 className="text-3xl font-bold text-gray-900">{bookings?.length || 0}</h3>
+                <p className="text-gray-600 font-medium">Total Bookings</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-card p-8 hover-lift transition-all">
+            <div className="flex items-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-glow">
+                <Star className="h-8 w-8 text-white" />
+              </div>
+              <div className="ml-6">
+                <h3 className="text-3xl font-bold text-gray-900">{completedBookings}</h3>
+                <p className="text-gray-600 font-medium">Completed Services</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-card p-8 hover-lift transition-all">
+            <div className="flex items-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-glow">
+                <DollarSign className="h-8 w-8 text-white" />
+              </div>
+              <div className="ml-6">
+                <h3 className="text-3xl font-bold text-gray-900">{formatAmountInINR(totalSpent)}</h3>
+                <p className="text-gray-600 font-medium">Total Spent</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-2xl shadow-card p-2 mb-8 animate-slide-up">
+          <nav className="flex space-x-2">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all hover-lift ${
+                activeTab === 'overview'
+                  ? 'bg-gradient-primary text-white shadow-glow'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+              data-testid="tab-overview"
+            >
+              <i className="fas fa-tachometer-alt mr-2"></i>
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('bookings')}
+              className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all hover-lift ${
+                activeTab === 'bookings'
+                  ? 'bg-gradient-primary text-white shadow-glow'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+              data-testid="tab-bookings"
+            >
+              <i className="fas fa-calendar mr-2"></i>
+              My Bookings
+            </button>
+            <button
+              onClick={() => setActiveTab('payments')}
+              className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all hover-lift ${
+                activeTab === 'payments'
+                  ? 'bg-gradient-primary text-white shadow-glow'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+              data-testid="tab-payments"
+            >
+              <i className="fas fa-credit-card mr-2"></i>
+              Payment History
+            </button>
+            <button
+              onClick={() => setActiveTab('messages')}
+              className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all hover-lift ${
+                activeTab === 'messages'
+                  ? 'bg-gradient-primary text-white shadow-glow'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+              data-testid="tab-messages"
+            >
+              <i className="fas fa-envelope mr-2"></i>
+              Messages
+            </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all hover-lift ${
+                activeTab === 'profile'
+                  ? 'bg-gradient-primary text-white shadow-glow'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+              data-testid="tab-profile"
+            >
+              <i className="fas fa-user-cog mr-2"></i>
+              Profile
+            </button>
+          </nav>
+        </div>
 
       {/* Tab Content */}
       {activeTab === 'overview' && (
@@ -758,6 +778,7 @@ export default function UserDashboard() {
           senderId={user.id}
         />
       )}
+      </div>
     </div>
   );
 }
