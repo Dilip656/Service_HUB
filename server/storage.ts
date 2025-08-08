@@ -32,6 +32,7 @@ export interface IStorage {
   getServiceProvider(id: number): Promise<ServiceProvider | undefined>;
   getServiceProviderByEmail(email: string): Promise<ServiceProvider | undefined>;
   createServiceProvider(provider: InsertServiceProvider): Promise<ServiceProvider>;
+  updateServiceProvider(id: number, providerData: Partial<InsertServiceProvider>): Promise<ServiceProvider>;
   updateProviderKycStatus(id: number, verified: boolean): Promise<void>;
   updateProviderKycDocuments(id: number, kycDocuments: any, status: string): Promise<void>;
   updateProviderStatus(id: number, status: string): Promise<void>;
@@ -125,6 +126,11 @@ export class DatabaseStorage implements IStorage {
       .insert(serviceProviders)
       .values(insertProvider)
       .returning();
+    return provider;
+  }
+
+  async updateServiceProvider(id: number, providerData: Partial<InsertServiceProvider>): Promise<ServiceProvider> {
+    const [provider] = await db.update(serviceProviders).set(providerData).where(eq(serviceProviders.id, id)).returning();
     return provider;
   }
 
