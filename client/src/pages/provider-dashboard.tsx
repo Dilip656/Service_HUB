@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Calendar, Clock, MapPin, DollarSign, Star, ChevronRight, User, TrendingUp, Shield, Users, CheckCircle } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useNotification } from '@/components/ui/notification';
+import { queryClient } from '@/lib/queryClient';
 
 export default function ProviderDashboard() {
   const [, setLocation] = useLocation();
@@ -46,6 +47,39 @@ export default function ProviderDashboard() {
       return response.json();
     },
   });
+
+  // Mutation for updating booking status
+  const updateBookingStatusMutation = useMutation({
+    mutationFn: async ({ bookingId, status }: { bookingId: number; status: string }) => {
+      const response = await fetch(`/api/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error('Failed to update booking status');
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      const statusText = variables.status === 'Confirmed' ? 'accepted' : 'declined';
+      showNotification(`Booking ${statusText} successfully!`, 'success');
+      // Invalidate and refetch booking queries
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings/provider', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] }); // Admin dashboard
+    },
+    onError: (error: any) => {
+      showNotification(error.message || 'Failed to update booking status', 'error');
+    },
+  });
+
+  const handleAcceptBooking = (bookingId: number) => {
+    updateBookingStatusMutation.mutate({ bookingId, status: 'Confirmed' });
+  };
+
+  const handleDeclineBooking = (bookingId: number) => {
+    updateBookingStatusMutation.mutate({ bookingId, status: 'Cancelled' });
+  };
 
   const formatAmountInINR = (amount: string | number) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -360,11 +394,19 @@ export default function ProviderDashboard() {
                       </div>
                       {booking.status === 'Pending' && (
                         <div className="mt-2 space-x-2">
-                          <button className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">
-                            Accept
+                          <button 
+                            onClick={() => handleAcceptBooking(booking.id)}
+                            disabled={updateBookingStatusMutation.isPending}
+                            className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {updateBookingStatusMutation.isPending ? 'Processing...' : 'Accept'}
                           </button>
-                          <button className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">
-                            Decline
+                          <button 
+                            onClick={() => handleDeclineBooking(booking.id)}
+                            disabled={updateBookingStatusMutation.isPending}
+                            className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 disabled:opacity-50"
+                          >
+                            {updateBookingStatusMutation.isPending ? 'Processing...' : 'Decline'}
                           </button>
                         </div>
                       )}
