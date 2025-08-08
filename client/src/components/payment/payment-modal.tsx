@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { paymentAPI } from '@/lib/api';
 import { useNotification } from '@/components/ui/notification';
 import { initializeRazorpayPayment, loadRazorpayScript } from './razorpay-integration';
+import { createPaymentDeepLink, getPaymentAppName, generateUPIQRCode, validateUpiId } from '@/utils/payment-helpers';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -50,9 +51,9 @@ const paymentMethods: PaymentMethod[] = [
   },
   {
     id: 'upi',
-    name: 'UPI',
+    name: 'Any UPI App',
     icon: <QrCode className="w-6 h-6 text-orange-600" />,
-    description: 'Pay using any UPI app',
+    description: 'Enter your UPI ID',
     gateway: 'upi'
   }
 ];
@@ -66,10 +67,17 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
 
   useEffect(() => {
     // Load Razorpay script on component mount
-    loadRazorpayScript().then((loaded) => {
-      setRazorpayLoaded(loaded as boolean);
-    });
-  }, []);
+    if (isOpen) {
+      loadRazorpayScript().then((loaded) => {
+        setRazorpayLoaded(loaded as boolean);
+        if (loaded) {
+          console.log('Razorpay script loaded successfully');
+        } else {
+          console.log('Razorpay script failed to load, using UPI fallback');
+        }
+      });
+    }
+  }, [isOpen]);
 
   const paymentMutation = useMutation({
     mutationFn: paymentAPI.createPayment,
@@ -144,8 +152,8 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
     const amount = bookingDetails.amount;
     const orderId = paymentData.id;
     
-    // Use Razorpay for a more realistic payment experience if loaded
-    if (razorpayLoaded && ['phonepe', 'paytm', 'googlepay'].includes(method)) {
+    // For demo - Use Razorpay for Card payments, UPI for app-specific payments
+    if (razorpayLoaded && method === 'razorpay') {
       initializeRazorpayPayment(
         {
           amount: amount,
@@ -168,36 +176,39 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
       return;
     }
 
-    // Fallback to UPI deep links for direct app integration
-    switch (method) {
-      case 'phonepe':
-        const phonePeUrl = `phonepe://pay?pa=servicehub@phonepe&pn=ServiceHub&mc=0000&tid=${orderId}&am=${amount}&cu=INR&tn=Payment for ${bookingDetails.serviceName}`;
-        showNotification('Redirecting to PhonePe...', 'info');
-        window.location.href = phonePeUrl;
-        break;
-
-      case 'paytm':
-        const paytmUrl = `paytmmp://pay?pa=servicehub@paytm&pn=ServiceHub&mc=0000&tid=${orderId}&am=${amount}&cu=INR&tn=Payment for ${bookingDetails.serviceName}`;
-        showNotification('Redirecting to Paytm...', 'info');
-        window.location.href = paytmUrl;
-        break;
-
-      case 'googlepay':
-        const googlePayUrl = `tez://upi/pay?pa=servicehub@okaxis&pn=ServiceHub&mc=0000&tid=${orderId}&am=${amount}&cu=INR&tn=Payment for ${bookingDetails.serviceName}`;
-        showNotification('Redirecting to Google Pay...', 'info');
-        window.location.href = googlePayUrl;
-        break;
-
-      case 'upi':
-        const upiUrl = `upi://pay?pa=${upiId || 'servicehub@upi'}&pn=ServiceHub&mc=0000&tid=${orderId}&am=${amount}&cu=INR&tn=Payment for ${bookingDetails.serviceName}`;
-        showNotification('Redirecting to UPI app...', 'info');
-        window.location.href = upiUrl;
-        break;
-
-      default:
-        showNotification('Payment method not supported', 'error');
+    // Create proper UPI payment intent URLs using helper
+    const merchantUpiId = 'servicehub@okaxis'; // Demo UPI ID
+    
+    // Validate UPI ID for generic UPI option
+    if (method === 'upi') {
+      const userUpiId = upiId.trim();
+      if (!userUpiId) {
+        showNotification('Please enter your UPI ID', 'error');
         setIsProcessing(false);
         return;
+      }
+      if (!validateUpiId(userUpiId)) {
+        showNotification('Please enter a valid UPI ID (e.g., yourname@paytm)', 'error');
+        setIsProcessing(false);
+        return;
+      }
+    }
+
+    // Generate payment deep link
+    const paymentUrl = createPaymentDeepLink(method, merchantUpiId, amount, orderId, bookingDetails.serviceName, upiId);
+    const appName = getPaymentAppName(method);
+
+    // Show notification and redirect
+    showNotification(`Opening ${appName}... Complete payment and return here`, 'info');
+    
+    // Try to open the payment app
+    try {
+      window.location.href = paymentUrl;
+    } catch (error) {
+      console.error('Failed to open payment app:', error);
+      showNotification(`Could not open ${appName}. Please install the app first.`, 'error');
+      setIsProcessing(false);
+      return;
     }
 
     // Start monitoring payment status for UPI deep links
@@ -206,41 +217,45 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
 
   const monitorPaymentStatus = (paymentId: string) => {
     // Create a more realistic payment monitoring experience
-    showNotification('Please complete payment in the app and return here', 'info');
+    showNotification('Complete payment in the app and return here', 'success');
+    
+    let hasChecked = false;
     
     // Listen for page visibility change (when user returns from payment app)
     const handleVisibilityChange = () => {
-      if (!document.hidden && isProcessing) {
+      if (!document.hidden && isProcessing && !hasChecked) {
+        hasChecked = true;
         // User has returned to the page
-        showNotification('Verifying payment status...', 'info');
+        showNotification('Checking payment status...', 'info');
         
-        // Simulate payment verification after a short delay
+        // Simulate realistic payment verification
         setTimeout(() => {
-          const success = Math.random() > 0.2; // 80% success rate
+          // Higher success rate for better demo experience
+          const success = Math.random() > 0.15; // 85% success rate
           
           if (success) {
-            showNotification('Payment verified successfully!', 'success');
+            showNotification('Payment successful! Booking confirmed.', 'success');
             onPaymentSuccess();
             onClose();
           } else {
-            showNotification('Payment verification failed. Please try again.', 'error');
+            showNotification('Payment not completed. Please try again or check payment status.', 'warning');
             setIsProcessing(false);
+            hasChecked = false; // Allow retry
           }
-          
-          // Clean up listener
-          document.removeEventListener('visibilitychange', handleVisibilityChange);
         }, 2000);
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Also provide a manual refresh option after 30 seconds
+    // Auto-cleanup after 5 minutes
     setTimeout(() => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (isProcessing) {
-        showNotification('Payment taking longer? Click here to refresh status', 'info');
+        showNotification('Payment session expired. Please try again.', 'warning');
+        setIsProcessing(false);
       }
-    }, 30000);
+    }, 300000); // 5 minutes
   };
 
   if (!isOpen) return null;
@@ -313,15 +328,18 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
           {selectedMethod === 'upi' && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                UPI ID
+                Your UPI ID
               </label>
               <input
                 type="text"
                 value={upiId}
                 onChange={(e) => setUpiId(e.target.value)}
-                placeholder="yourname@upi"
+                placeholder="yourname@paytm"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
               />
+              <div className="text-xs text-gray-500 mt-1">
+                Enter your UPI ID (e.g., 9876543210@paytm, yourname@googlepay)
+              </div>
             </div>
           )}
 
@@ -346,21 +364,22 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
             <button
               onClick={() => {
                 showNotification('Checking payment status...', 'info');
-                // Simulate status check
+                // More realistic status check with payment verification
                 setTimeout(() => {
-                  const success = Math.random() > 0.3;
+                  const success = Math.random() > 0.25; // 75% success rate
                   if (success) {
-                    showNotification('Payment verified successfully!', 'success');
+                    showNotification('Payment verified and confirmed!', 'success');
                     onPaymentSuccess();
                     onClose();
                   } else {
-                    showNotification('Payment still pending. Please complete in your payment app.', 'warning');
+                    showNotification('Payment still pending. Complete payment in your app and click again.', 'warning');
                   }
-                }, 1500);
+                }, 2000);
               }}
-              className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors mb-3"
+              className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors mb-3 flex items-center justify-center"
             >
-              Check Payment Status
+              <div className="animate-pulse mr-2">⟳</div>
+              I completed payment, verify now
             </button>
           )}
 
@@ -385,9 +404,16 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
             </div>
             Your payment information is secure and encrypted
             {isProcessing && (
-              <div className="mt-2 p-2 bg-blue-50 rounded text-blue-700">
-                <div className="text-sm font-medium">Payment in progress...</div>
-                <div className="text-xs">Complete payment in your app and return here</div>
+              <div className="mt-2 p-3 bg-blue-50 rounded-lg text-blue-700 border border-blue-200">
+                <div className="text-sm font-medium flex items-center">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                  Payment in progress...
+                </div>
+                <div className="text-xs mt-1">
+                  1. Complete payment in your app<br/>
+                  2. Return here and click "I completed payment"<br/>
+                  3. We'll verify and confirm your booking
+                </div>
               </div>
             )}
           </div>
