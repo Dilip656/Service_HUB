@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { bookingAPI } from '@/lib/api';
 import { useNotification } from '@/components/ui/notification';
 import { PaymentModal } from '@/components/payment';
+import { queryClient } from '@/lib/queryClient';
 import { z } from 'zod';
 
 const bookingSchema = z.object({
@@ -38,6 +39,12 @@ export default function Booking() {
     mutationFn: bookingAPI.createBooking,
     onSuccess: (data) => {
       showNotification('Booking created successfully!', 'success');
+      
+      // Invalidate and refetch booking queries for both user and provider dashboards
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings/user', data.userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings/provider', data.providerId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] }); // Admin dashboard
+      
       // Store booking data for payment
       setBookingData({
         bookingId: data.id,
