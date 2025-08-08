@@ -12,6 +12,8 @@ import Auth from "@/pages/auth";
 import Booking from "@/pages/booking";
 import Admin from "@/pages/admin";
 import KYCVerification from "@/pages/kyc-verification";
+import UserDashboard from "@/pages/user-dashboard";
+import ProviderDashboard from "@/pages/provider-dashboard";
 import NotFound from "@/pages/not-found";
 import PaymentInfo from "@/pages/payment-info";
 import { PaymentCallback } from "@/components/payment";
@@ -26,6 +28,8 @@ function Router() {
       <Route path="/booking" component={Booking} />
       <Route path="/admin" component={Admin} />
       <Route path="/kyc-verification" component={KYCVerification} />
+      <Route path="/user-dashboard" component={UserDashboard} />
+      <Route path="/provider-dashboard" component={ProviderDashboard} />
       <Route path="/payment-callback" component={PaymentCallback} />
       <Route path="/payment-info" component={PaymentInfo} />
       <Route component={NotFound} />

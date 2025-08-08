@@ -19,26 +19,12 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
   const handleBookNow = () => {
     // Check if user is authenticated before booking
     const userStr = localStorage.getItem('user');
-    console.log('=== AUTHENTICATION CHECK ===');
-    console.log('User data from localStorage:', userStr);
-    console.log('Is user null/undefined?', !userStr);
-    
     if (!userStr) {
-      console.log('❌ User not authenticated, triggering notification and redirect');
-      try {
-        showNotification('Please sign in to book a service', 'error');
-        console.log('✅ Notification triggered successfully');
-      } catch (e) {
-        console.error('❌ Notification failed:', e);
-        alert('Please sign in to book a service'); // Fallback
-      }
+      showNotification('Please sign in to book a service', 'error');
       onClose();
       setLocation('/auth?mode=signin&redirect=booking');
-      console.log('✅ Redirecting to auth page');
       return;
     }
-    
-    console.log('✅ User authenticated, proceeding to booking');
 
     sessionStorage.setItem('currentProviderId', provider.id.toString());
     sessionStorage.setItem('currentProviderName', provider.businessName);

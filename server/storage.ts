@@ -43,6 +43,8 @@ export interface IStorage {
   getBooking(id: number): Promise<Booking | undefined>;
   getUserBookings(userId: number): Promise<Booking[]>;
   getProviderBookings(providerId: number): Promise<Booking[]>;
+  getBookingsByUserId(userId: number): Promise<Booking[]>;
+  getBookingsByProviderId(providerId: number): Promise<Booking[]>;
   updateBookingStatus(id: number, status: string): Promise<void>;
   getAllBookings(): Promise<Booking[]>;
 
@@ -50,6 +52,8 @@ export interface IStorage {
   createPayment(payment: InsertPayment): Promise<Payment>;
   getPayment(id: string): Promise<Payment | undefined>;
   getUserPayments(userId: number): Promise<Payment[]>;
+  getPaymentsByUserId(userId: number): Promise<Payment[]>;
+  getPaymentsByProviderId(providerId: number): Promise<Payment[]>;
   getAllPayments(): Promise<Payment[]>;
 
   // Reviews
@@ -229,6 +233,22 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(bookings).orderBy(desc(bookings.createdAt));
   }
 
+  async getBookingsByUserId(userId: number): Promise<Booking[]> {
+    return await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.userId, userId))
+      .orderBy(desc(bookings.createdAt));
+  }
+
+  async getBookingsByProviderId(providerId: number): Promise<Booking[]> {
+    return await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.providerId, providerId))
+      .orderBy(desc(bookings.createdAt));
+  }
+
   // Payments
   async createPayment(insertPayment: InsertPayment): Promise<Payment> {
     const [payment] = await db
@@ -253,6 +273,22 @@ export class DatabaseStorage implements IStorage {
 
   async getAllPayments(): Promise<Payment[]> {
     return await db.select().from(payments).orderBy(desc(payments.createdAt));
+  }
+
+  async getPaymentsByUserId(userId: number): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.userId, userId))
+      .orderBy(desc(payments.createdAt));
+  }
+
+  async getPaymentsByProviderId(providerId: number): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.providerId, providerId))
+      .orderBy(desc(payments.createdAt));
   }
 
   // Reviews

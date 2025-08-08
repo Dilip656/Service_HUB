@@ -306,6 +306,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get bookings for a specific user
+  app.get("/api/bookings/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const bookings = await storage.getBookingsByUserId(parseInt(userId));
+      res.json(bookings);
+    } catch (error) {
+      console.error('Error fetching user bookings:', error);
+      res.status(400).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  // Get bookings for a specific provider
+  app.get("/api/bookings/provider/:providerId", async (req, res) => {
+    try {
+      const { providerId } = req.params;
+      const bookings = await storage.getBookingsByProviderId(parseInt(providerId));
+      res.json(bookings);
+    } catch (error) {
+      console.error('Error fetching provider bookings:', error);
+      res.status(400).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  // Get payments for a specific user
+  app.get("/api/payments/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const payments = await storage.getPaymentsByUserId(parseInt(userId));
+      res.json(payments);
+    } catch (error) {
+      console.error('Error fetching user payments:', error);
+      res.status(400).json({ message: "Failed to fetch payments" });
+    }
+  });
+
+  // Get payments for a specific provider
+  app.get("/api/payments/provider/:providerId", async (req, res) => {
+    try {
+      const { providerId } = req.params;
+      const payments = await storage.getPaymentsByProviderId(parseInt(providerId));
+      res.json(payments);
+    } catch (error) {
+      console.error('Error fetching provider payments:', error);
+      res.status(400).json({ message: "Failed to fetch payments" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
