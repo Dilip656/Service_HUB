@@ -82,12 +82,7 @@ export default function Header() {
               </>
             ) : null}
             
-            <Link 
-              href="/payment-test" 
-              className="text-gray-400 hover:text-gray-600 px-2 py-2 text-xs"
-            >
-              Payment Test
-            </Link>
+
             <Link 
               href="/admin" 
               className="text-gray-400 hover:text-gray-600 px-2 py-2 text-xs"
