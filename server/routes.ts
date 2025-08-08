@@ -259,6 +259,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Provider profile routes
+  app.put("/api/providers/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = {
+        businessName: req.body.businessName,
+        ownerName: req.body.ownerName,
+        phone: req.body.phone,
+        location: req.body.location,
+        description: req.body.description,
+        hourlyRate: req.body.hourlyRate
+      };
+      
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof typeof updateData] === undefined) {
+          delete updateData[key as keyof typeof updateData];
+        }
+      });
+      
+      const updatedProvider = await storage.updateServiceProvider(id, updateData);
+      res.json({ 
+        provider: { 
+          id: updatedProvider.id, 
+          businessName: updatedProvider.businessName, 
+          email: updatedProvider.email,
+          phone: updatedProvider.phone,
+          location: updatedProvider.location,
+          type: "provider"
+        } 
+      });
+    } catch (error) {
+      console.error("Provider update error:", error);
+      res.status(400).json({ message: "Failed to update provider profile" });
+    }
+  });
+
   // Admin routes
   app.get("/api/admin/stats", async (req, res) => {
     try {

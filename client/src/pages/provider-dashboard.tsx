@@ -4,11 +4,24 @@ import { Calendar, Clock, MapPin, DollarSign, Star, ChevronRight, User, Trending
 import { Link, useLocation } from 'wouter';
 import { useNotification } from '@/components/ui/notification';
 import { queryClient } from '@/lib/queryClient';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const profileUpdateSchema = z.object({
+  businessName: z.string().min(2, 'Business name must be at least 2 characters'),
+  ownerName: z.string().min(2, 'Owner name must be at least 2 characters'),
+  phone: z.string().min(10, 'Phone must be at least 10 digits').max(15, 'Phone must be at most 15 digits'),
+  location: z.string().min(5, 'Location must be at least 5 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  hourlyRate: z.string().min(1, 'Hourly rate is required'),
+});
 
 export default function ProviderDashboard() {
   const [, setLocation] = useLocation();
   const { showNotification } = useNotification();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   // Get current provider
   const userStr = localStorage.getItem('user');
@@ -48,6 +61,43 @@ export default function ProviderDashboard() {
     },
   });
 
+  // Profile update form
+  const form = useForm({
+    resolver: zodResolver(profileUpdateSchema),
+    defaultValues: {
+      businessName: '',
+      ownerName: '',
+      phone: '',
+      location: '',
+      description: '',
+      hourlyRate: '',
+    },
+  });
+
+  // Mutation for updating provider profile
+  const profileUpdateMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof profileUpdateSchema>) => {
+      const response = await fetch(`/api/providers/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update profile');
+      return response.json();
+    },
+    onSuccess: () => {
+      showNotification('Profile updated successfully!', 'success');
+      setIsEditingProfile(false);
+      // Invalidate and refetch provider data
+      queryClient.invalidateQueries({ queryKey: ['/api/providers', user.id] });
+    },
+    onError: (error: any) => {
+      showNotification(error.message || 'Failed to update profile', 'error');
+    },
+  });
+
   // Mutation for updating booking status
   const updateBookingStatusMutation = useMutation({
     mutationFn: async ({ bookingId, status }: { bookingId: number; status: string }) => {
@@ -79,6 +129,20 @@ export default function ProviderDashboard() {
 
   const handleDeclineBooking = (bookingId: number) => {
     updateBookingStatusMutation.mutate({ bookingId, status: 'Cancelled' });
+  };
+
+  const handleEditProfile = () => {
+    if (provider) {
+      form.reset({
+        businessName: provider.businessName || '',
+        ownerName: provider.ownerName || '',
+        phone: provider.phone || '',
+        location: provider.location || '',
+        description: provider.description || '',
+        hourlyRate: provider.hourlyRate || '',
+      });
+      setIsEditingProfile(true);
+    }
   };
 
   const formatAmountInINR = (amount: string | number) => {
@@ -489,56 +553,199 @@ export default function ProviderDashboard() {
       {activeTab === 'profile' && provider && (
         <div className="bg-white rounded-xl border p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Business Profile</h3>
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
-                <div className="text-gray-900">{provider.businessName}</div>
+          
+          {!isEditingProfile ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
+                  <div className="text-gray-900">{provider.businessName}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Owner Name</label>
+                  <div className="text-gray-900">{provider.ownerName}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Service Category</label>
+                  <div className="text-gray-900">{provider.serviceCategory}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Service Name</label>
+                  <div className="text-gray-900">{provider.serviceName}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <div className="text-gray-900">{provider.phone}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate</label>
+                  <div className="text-gray-900">{formatAmountInINR(provider.hourlyRate)}</div>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Owner Name</label>
-                <div className="text-gray-900">{provider.ownerName}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Service Category</label>
-                <div className="text-gray-900">{provider.serviceCategory}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Service Name</label>
-                <div className="text-gray-900">{provider.serviceName}</div>
-              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
                 <div className="text-gray-900">{provider.location}</div>
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate</label>
-                <div className="text-gray-900">{formatAmountInINR(provider.hourlyRate)}</div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Service Description</label>
+                <div className="text-gray-900">{provider.description}</div>
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Service Description</label>
-              <div className="text-gray-900">{provider.description}</div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
-              <div className="flex flex-wrap gap-2">
-                {provider.availability?.map((day: string) => (
-                  <span key={day} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                    {day.charAt(0).toUpperCase() + day.slice(1)}
-                  </span>
-                )) || <span className="text-gray-500">No availability set</span>}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
+                <div className="flex flex-wrap gap-2">
+                  {provider.availability?.map((day: string) => (
+                    <span key={day} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                      {day.charAt(0).toUpperCase() + day.slice(1)}
+                    </span>
+                  )) || <span className="text-gray-500">No availability set</span>}
+                </div>
               </div>
-            </div>
 
-            <div className="pt-6 border-t">
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                Edit Profile
-              </button>
+              <div className="pt-6 border-t">
+                <button 
+                  onClick={handleEditProfile}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  data-testid="button-edit-profile"
+                >
+                  Edit Profile
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <form
+              onSubmit={form.handleSubmit((data) => profileUpdateMutation.mutate(data))}
+              className="space-y-6"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Business Name *
+                  </label>
+                  <input
+                    {...form.register('businessName')}
+                    type="text"
+                    id="businessName"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter business name"
+                    data-testid="input-business-name"
+                  />
+                  {form.formState.errors.businessName && (
+                    <p className="mt-1 text-sm text-red-600">{String(form.formState.errors.businessName.message)}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="ownerName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Owner Name *
+                  </label>
+                  <input
+                    {...form.register('ownerName')}
+                    type="text"
+                    id="ownerName"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter owner name"
+                    data-testid="input-owner-name"
+                  />
+                  {form.formState.errors.ownerName && (
+                    <p className="mt-1 text-sm text-red-600">{String(form.formState.errors.ownerName.message)}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number *
+                  </label>
+                  <input
+                    {...form.register('phone')}
+                    type="tel"
+                    id="phone"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter phone number"
+                    data-testid="input-phone"
+                  />
+                  {form.formState.errors.phone && (
+                    <p className="mt-1 text-sm text-red-600">{String(form.formState.errors.phone.message)}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700 mb-2">
+                    Hourly Rate (₹) *
+                  </label>
+                  <input
+                    {...form.register('hourlyRate')}
+                    type="number"
+                    id="hourlyRate"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter hourly rate"
+                    data-testid="input-hourly-rate"
+                  />
+                  {form.formState.errors.hourlyRate && (
+                    <p className="mt-1 text-sm text-red-600">{String(form.formState.errors.hourlyRate.message)}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                  Location *
+                </label>
+                <input
+                  {...form.register('location')}
+                  type="text"
+                  id="location"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter your city and area"
+                  data-testid="input-location"
+                />
+                {form.formState.errors.location && (
+                  <p className="mt-1 text-sm text-red-600">{String(form.formState.errors.location.message)}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  Service Description *
+                </label>
+                <textarea
+                  {...form.register('description')}
+                  id="description"
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Describe your services and experience"
+                  data-testid="input-description"
+                />
+                {form.formState.errors.description && (
+                  <p className="mt-1 text-sm text-red-600">{String(form.formState.errors.description.message)}</p>
+                )}
+              </div>
+
+              <div className="flex gap-4 pt-6 border-t">
+                <button
+                  type="submit"
+                  disabled={profileUpdateMutation.isPending}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  data-testid="button-save-profile"
+                >
+                  {profileUpdateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditingProfile(false);
+                    form.reset();
+                  }}
+                  className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                  data-testid="button-cancel-edit"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       )}
     </div>
