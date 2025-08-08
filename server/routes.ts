@@ -259,6 +259,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/messages/received/:userId/:userType", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const userType = req.params.userType as 'user' | 'provider';
+      
+      const messages = await storage.getReceivedMessagesForUser(userId, userType);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch received messages" });
+    }
+  });
+
   app.get("/api/messages/conversation/:senderId/:receiverId/:senderType/:receiverType", async (req, res) => {
     try {
       const senderId = parseInt(req.params.senderId);

@@ -65,11 +65,11 @@ export default function ProviderDashboard() {
     },
   });
 
-  // Fetch provider's messages
+  // Fetch provider's received messages (from customers)
   const { data: messages, isLoading: messagesLoading } = useQuery({
-    queryKey: ['/api/messages/user', user.id, 'provider'],
+    queryKey: ['/api/messages/received', user.id, 'provider'],
     queryFn: async () => {
-      const response = await fetch(`/api/messages/user/${user.id}/provider`);
+      const response = await fetch(`/api/messages/received/${user.id}/provider`);
       if (!response.ok) throw new Error('Failed to fetch messages');
       return response.json();
     },

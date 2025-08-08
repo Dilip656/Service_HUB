@@ -428,6 +428,19 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(messages.createdAt));
   }
 
+  async getReceivedMessagesForUser(userId: number, userType: 'user' | 'provider'): Promise<Message[]> {
+    return await db
+      .select()
+      .from(messages)
+      .where(
+        and(
+          eq(messages.receiverId, userId),
+          eq(messages.receiverType, userType)
+        )
+      )
+      .orderBy(desc(messages.createdAt));
+  }
+
   async getConversation(senderId: number, receiverId: number, senderType: string, receiverType: string): Promise<Message[]> {
     return await db
       .select()
