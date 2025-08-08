@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import { X, CreditCard, Smartphone, Phone, QrCode } from 'lucide-react';
+import { X, CreditCard, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { paymentAPI } from '@/lib/api';
 import { useNotification } from '@/components/ui/notification';
-import { initializeRazorpayPayment, loadRazorpayScript } from './razorpay-integration';
-import { createPaymentDeepLink, getPaymentAppName, generateUPIQRCode, validateUpiId } from '@/utils/payment-helpers';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -19,78 +17,115 @@ interface PaymentModalProps {
   onPaymentSuccess: () => void;
 }
 
-interface PaymentMethod {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  description: string;
-  gateway: string;
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
 }
 
-const paymentMethods: PaymentMethod[] = [
-  {
-    id: 'phonepe',
-    name: 'PhonePe',
-    icon: <Phone className="w-6 h-6 text-purple-600" />,
-    description: 'Pay using PhonePe UPI',
-    gateway: 'phonepe'
-  },
-  {
-    id: 'paytm',
-    name: 'Paytm',
-    icon: <CreditCard className="w-6 h-6 text-blue-600" />,
-    description: 'Pay using Paytm Wallet/UPI',
-    gateway: 'paytm'
-  },
-  {
-    id: 'googlepay',
-    name: 'Google Pay',
-    icon: <Smartphone className="w-6 h-6 text-green-600" />,
-    description: 'Pay using Google Pay UPI',
-    gateway: 'googlepay'
-  },
-  {
-    id: 'upi',
-    name: 'Any UPI App',
-    icon: <QrCode className="w-6 h-6 text-orange-600" />,
-    description: 'Enter your UPI ID',
-    gateway: 'upi'
-  }
-];
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: any) => void;
+  prefill: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  notes: {
+    address: string;
+  };
+  theme: {
+    color: string;
+  };
+}
 
 export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymentSuccess }: PaymentModalProps) {
-  const [selectedMethod, setSelectedMethod] = useState<string>('');
-  const [upiId, setUpiId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'failed'>('idle');
+  const [paymentDetails, setPaymentDetails] = useState<any>(null);
+  const [error, setError] = useState<string>('');
   const { showNotification } = useNotification();
 
-  useEffect(() => {
-    // Load Razorpay script on component mount
-    if (isOpen) {
-      loadRazorpayScript().then((loaded) => {
-        setRazorpayLoaded(loaded as boolean);
-        if (loaded) {
-          console.log('Razorpay script loaded successfully');
-        } else {
-          console.log('Razorpay script failed to load, using UPI fallback');
-        }
-      });
-    }
-  }, [isOpen]);
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
 
-  const paymentMutation = useMutation({
-    mutationFn: paymentAPI.createPayment,
-    onSuccess: (data) => {
-      showNotification('Payment initiated successfully!', 'success');
-      onPaymentSuccess();
-      onClose();
-    },
-    onError: (error: any) => {
-      showNotification(error.message || 'Payment failed', 'error');
-      setIsProcessing(false);
-    },
-  });
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const createOrder = async (orderAmount: number) => {
+    try {
+      const response = await fetch('/api/razorpay/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: orderAmount,
+          currency: 'INR',
+          receipt: `receipt_${Date.now()}`,
+          notes: {
+            description: `Payment for ${bookingDetails.serviceName}`,
+            bookingId: bookingDetails.bookingId
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Order created:', data);
+      return data;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      throw error;
+    }
+  };
+
+  const verifyPayment = async (paymentData: any) => {
+    try {
+      const response = await fetch('/api/razorpay/verify-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          razorpay_order_id: paymentData.razorpay_order_id,
+          razorpay_payment_id: paymentData.razorpay_payment_id,
+          razorpay_signature: paymentData.razorpay_signature,
+          bookingId: bookingDetails.bookingId,
+          userId: bookingDetails.userId,
+          providerId: bookingDetails.providerId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Payment verified:', data);
+      return data;
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      throw error;
+    }
+  };
 
   const formatAmountInINR = (amount: string) => {
     const num = parseFloat(amount);
@@ -100,162 +135,103 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
     }).format(num);
   };
 
-  const generatePaymentId = () => {
-    return `PAY_${Date.now()}_${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-  };
-
   const handlePayment = async () => {
-    if (!selectedMethod) {
-      showNotification('Please select a payment method', 'error');
-      return;
-    }
-
-    if (selectedMethod === 'upi' && !upiId) {
-      showNotification('Please enter UPI ID', 'error');
-      return;
-    }
-
-    setIsProcessing(true);
-    
     try {
-      const paymentId = generatePaymentId();
-      const selectedPaymentMethod = paymentMethods.find(pm => pm.id === selectedMethod);
+      setIsProcessing(true);
+      setError('');
+      setPaymentStatus('idle');
+
+      // Validate amount
+      const orderAmount = parseFloat(bookingDetails.amount);
+      if (isNaN(orderAmount) || orderAmount <= 0) {
+        throw new Error('Invalid amount');
+      }
+
+      // Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        throw new Error('Failed to load payment gateway');
+      }
+
+      // Create order
+      const orderData = await createOrder(orderAmount);
       
-      // Create initial payment record
-      const paymentData = {
-        id: paymentId,
-        bookingId: bookingDetails.bookingId,
-        userId: bookingDetails.userId,
-        providerId: bookingDetails.providerId,
-        amount: bookingDetails.amount,
-        currency: 'INR',
-        paymentMethod: selectedPaymentMethod?.name || selectedMethod,
-        paymentGateway: selectedPaymentMethod?.gateway || selectedMethod,
-        transactionId: `TXN_${Date.now()}`,
-        gatewayPaymentId: `${selectedMethod.toUpperCase()}_${Date.now()}`,
-        status: 'Processing'
+      if (!orderData.success) {
+        throw new Error(orderData.error || 'Failed to create order');
+      }
+
+      // Get user data for prefill
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : {};
+
+      // Configure Razorpay options
+      const options: RazorpayOptions = {
+        key: orderData.key,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'ServiceHub',
+        description: bookingDetails.serviceName,
+        order_id: orderData.order_id,
+        handler: async (response: any) => {
+          try {
+            console.log('Payment successful:', response);
+            
+            // Verify payment with backend
+            const verificationResult = await verifyPayment(response);
+            
+            if (verificationResult.success) {
+              setPaymentStatus('success');
+              setPaymentDetails(verificationResult);
+              showNotification('Payment successful! Booking confirmed.', 'success');
+              onPaymentSuccess();
+            } else {
+              throw new Error('Payment verification failed');
+            }
+          } catch (error) {
+            console.error('Payment verification failed:', error);
+            setPaymentStatus('failed');
+            setError((error as Error).message);
+            showNotification('Payment verification failed', 'error');
+          }
+        },
+        prefill: {
+          name: user.name || 'Customer',
+          email: user.email || 'customer@servicehub.com',
+          contact: user.phone || '+919999999999',
+        },
+        notes: {
+          address: 'ServiceHub Booking',
+        },
+        theme: {
+          color: '#3B82F6',
+        },
       };
 
-      // Create payment record first
-      await paymentMutation.mutateAsync(paymentData);
+      // Open Razorpay checkout
+      const paymentObject = new window.Razorpay(options);
+      
+      paymentObject.on('payment.failed', (response: any) => {
+        console.error('Payment failed:', response);
+        setPaymentStatus('failed');
+        setError(response.error.description || 'Payment failed');
+        showNotification(response.error.description || 'Payment failed', 'error');
+      });
 
-      // Initiate real payment flow based on selected method
-      initiateRealPayment(selectedMethod, paymentData);
-
+      paymentObject.open();
     } catch (error) {
+      console.error('Payment initiation failed:', error);
+      setError((error as Error).message);
+      setPaymentStatus('failed');
+      showNotification((error as Error).message, 'error');
+    } finally {
       setIsProcessing(false);
-      showNotification('Payment processing error', 'error');
     }
   };
 
-  const initiateRealPayment = (method: string, paymentData: any) => {
-    const amount = bookingDetails.amount;
-    const orderId = paymentData.id;
-    
-    // For demo - Use Razorpay for Card payments, UPI for app-specific payments
-    if (razorpayLoaded && method === 'razorpay') {
-      initializeRazorpayPayment(
-        {
-          amount: amount,
-          orderId: orderId,
-          serviceName: bookingDetails.serviceName,
-          userEmail: 'user@servicehub.com',
-          userPhone: '9999999999'
-        },
-        () => {
-          showNotification('Payment completed successfully!', 'success');
-          onPaymentSuccess();
-          onClose();
-          setIsProcessing(false);
-        },
-        (error: string) => {
-          showNotification(error || 'Payment failed', 'error');
-          setIsProcessing(false);
-        }
-      );
-      return;
-    }
-
-    // Get merchant UPI ID from configuration or use demo
-    const merchantUpiId = localStorage.getItem('merchantUpiId') || 'servicehub@okaxis'; // Demo UPI ID
-    
-    // Validate UPI ID for generic UPI option
-    if (method === 'upi') {
-      const userUpiId = upiId.trim();
-      if (!userUpiId) {
-        showNotification('Please enter your UPI ID', 'error');
-        setIsProcessing(false);
-        return;
-      }
-      if (!validateUpiId(userUpiId)) {
-        showNotification('Please enter a valid UPI ID (e.g., yourname@paytm)', 'error');
-        setIsProcessing(false);
-        return;
-      }
-    }
-
-    // Generate payment deep link
-    const paymentUrl = createPaymentDeepLink(method, merchantUpiId, amount, orderId, bookingDetails.serviceName, upiId);
-    const appName = getPaymentAppName(method);
-
-    // Show notification and redirect
-    showNotification(`Opening ${appName}... Complete payment and return here`, 'info');
-    
-    // Try to open the payment app
-    try {
-      window.location.href = paymentUrl;
-    } catch (error) {
-      console.error('Failed to open payment app:', error);
-      showNotification(`Could not open ${appName}. Please install the app first.`, 'error');
-      setIsProcessing(false);
-      return;
-    }
-
-    // Start monitoring payment status for UPI deep links
-    monitorPaymentStatus(paymentData.id);
-  };
-
-  const monitorPaymentStatus = (paymentId: string) => {
-    // Create a more realistic payment monitoring experience
-    showNotification('Complete payment in the app and return here', 'success');
-    
-    let hasChecked = false;
-    
-    // Listen for page visibility change (when user returns from payment app)
-    const handleVisibilityChange = () => {
-      if (!document.hidden && isProcessing && !hasChecked) {
-        hasChecked = true;
-        // User has returned to the page
-        showNotification('Checking payment status...', 'info');
-        
-        // Simulate realistic payment verification
-        setTimeout(() => {
-          // Higher success rate for better demo experience
-          const success = Math.random() > 0.15; // 85% success rate
-          
-          if (success) {
-            showNotification('Payment successful! Booking confirmed.', 'success');
-            onPaymentSuccess();
-            onClose();
-          } else {
-            showNotification('Payment not completed. Please try again or check payment status.', 'warning');
-            setIsProcessing(false);
-            hasChecked = false; // Allow retry
-          }
-        }, 2000);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Auto-cleanup after 5 minutes
-    setTimeout(() => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (isProcessing) {
-        showNotification('Payment session expired. Please try again.', 'warning');
-        setIsProcessing(false);
-      }
-    }, 300000); // 5 minutes
+  const resetPayment = () => {
+    setPaymentStatus('idle');
+    setPaymentDetails(null);
+    setError('');
   };
 
   if (!isOpen) return null;
@@ -269,6 +245,7 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
+            data-testid="button-close-payment"
           >
             <X className="w-6 h-6" />
           </button>
@@ -277,146 +254,108 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
         {/* Payment Summary */}
         <div className="p-6 border-b bg-gray-50">
           <div className="text-sm text-gray-600">Payment for</div>
-          <div className="font-semibold text-gray-900">{bookingDetails.serviceName}</div>
-          <div className="text-2xl font-bold text-primary mt-2">
+          <div className="font-semibold text-gray-900" data-testid="text-service-name">
+            {bookingDetails.serviceName}
+          </div>
+          <div className="text-2xl font-bold text-primary mt-2" data-testid="text-amount">
             {formatAmountInINR(bookingDetails.amount)}
           </div>
           <div className="text-xs text-gray-500 mt-1">Amount in Indian Rupees</div>
         </div>
 
-        {/* Payment Methods */}
+        {/* Payment Content */}
         <div className="p-6">
-          <div className="mb-4">
-            <h3 className="font-semibold text-gray-900 mb-3">Choose Payment Method</h3>
-            <div className="space-y-2">
-              {paymentMethods.map((method) => (
+          {paymentStatus === 'success' && paymentDetails ? (
+            <div className="text-center">
+              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Payment Successful!</h3>
+              <p className="text-gray-600 mb-4">
+                Your booking has been confirmed. Payment ID: {paymentDetails.payment_id}
+              </p>
+              <button
+                onClick={() => {
+                  onClose();
+                  setTimeout(() => {
+                    window.location.href = '/user-dashboard';
+                  }, 100);
+                }}
+                className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                data-testid="button-view-dashboard"
+              >
+                View Dashboard
+              </button>
+            </div>
+          ) : paymentStatus === 'failed' ? (
+            <div className="text-center">
+              <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Payment Failed</h3>
+              <p className="text-gray-600 mb-4">{error || 'Something went wrong with your payment'}</p>
+              <div className="space-y-2">
                 <button
-                  key={method.id}
-                  onClick={() => setSelectedMethod(method.id)}
-                  className={`w-full p-4 border rounded-lg text-left transition-colors ${
-                    selectedMethod === method.id
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  onClick={resetPayment}
+                  className="w-full bg-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  data-testid="button-retry-payment"
                 >
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 mr-3">
-                      {method.icon}
-                    </div>
-                    <div className="flex-grow">
-                      <div className="font-medium text-gray-900">{method.name}</div>
-                      <div className="text-sm text-gray-500">{method.description}</div>
-                    </div>
-                    <div className="flex-shrink-0">
-                      <div className={`w-4 h-4 border-2 rounded-full ${
-                        selectedMethod === method.id 
-                          ? 'border-primary bg-primary' 
-                          : 'border-gray-300'
-                      }`}>
-                        {selectedMethod === method.id && (
-                          <div className="w-2 h-2 bg-white rounded-full mx-auto mt-[1px]"></div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  Try Again
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* UPI ID Input */}
-          {selectedMethod === 'upi' && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your UPI ID
-              </label>
-              <input
-                type="text"
-                value={upiId}
-                onChange={(e) => setUpiId(e.target.value)}
-                placeholder="yourname@paytm"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
-              />
-              <div className="text-xs text-gray-500 mt-1">
-                Enter your UPI ID (e.g., 9876543210@paytm, yourname@googlepay)
+                <button
+                  onClick={onClose}
+                  className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-400 transition-colors"
+                  data-testid="button-cancel-payment"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
-          )}
-
-          {/* Payment Button */}
-          <button
-            onClick={handlePayment}
-            disabled={!selectedMethod || isProcessing}
-            className="w-full bg-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-3"
-          >
-            {isProcessing ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Processing Payment...
+          ) : (
+            <div>
+              <div className="mb-6 text-center">
+                <CreditCard className="w-16 h-16 text-primary mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Secure Payment Gateway</h3>
+                <p className="text-gray-600 text-sm">
+                  Powered by Razorpay - India's most trusted payment gateway
+                </p>
               </div>
-            ) : (
-              `Pay ${formatAmountInINR(bookingDetails.amount)}`
-            )}
-          </button>
 
-          {/* Payment Status Check Button - Show when processing */}
-          {isProcessing && (
-            <button
-              onClick={() => {
-                showNotification('Checking payment status...', 'info');
-                // More realistic status check with payment verification
-                setTimeout(() => {
-                  const success = Math.random() > 0.25; // 75% success rate
-                  if (success) {
-                    showNotification('Payment verified and confirmed!', 'success');
-                    onPaymentSuccess();
-                    onClose();
-                  } else {
-                    showNotification('Payment still pending. Complete payment in your app and click again.', 'warning');
-                  }
-                }, 2000);
-              }}
-              className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors mb-3 flex items-center justify-center"
-            >
-              <div className="animate-pulse mr-2">⟳</div>
-              I completed payment, verify now
-            </button>
-          )}
+              {/* Payment Button */}
+              <button
+                onClick={handlePayment}
+                disabled={isProcessing}
+                className="w-full bg-primary text-white py-4 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4 text-lg"
+                data-testid="button-pay-now"
+              >
+                {isProcessing ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                    Loading Payment...
+                  </div>
+                ) : (
+                  `Pay ${formatAmountInINR(bookingDetails.amount)}`
+                )}
+              </button>
 
-          {/* Cancel Button - Show when processing */}
-          {isProcessing && (
-            <button
-              onClick={() => {
-                setIsProcessing(false);
-                showNotification('Payment cancelled', 'info');
-              }}
-              className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors"
-            >
-              Cancel Payment
-            </button>
-          )}
-
-          {/* Security Note */}
-          <div className="mt-4 text-xs text-gray-500 text-center">
-            <div className="flex items-center justify-center mb-1">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
-              Secured by 256-bit SSL encryption
-            </div>
-            Your payment information is secure and encrypted
-            {isProcessing && (
-              <div className="mt-2 p-3 bg-blue-50 rounded-lg text-blue-700 border border-blue-200">
-                <div className="text-sm font-medium flex items-center">
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
-                  Payment in progress...
-                </div>
-                <div className="text-xs mt-1">
-                  1. Complete payment in your app<br/>
-                  2. Return here and click "I completed payment"<br/>
-                  3. We'll verify and confirm your booking
+              {/* Payment Methods Info */}
+              <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                <h4 className="font-medium text-blue-900 mb-2">Accepted Payment Methods:</h4>
+                <div className="text-sm text-blue-700 space-y-1">
+                  <div>• Credit/Debit Cards (Visa, Mastercard, RuPay)</div>
+                  <div>• UPI (PhonePe, GooglePay, Paytm, etc.)</div>
+                  <div>• Net Banking</div>
+                  <div>• Wallets (Paytm, PhonePe, Amazon Pay)</div>
                 </div>
               </div>
-            )}
-          </div>
+
+              {/* Security Note */}
+              <div className="text-xs text-gray-500 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                  <span className="font-medium">256-bit SSL Encrypted</span>
+                </div>
+                <p>Your payment information is completely secure and encrypted.</p>
+                <p className="mt-1">Transaction will be processed by Razorpay.</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

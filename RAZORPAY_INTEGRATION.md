@@ -167,14 +167,16 @@ const expectedSignature = crypto
 
 The payment system integrates seamlessly with the existing booking workflow:
 
-1. User selects service and provider
-2. Booking details are captured
-3. Payment is processed via Razorpay
-4. On successful payment:
-   - Booking is confirmed
-   - Payment record is saved
-   - Provider is notified
-   - User receives confirmation
+1. User selects service and provider from `/services` page
+2. User fills booking details on `/booking` page
+3. After successful booking creation, Razorpay payment modal opens automatically
+4. User completes payment through Razorpay Checkout.js interface
+5. On successful payment:
+   - Payment is verified with signature authentication
+   - Booking status is updated to "Confirmed"
+   - Payment record is saved to database
+   - User is redirected to dashboard
+   - Provider receives booking notification
 
 ### Admin Dashboard
 
