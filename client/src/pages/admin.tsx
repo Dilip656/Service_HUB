@@ -709,13 +709,7 @@ function ProvidersView() {
                       )}
                     </div>
                     
-                    {/* Debug info to show what's in kycDocuments */}
-                    <div className="mt-3 p-2 bg-gray-100 rounded text-xs">
-                      <strong>Debug - KYC Data:</strong>
-                      <pre className="mt-1 overflow-auto text-xs">
-                        {JSON.stringify(selectedProvider.kycDocuments, null, 2)}
-                      </pre>
-                    </div>
+
                   </div>
 
                   {/* Submission Details */}
