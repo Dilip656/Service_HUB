@@ -24,7 +24,8 @@ export class IdentityVerificationService {
     ['345678901234', { phone: '+91 8765432109', name: 'Priya Sharma' }],
     ['456789012345', { phone: '+91 7654321098', name: 'Amit Kumar' }],
     ['567890123456', { phone: '+91 6543210987', name: 'Sunita Devi' }],
-    ['490448561130', { phone: '+91 9123456789', name: 'Amit Kumar' }]
+    ['490448561130', { phone: '+91 9123456789', name: 'Amit Kumar' }],
+    ['123412341234', { phone: '+91 9644023612', name: 'Suthar' }]
   ]);
 
   // Simulated PAN database for demonstration
@@ -35,7 +36,8 @@ export class IdentityVerificationService {
     ['KLMNO9012P', { phone: '+91 8765432109', name: 'Priya Sharma' }],
     ['PQRST3456U', { phone: '+91 7654321098', name: 'Amit Kumar' }],
     ['UVWXY7890Z', { phone: '+91 6543210987', name: 'Sunita Devi' }],
-    ['GOWPR7458D', { phone: '+91 9123456789', name: 'Amit Kumar' }]
+    ['GOWPR7458D', { phone: '+91 9123456789', name: 'Amit Kumar' }],
+    ['ABCDE1234F', { phone: '+91 9644023612', name: 'Suthar' }]
   ]);
 
   static async verifyAadhar(aadharNumber: string): Promise<AadharVerificationResponse> {
