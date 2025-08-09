@@ -6,6 +6,7 @@ import {
   reviews,
   messages,
   services,
+  otpVerifications,
   type User, 
   type InsertUser,
   type ServiceProvider,
@@ -22,7 +23,9 @@ import {
   type AdminSettings,
   type InsertAdminSettings,
   type Service,
-  type InsertService
+  type InsertService,
+  type OtpVerification,
+  type InsertOtpVerification
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, sql, ne } from "drizzle-orm";
@@ -43,7 +46,7 @@ export interface IStorage {
   createServiceProvider(provider: InsertServiceProvider): Promise<ServiceProvider>;
   updateServiceProvider(id: number, providerData: Partial<InsertServiceProvider>): Promise<ServiceProvider>;
   updateProviderKycStatus(id: number, verified: boolean): Promise<void>;
-  updateProviderKycDocuments(id: number, kycDocuments: any, status: string): Promise<void>;
+  updateProviderKycDocuments(id: number, kycDocuments: any, status: string, additionalData?: { aadharNumber?: string; panNumber?: string; phoneVerified?: boolean; otpVerified?: boolean }): Promise<void>;
   updateProviderStatus(id: number, status: string): Promise<void>;
   getProvidersByService(serviceName: string): Promise<ServiceProvider[]>;
   getAllServiceProviders(): Promise<ServiceProvider[]>;
@@ -93,6 +96,12 @@ export interface IStorage {
   createService(service: InsertService): Promise<Service>;
   updateService(id: number, serviceData: Partial<InsertService>): Promise<Service>;
   deleteService(id: number): Promise<void>;
+
+  // OTP Verification
+  createOtpVerification(otpData: { phone: string; otp: string; expiresAt: Date; verified: boolean; attempts: number }): Promise<OtpVerification>;
+  getLatestOtpVerification(phone: string): Promise<OtpVerification | undefined>;
+  incrementOtpAttempts(id: number): Promise<void>;
+  markOtpVerified(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -185,11 +194,29 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateProviderKycDocuments(id: number, kycDocuments: any, status: string): Promise<void> {
-    await db.update(serviceProviders).set({ 
+  async updateProviderKycDocuments(id: number, kycDocuments: any, status: string, additionalData?: { aadharNumber?: string; panNumber?: string; phoneVerified?: boolean; otpVerified?: boolean }): Promise<void> {
+    const updateData: any = { 
       kycDocuments, 
       status 
-    }).where(eq(serviceProviders.id, id));
+    };
+    
+    // Add additional verification data if provided
+    if (additionalData) {
+      if (additionalData.aadharNumber !== undefined) {
+        updateData.aadharNumber = additionalData.aadharNumber;
+      }
+      if (additionalData.panNumber !== undefined) {
+        updateData.panNumber = additionalData.panNumber;
+      }
+      if (additionalData.phoneVerified !== undefined) {
+        updateData.phoneVerified = additionalData.phoneVerified;
+      }
+      if (additionalData.otpVerified !== undefined) {
+        updateData.otpVerified = additionalData.otpVerified;
+      }
+    }
+    
+    await db.update(serviceProviders).set(updateData).where(eq(serviceProviders.id, id));
   }
 
   async updateProviderStatus(id: number, status: string): Promise<void> {
@@ -570,6 +597,45 @@ export class DatabaseStorage implements IStorage {
 
   async deleteService(id: number): Promise<void> {
     await db.delete(services).where(eq(services.id, id));
+  }
+
+  // OTP Verification methods
+  async createOtpVerification(otpData: { phone: string; otp: string; expiresAt: Date; verified: boolean; attempts: number }): Promise<OtpVerification> {
+    const [otp] = await db
+      .insert(otpVerifications)
+      .values({
+        phone: otpData.phone,
+        otp: otpData.otp,
+        expiresAt: otpData.expiresAt,
+        verified: otpData.verified,
+        attempts: otpData.attempts
+      })
+      .returning();
+    return otp;
+  }
+
+  async getLatestOtpVerification(phone: string): Promise<OtpVerification | undefined> {
+    const [otp] = await db
+      .select()
+      .from(otpVerifications)
+      .where(eq(otpVerifications.phone, phone))
+      .orderBy(desc(otpVerifications.createdAt))
+      .limit(1);
+    return otp || undefined;
+  }
+
+  async incrementOtpAttempts(id: number): Promise<void> {
+    await db
+      .update(otpVerifications)
+      .set({ attempts: sql`attempts + 1` })
+      .where(eq(otpVerifications.id, id));
+  }
+
+  async markOtpVerified(id: number): Promise<void> {
+    await db
+      .update(otpVerifications)
+      .set({ verified: true })
+      .where(eq(otpVerifications.id, id));
   }
 }
 

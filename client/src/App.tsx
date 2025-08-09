@@ -12,7 +12,7 @@ import Auth from "@/pages/auth";
 import Booking from "@/pages/booking";
 import Admin from "@/pages/admin";
 import AdminSettings from "@/pages/admin-settings";
-import KYCVerification from "@/pages/kyc-verification";
+import EnhancedKYCVerification from "@/pages/enhanced-kyc-verification";
 import UserDashboard from "@/pages/user-dashboard";
 import ProviderDashboard from "@/pages/provider-dashboard";
 import NotFound from "@/pages/not-found";
@@ -30,7 +30,7 @@ function Router() {
       <Route path="/booking" component={Booking} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin-settings" component={AdminSettings} />
-      <Route path="/kyc-verification" component={KYCVerification} />
+      <Route path="/kyc-verification" component={EnhancedKYCVerification} />
       <Route path="/user-dashboard" component={UserDashboard} />
       <Route path="/provider-dashboard" component={ProviderDashboard} />
       <Route path="/payment-callback" component={PaymentCallback} />

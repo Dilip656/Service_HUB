@@ -32,6 +32,10 @@ export const serviceProviders = pgTable("service_providers", {
   location: text("location").notNull(),
   kycVerified: boolean("kyc_verified").default(false),
   kycDocuments: jsonb("kyc_documents"),
+  aadharNumber: text("aadhar_number"),
+  panNumber: text("pan_number"),
+  phoneVerified: boolean("phone_verified").default(false),
+  otpVerified: boolean("otp_verified").default(false),
   status: text("status").notNull().default("Pending"),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
   lastBooking: timestamp("last_booking"),
@@ -194,7 +198,32 @@ export const insertServiceProviderSchema = z.object({
   location: z.string().min(2, 'Location is required'),
   kycVerified: z.boolean().default(false),
   kycDocuments: z.any().optional(),
+  aadharNumber: z.string().regex(/^\d{12}$/, 'Aadhar number must be 12 digits').optional(),
+  panNumber: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'PAN number must be in format: ABCDE1234F').optional(),
+  phoneVerified: z.boolean().default(false),
+  otpVerified: z.boolean().default(false),
   status: z.string().default("Pending"),
+});
+
+// OTP verification table for phone number verification
+export const otpVerifications = pgTable("otp_verifications", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  phone: text("phone").notNull(),
+  otp: text("otp").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  verified: boolean("verified").default(false),
+  attempts: integer("attempts").default(0),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+});
+
+// Type definitions for OTP verification
+export type OtpVerification = typeof otpVerifications.$inferSelect;
+export type InsertOtpVerification = typeof otpVerifications.$inferInsert;
+
+// Insert schema for OTP verification
+export const insertOtpVerificationSchema = z.object({
+  phone: z.string().regex(/^(\+91[- ]?)?[6-9]\d{9}$/, 'Please enter a valid Indian phone number'),
+  otp: z.string().min(4, 'OTP must be at least 4 digits').max(6, 'OTP must be at most 6 digits'),
 });
 
 export const insertBookingSchema = z.object({

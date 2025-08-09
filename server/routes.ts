@@ -518,9 +518,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/admin/providers/:id/kyc", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { verified, kycDocuments, status } = req.body;
+      const { 
+        verified, 
+        kycDocuments, 
+        status, 
+        aadharNumber, 
+        panNumber, 
+        phoneVerified, 
+        otpVerified 
+      } = req.body;
       
-      console.log("KYC update request:", { id, verified, kycDocuments, status });
+      console.log("KYC update request:", { 
+        id, 
+        verified, 
+        kycDocuments, 
+        status, 
+        aadharNumber, 
+        panNumber, 
+        phoneVerified, 
+        otpVerified 
+      });
       
       if (verified !== undefined) {
         // Admin approving/rejecting KYC
@@ -528,8 +545,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateProviderKycStatus(id, verified);
       } else if (kycDocuments && status) {
         // Provider submitting KYC documents
-        console.log(`Provider ${id} submitting KYC documents`);
-        await storage.updateProviderKycDocuments(id, kycDocuments, status);
+        console.log(`Provider ${id} submitting KYC documents with enhanced verification`);
+        await storage.updateProviderKycDocuments(id, kycDocuments, status, {
+          aadharNumber,
+          panNumber,
+          phoneVerified,
+          otpVerified
+        });
       } else {
         console.log("Invalid KYC update request - missing required fields");
         return res.status(400).json({ message: "Missing required fields for KYC update" });
@@ -902,6 +924,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         error: "Failed to get Razorpay key"
       });
+    }
+  });
+
+  // OTP Verification Routes
+  app.post("/api/otp/send", async (req, res) => {
+    try {
+      const { phone } = req.body;
+      
+      if (!phone) {
+        return res.status(400).json({ message: "Phone number is required" });
+      }
+
+      // Generate 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+      // Store OTP in database
+      await storage.createOtpVerification({
+        phone,
+        otp,
+        expiresAt,
+        verified: false,
+        attempts: 0
+      });
+
+      // In production, send actual SMS using providers like Twilio, MSG91, etc.
+      console.log(`OTP for ${phone}: ${otp} (expires at ${expiresAt})`);
+      
+      // For demo purposes, we'll return success
+      // In production, you would integrate with SMS gateway
+      res.json({ 
+        message: "OTP sent successfully",
+        // Only for testing - remove in production
+        debug_otp: process.env.NODE_ENV === 'development' ? otp : undefined
+      });
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      res.status(500).json({ message: "Failed to send OTP" });
+    }
+  });
+
+  app.post("/api/otp/verify", async (req, res) => {
+    try {
+      const { phone, otp } = req.body;
+      
+      if (!phone || !otp) {
+        return res.status(400).json({ message: "Phone number and OTP are required" });
+      }
+
+      const otpRecord = await storage.getLatestOtpVerification(phone);
+      
+      if (!otpRecord) {
+        return res.status(400).json({ message: "No OTP found for this phone number" });
+      }
+
+      if (otpRecord.verified) {
+        return res.status(400).json({ message: "OTP already verified" });
+      }
+
+      if (new Date() > otpRecord.expiresAt) {
+        return res.status(400).json({ message: "OTP expired" });
+      }
+
+      if ((otpRecord.attempts || 0) >= 3) {
+        return res.status(400).json({ message: "Maximum attempts reached" });
+      }
+
+      if (otpRecord.otp !== otp) {
+        // Increment attempts
+        await storage.incrementOtpAttempts(otpRecord.id);
+        return res.status(400).json({ message: "Invalid OTP" });
+      }
+
+      // Mark OTP as verified
+      await storage.markOtpVerified(otpRecord.id);
+      
+      res.json({ message: "OTP verified successfully", verified: true });
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      res.status(500).json({ message: "Failed to verify OTP" });
     }
   });
 
