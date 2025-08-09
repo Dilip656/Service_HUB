@@ -944,11 +944,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: result.error });
       }
 
+      // Generate OTP for the registered phone number
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+      // Store OTP in database
+      await storage.createOtpVerification({
+        phone: result.registeredPhone!,
+        otp,
+        expiresAt,
+        verified: false,
+        attempts: 0
+      });
+
+      // In production, send actual SMS
+      console.log(`Aadhar verification OTP for ${result.registeredPhone}: ${otp} (expires at ${expiresAt})`);
+      
+      // Mask phone number for response
+      const maskedPhone = result.registeredPhone!.replace(/(\+91)(\d{4})(\d{6})/, '$1****$3');
+
       res.json({
         isValid: true,
         registeredPhone: result.registeredPhone,
         holderName: result.holderName,
-        message: "Aadhar verified successfully"
+        otpSent: true,
+        maskedPhone,
+        message: `Aadhar verified. OTP sent to registered mobile ${maskedPhone}`,
+        // Only for testing - remove in production
+        debug_otp: process.env.NODE_ENV === 'development' ? otp : undefined
       });
     } catch (error) {
       console.error("Aadhar verification error:", error);
@@ -971,11 +994,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: result.error });
       }
 
+      // Generate OTP for the registered phone number
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+      // Store OTP in database
+      await storage.createOtpVerification({
+        phone: result.registeredPhone!,
+        otp,
+        expiresAt,
+        verified: false,
+        attempts: 0
+      });
+
+      // In production, send actual SMS
+      console.log(`PAN verification OTP for ${result.registeredPhone}: ${otp} (expires at ${expiresAt})`);
+      
+      // Mask phone number for response
+      const maskedPhone = result.registeredPhone!.replace(/(\+91)(\d{4})(\d{6})/, '$1****$3');
+
       res.json({
         isValid: true,
         registeredPhone: result.registeredPhone,
         holderName: result.holderName,
-        message: "PAN verified successfully"
+        otpSent: true,
+        maskedPhone,
+        message: `PAN verified. OTP sent to registered mobile ${maskedPhone}`,
+        // Only for testing - remove in production
+        debug_otp: process.env.NODE_ENV === 'development' ? otp : undefined
       });
     } catch (error) {
       console.error("PAN verification error:", error);
@@ -1012,6 +1058,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Cross-verification error:", error);
       res.status(500).json({ message: "Failed to cross-verify identity" });
+    }
+  });
+
+  // Aadhar OTP Verification
+  app.post("/api/verify/aadhar/otp", async (req, res) => {
+    try {
+      const { phone, otp } = req.body;
+      
+      if (!phone || !otp) {
+        return res.status(400).json({ message: "Phone number and OTP are required" });
+      }
+
+      const otpRecord = await storage.getLatestOtpVerification(phone);
+      
+      if (!otpRecord) {
+        return res.status(400).json({ message: "No OTP found for this phone number" });
+      }
+
+      if (otpRecord.verified) {
+        return res.status(400).json({ message: "OTP already verified" });
+      }
+
+      if (new Date() > otpRecord.expiresAt) {
+        return res.status(400).json({ message: "OTP expired. Please request a new one" });
+      }
+
+      if ((otpRecord.attempts || 0) >= 3) {
+        return res.status(400).json({ message: "Maximum attempts reached. Please request a new OTP" });
+      }
+
+      if (otpRecord.otp !== otp) {
+        // Increment attempts
+        await storage.incrementOtpAttempts(otpRecord.id);
+        return res.status(400).json({ message: "Invalid OTP" });
+      }
+
+      // Mark OTP as verified
+      await storage.markOtpVerified(otpRecord.id);
+      
+      res.json({ 
+        message: "Aadhar OTP verified successfully", 
+        verified: true,
+        documentType: "aadhar"
+      });
+    } catch (error) {
+      console.error("Aadhar OTP verification error:", error);
+      res.status(500).json({ message: "Failed to verify Aadhar OTP" });
+    }
+  });
+
+  // PAN OTP Verification
+  app.post("/api/verify/pan/otp", async (req, res) => {
+    try {
+      const { phone, otp } = req.body;
+      
+      if (!phone || !otp) {
+        return res.status(400).json({ message: "Phone number and OTP are required" });
+      }
+
+      const otpRecord = await storage.getLatestOtpVerification(phone);
+      
+      if (!otpRecord) {
+        return res.status(400).json({ message: "No OTP found for this phone number" });
+      }
+
+      if (otpRecord.verified) {
+        return res.status(400).json({ message: "OTP already verified" });
+      }
+
+      if (new Date() > otpRecord.expiresAt) {
+        return res.status(400).json({ message: "OTP expired. Please request a new one" });
+      }
+
+      if ((otpRecord.attempts || 0) >= 3) {
+        return res.status(400).json({ message: "Maximum attempts reached. Please request a new OTP" });
+      }
+
+      if (otpRecord.otp !== otp) {
+        // Increment attempts
+        await storage.incrementOtpAttempts(otpRecord.id);
+        return res.status(400).json({ message: "Invalid OTP" });
+      }
+
+      // Mark OTP as verified
+      await storage.markOtpVerified(otpRecord.id);
+      
+      res.json({ 
+        message: "PAN OTP verified successfully", 
+        verified: true,
+        documentType: "pan"
+      });
+    } catch (error) {
+      console.error("PAN OTP verification error:", error);
+      res.status(500).json({ message: "Failed to verify PAN OTP" });
     }
   });
 
