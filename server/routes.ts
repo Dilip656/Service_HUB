@@ -6,11 +6,14 @@ import { z } from "zod";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+// Initialize Razorpay only if keys are available
+let razorpay: Razorpay | null = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
@@ -661,6 +664,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Razorpay Payment Routes
   app.post("/api/razorpay/create-order", async (req, res) => {
     try {
+      if (!razorpay) {
+        return res.status(503).json({ 
+          error: "Payment gateway not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables." 
+        });
+      }
+
       const { amount, currency = 'INR', receipt, notes } = req.body;
       
       // Validate required fields
@@ -701,6 +710,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/razorpay/verify-payment", async (req, res) => {
     try {
+      if (!razorpay) {
+        return res.status(503).json({ 
+          error: "Payment gateway not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables." 
+        });
+      }
+
       const { 
         razorpay_order_id, 
         razorpay_payment_id, 
