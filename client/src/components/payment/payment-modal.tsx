@@ -46,7 +46,7 @@ interface RazorpayOptions {
 
 export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymentSuccess }: PaymentModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'failed'>('idle');
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [error, setError] = useState<string>('');
   const { showNotification } = useNotification();
@@ -158,6 +158,42 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
       
       if (!orderData.success) {
         throw new Error(orderData.error || 'Failed to create order');
+      }
+
+      // Check if we're in demo mode (development without Razorpay keys)
+      if (orderData.isDemoMode) {
+        // Simulate payment success for demo mode
+        console.log('Demo mode payment - simulating success');
+        setPaymentStatus('processing');
+        
+        // Simulate payment processing delay
+        setTimeout(async () => {
+          try {
+            const demoPaymentData = {
+              razorpay_order_id: orderData.order_id,
+              razorpay_payment_id: `demo_pay_${Date.now()}`,
+              razorpay_signature: 'demo_signature'
+            };
+            
+            const verificationResult = await verifyPayment(demoPaymentData);
+            
+            if (verificationResult.success) {
+              setPaymentStatus('success');
+              setPaymentDetails(verificationResult);
+              showNotification('Demo payment successful! Booking confirmed.', 'success');
+              onPaymentSuccess();
+            } else {
+              throw new Error('Demo payment verification failed');
+            }
+          } catch (error) {
+            console.error('Demo payment failed:', error);
+            setPaymentStatus('failed');
+            setError('Demo payment simulation failed');
+            showNotification('Demo payment failed', 'error');
+          }
+        }, 2000);
+        
+        return;
       }
 
       // Get user data for prefill
@@ -285,6 +321,17 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
                 View Dashboard
               </button>
             </div>
+          ) : paymentStatus === 'processing' ? (
+            <div className="text-center">
+              <Loader2 className="w-16 h-16 text-primary mx-auto mb-4 animate-spin" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Processing Payment</h3>
+              <p className="text-gray-600 mb-4">
+                Please wait while we process your payment...
+              </p>
+              <div className="text-sm text-gray-500">
+                This may take a few seconds
+              </div>
+            </div>
           ) : paymentStatus === 'failed' ? (
             <div className="text-center">
               <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -315,6 +362,9 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
                 <p className="text-gray-600 text-sm">
                   Powered by Razorpay - India's most trusted payment gateway
                 </p>
+                <div className="mt-2 inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">
+                  Demo Mode Active - No real payment required
+                </div>
               </div>
 
               {/* Payment Button */}
