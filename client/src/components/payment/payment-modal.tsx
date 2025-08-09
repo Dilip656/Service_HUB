@@ -362,9 +362,6 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
                 <p className="text-gray-600 text-sm">
                   Powered by Razorpay - India's most trusted payment gateway
                 </p>
-                <div className="mt-2 inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">
-                  Demo Mode Active - No real payment required
-                </div>
               </div>
 
               {/* Payment Button */}
