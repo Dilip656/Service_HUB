@@ -694,19 +694,29 @@ function ProvidersView() {
                   </div>
 
                   {/* Uploaded Documents */}
-                  {selectedProvider.kycDocuments?.uploaded_documents && (
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h5 className="font-medium text-blue-900 mb-3">Uploaded Documents</h5>
-                      <div className="grid grid-cols-1 gap-2">
-                        {selectedProvider.kycDocuments.uploaded_documents.map((doc: string, index: number) => (
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h5 className="font-medium text-blue-900 mb-3">Uploaded Documents</h5>
+                    <div className="grid grid-cols-1 gap-2">
+                      {selectedProvider.kycDocuments?.uploaded_documents && selectedProvider.kycDocuments.uploaded_documents.length > 0 ? (
+                        selectedProvider.kycDocuments.uploaded_documents.map((doc: string, index: number) => (
                           <div key={index} className="flex items-center text-sm text-blue-700">
                             <Check className="w-4 h-4 text-green-600 mr-2" />
                             {doc}
                           </div>
-                        ))}
-                      </div>
+                        ))
+                      ) : (
+                        <div className="text-sm text-gray-500">No documents uploaded</div>
+                      )}
                     </div>
-                  )}
+                    
+                    {/* Debug info to show what's in kycDocuments */}
+                    <div className="mt-3 p-2 bg-gray-100 rounded text-xs">
+                      <strong>Debug - KYC Data:</strong>
+                      <pre className="mt-1 overflow-auto text-xs">
+                        {JSON.stringify(selectedProvider.kycDocuments, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
 
                   {/* Submission Details */}
                   <div className="bg-gray-50 p-4 rounded-lg">
