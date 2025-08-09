@@ -48,18 +48,28 @@ export class IdentityVerificationService {
     if (!/^\d{12}$/.test(aadharNumber)) {
       return {
         isValid: false,
-        error: 'Invalid Aadhar number format'
+        error: 'Invalid Aadhar number format. Aadhar must be 12 digits'
       };
     }
 
-    // Check in simulated database
-    const record = this.aadharDatabase.get(aadharNumber);
+    // Check in simulated database first
+    let record = this.aadharDatabase.get(aadharNumber);
     
     if (!record) {
-      return {
-        isValid: false,
-        error: 'Aadhar number not found in records'
-      };
+      // Generate dynamic test data for any valid Aadhar number
+      // Use the last 4 digits to generate consistent but different phone numbers
+      const lastFour = aadharNumber.slice(-4);
+      const phoneNumber = `+91 9${lastFour}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+      
+      // Generate a name based on the Aadhar number for consistency
+      const names = ['Amit Kumar', 'Priya Sharma', 'Rajesh Singh', 'Sunita Devi', 'Vikash Yadav', 'Pooja Gupta'];
+      const nameIndex = parseInt(aadharNumber.slice(0, 1)) % names.length;
+      const holderName = names[nameIndex];
+      
+      record = { phone: phoneNumber, name: holderName };
+      
+      // Store the generated record for consistency in future calls
+      this.aadharDatabase.set(aadharNumber, record);
     }
 
     return {
@@ -77,18 +87,28 @@ export class IdentityVerificationService {
     if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNumber)) {
       return {
         isValid: false,
-        error: 'Invalid PAN number format'
+        error: 'Invalid PAN number format. Format should be: ABCDE1234F'
       };
     }
 
-    // Check in simulated database
-    const record = this.panDatabase.get(panNumber);
+    // Check in simulated database first
+    let record = this.panDatabase.get(panNumber);
     
     if (!record) {
-      return {
-        isValid: false,
-        error: 'PAN number not found in records'
-      };
+      // Generate dynamic test data for any valid PAN number
+      // Use the numeric part to generate consistent phone numbers
+      const numericPart = panNumber.slice(5, 9);
+      const phoneNumber = `+91 9${numericPart}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`;
+      
+      // Generate a name based on the PAN number for consistency
+      const names = ['Amit Kumar', 'Priya Sharma', 'Rajesh Singh', 'Sunita Devi', 'Vikash Yadav', 'Pooja Gupta'];
+      const nameIndex = panNumber.charCodeAt(0) % names.length;
+      const holderName = names[nameIndex];
+      
+      record = { phone: phoneNumber, name: holderName };
+      
+      // Store the generated record for consistency in future calls
+      this.panDatabase.set(panNumber, record);
     }
 
     return {
