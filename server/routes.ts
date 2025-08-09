@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { IdentityVerificationService } from "./aadhar-pan-service";
 import { insertUserSchema, insertServiceProviderSchema, insertBookingSchema, insertPaymentSchema, insertReviewSchema, insertServiceSchema } from "@shared/schema";
 import { z } from "zod";
 import Razorpay from "razorpay";
@@ -924,6 +925,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         error: "Failed to get Razorpay key"
       });
+    }
+  });
+
+  // Identity Verification Routes
+  app.post("/api/verify/aadhar", async (req, res) => {
+    try {
+      const { aadharNumber } = req.body;
+      
+      if (!aadharNumber) {
+        return res.status(400).json({ message: "Aadhar number is required" });
+      }
+
+      console.log(`Verifying Aadhar number: ${aadharNumber}`);
+      const result = await IdentityVerificationService.verifyAadhar(aadharNumber);
+      
+      if (!result.isValid) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({
+        isValid: true,
+        registeredPhone: result.registeredPhone,
+        holderName: result.holderName,
+        message: "Aadhar verified successfully"
+      });
+    } catch (error) {
+      console.error("Aadhar verification error:", error);
+      res.status(500).json({ message: "Failed to verify Aadhar number" });
+    }
+  });
+
+  app.post("/api/verify/pan", async (req, res) => {
+    try {
+      const { panNumber } = req.body;
+      
+      if (!panNumber) {
+        return res.status(400).json({ message: "PAN number is required" });
+      }
+
+      console.log(`Verifying PAN number: ${panNumber}`);
+      const result = await IdentityVerificationService.verifyPan(panNumber);
+      
+      if (!result.isValid) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({
+        isValid: true,
+        registeredPhone: result.registeredPhone,
+        holderName: result.holderName,
+        message: "PAN verified successfully"
+      });
+    } catch (error) {
+      console.error("PAN verification error:", error);
+      res.status(500).json({ message: "Failed to verify PAN number" });
+    }
+  });
+
+  app.post("/api/verify/cross-verify", async (req, res) => {
+    try {
+      const { aadharNumber, panNumber, ownerName } = req.body;
+      
+      if (!aadharNumber || !panNumber || !ownerName) {
+        return res.status(400).json({ 
+          message: "Aadhar number, PAN number, and owner name are required" 
+        });
+      }
+
+      console.log(`Cross-verifying identity for: ${ownerName}`);
+      const result = await IdentityVerificationService.crossVerifyIdentity(
+        aadharNumber, 
+        panNumber, 
+        ownerName
+      );
+      
+      if (!result.isMatched) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({
+        isMatched: true,
+        verifiedPhone: result.verifiedPhone,
+        message: "Identity cross-verification successful"
+      });
+    } catch (error) {
+      console.error("Cross-verification error:", error);
+      res.status(500).json({ message: "Failed to cross-verify identity" });
     }
   });
 

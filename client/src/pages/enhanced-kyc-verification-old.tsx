@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { useMutation } from '@tanstack/react-query';
 import { useNotification } from '@/components/ui/notification';
-import { CheckCircle, Upload, FileText, Shield, Clock, Phone, CreditCard } from 'lucide-react';
+import { CheckCircle, Upload, FileText, Shield, Clock, Phone, CreditCard, Eye, EyeOff } from 'lucide-react';
 
 export default function EnhancedKYCVerification() {
   const [, setLocation] = useLocation();
@@ -592,95 +592,94 @@ export default function EnhancedKYCVerification() {
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {currentStep === 2 && (
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                Phone Number Verification
-              </h2>
-              
-              <div className="max-w-md">
-                <div className="mb-4 p-4 bg-green-50 rounded-lg">
-                  <h3 className="font-medium text-green-800 mb-2">Government Verified Phone</h3>
-                  <p className="text-green-700">
-                    OTP will be sent to: <strong>{identityVerification.verifiedPhone}</strong>
-                  </p>
-                  <p className="text-sm text-green-600 mt-1">
-                    This phone number is registered with your Aadhar/PAN
-                  </p>
+            {currentStep === 2 && (
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                  Phone Number Verification
+                </h2>
+                
+                <div className="max-w-md">
+                  <div className="mb-4 p-4 bg-green-50 rounded-lg">
+                    <h3 className="font-medium text-green-800 mb-2">Government Verified Phone</h3>
+                    <p className="text-green-700">
+                      OTP will be sent to: <strong>{identityVerification.verifiedPhone}</strong>
+                    </p>
+                    <p className="text-sm text-green-600 mt-1">
+                      This phone number is registered with your Aadhar/PAN
+                    </p>
+                  </div>
+
+                  {!otpData.sent ? (
+                    <button
+                      onClick={handleSendOtp}
+                      disabled={otpData.loading}
+                      className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    >
+                      {otpData.loading ? 'Sending...' : 'Send OTP'}
+                    </button>
+                  ) : (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Enter OTP
+                        </label>
+                        <input
+                          type="text"
+                          value={otpData.otp}
+                          onChange={(e) => setOtpData(prev => ({ ...prev, otp: e.target.value }))}
+                          placeholder="Enter 6-digit OTP"
+                          maxLength={6}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                      </div>
+                      
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={handleVerifyOtp}
+                          disabled={otpData.loading || !otpData.otp}
+                          className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        >
+                          {otpData.loading ? 'Verifying...' : 'Verify OTP'}
+                        </button>
+                        
+                        <button
+                          onClick={handleSendOtp}
+                          disabled={otpData.loading}
+                          className="text-primary px-4 py-2 rounded-lg border border-primary hover:bg-primary hover:text-white transition-colors"
+                        >
+                          Resend OTP
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {otpData.verified && (
+                    <div className="mt-4 flex items-center text-green-600">
+                      <CheckCircle size={20} className="mr-2" />
+                      <span>Phone number verified successfully!</span>
+                    </div>
+                  )}
                 </div>
 
-                {!otpData.sent ? (
+                <div className="mt-8 flex justify-between">
                   <button
-                    onClick={handleSendOtp}
-                    disabled={otpData.loading}
-                    className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    onClick={() => setCurrentStep(1)}
+                    className="text-primary px-6 py-2 rounded-lg border border-primary hover:bg-primary hover:text-white transition-colors"
                   >
-                    {otpData.loading ? 'Sending...' : 'Send OTP'}
+                    Back
                   </button>
-                ) : (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Enter OTP
-                      </label>
-                      <input
-                        type="text"
-                        value={otpData.otp}
-                        onChange={(e) => setOtpData(prev => ({ ...prev, otp: e.target.value }))}
-                        placeholder="Enter 6-digit OTP"
-                        maxLength={6}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    
-                    <div className="flex space-x-3">
-                      <button
-                        onClick={handleVerifyOtp}
-                        disabled={otpData.loading || !otpData.otp}
-                        className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                      >
-                        {otpData.loading ? 'Verifying...' : 'Verify OTP'}
-                      </button>
-                      
-                      <button
-                        onClick={handleSendOtp}
-                        disabled={otpData.loading}
-                        className="text-primary px-4 py-2 rounded-lg border border-primary hover:bg-primary hover:text-white transition-colors"
-                      >
-                        Resend OTP
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {otpData.verified && (
-                  <div className="mt-4 flex items-center text-green-600">
-                    <CheckCircle size={20} className="mr-2" />
-                    <span>Phone number verified successfully!</span>
-                  </div>
-                )}
+                  <button
+                    onClick={() => setCurrentStep(3)}
+                    disabled={!otpData.verified}
+                    className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Continue to Document Upload
+                  </button>
+                </div>
               </div>
-
-              <div className="mt-8 flex justify-between">
-                <button
-                  onClick={() => setCurrentStep(1)}
-                  className="text-primary px-6 py-2 rounded-lg border border-primary hover:bg-primary hover:text-white transition-colors"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={() => setCurrentStep(3)}
-                  disabled={!otpData.verified}
-                  className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Continue to Document Upload
-                </button>
-              </div>
-            </div>
-          )}
+            )}
 
           {currentStep === 3 && (
             <div>
@@ -768,14 +767,14 @@ export default function EnhancedKYCVerification() {
               </h2>
               
               <div className="space-y-6">
-                {/* Identity Verification Status */}
+                {/* Phone Verification Status */}
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium text-gray-900">Identity Verification</h3>
-                      <p className="text-sm text-gray-500">Aadhar: {aadharNumber} | PAN: {panNumber}</p>
+                      <h3 className="font-medium text-gray-900">Phone Verification</h3>
+                      <p className="text-sm text-gray-500">{providerInfo.phone}</p>
                     </div>
-                    {identityVerification.crossVerified ? (
+                    {otpData.verified ? (
                       <div className="flex items-center text-green-600">
                         <CheckCircle size={20} className="mr-2" />
                         <span className="text-sm">Verified</span>
@@ -789,24 +788,18 @@ export default function EnhancedKYCVerification() {
                   </div>
                 </div>
 
-                {/* Phone Verification Status */}
+                {/* Identity Documents */}
                 <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-gray-900 mb-3">Identity Documents</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <h3 className="font-medium text-gray-900">Phone Verification</h3>
-                      <p className="text-sm text-gray-500">{identityVerification.verifiedPhone}</p>
+                      <p className="text-sm text-gray-600">Aadhar Number:</p>
+                      <p className="font-medium">{aadharNumber || 'Not provided'}</p>
                     </div>
-                    {otpData.verified ? (
-                      <div className="flex items-center text-green-600">
-                        <CheckCircle size={20} className="mr-2" />
-                        <span className="text-sm">Verified</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center text-red-600">
-                        <Clock size={20} className="mr-2" />
-                        <span className="text-sm">Not Verified</span>
-                      </div>
-                    )}
+                    <div>
+                      <p className="text-sm text-gray-600">PAN Number:</p>
+                      <p className="font-medium">{panNumber || 'Not provided'}</p>
+                    </div>
                   </div>
                 </div>
 
