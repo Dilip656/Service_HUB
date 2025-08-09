@@ -131,6 +131,11 @@ export default function EnhancedKYCVerification() {
         loading: false 
       }));
       showNotification(`Aadhar verified! Registered phone: ${data.registeredPhone}`, 'success');
+      
+      // If both Aadhar and PAN are verified, trigger cross-verification
+      if (identityVerification.panVerified) {
+        handleCrossVerification();
+      }
     },
     onError: (error: any) => {
       setIdentityVerification(prev => ({ ...prev, loading: false }));
@@ -200,7 +205,12 @@ export default function EnhancedKYCVerification() {
         verifiedPhone: data.verifiedPhone,
         loading: false 
       }));
-      showNotification('Identity cross-verification successful!', 'success');
+      showNotification('Identity cross-verification successful! Proceeding to next step...', 'success');
+      
+      // Automatically proceed to next step after successful cross-verification
+      setTimeout(() => {
+        setCurrentStep(2);
+      }, 1500);
     },
     onError: (error: any) => {
       setIdentityVerification(prev => ({ ...prev, loading: false }));
@@ -507,7 +517,7 @@ export default function EnhancedKYCVerification() {
                   <ul className="text-sm text-blue-700 space-y-1">
                     <li>• Enter your Aadhar and PAN numbers</li>
                     <li>• We'll verify them with government databases</li>
-                    <li>• OTP will be sent to your government-registered phone number</li>
+                    <li>• Instant verification without additional steps</li>
                     <li>• This ensures authentic identity verification</li>
                   </ul>
                 </div>
@@ -587,26 +597,13 @@ export default function EnhancedKYCVerification() {
                   </div>
                 </div>
 
-                {/* Cross Verification Status */}
+                {/* Auto Cross-Verification Notice */}
                 {identityVerification.aadharVerified && identityVerification.panVerified && (
-                  <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-                    <h3 className="font-medium text-gray-900 mb-2">Cross Verification Status</h3>
-                    {identityVerification.crossVerified ? (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center text-green-600">
-                          <CheckCircle size={20} className="mr-2" />
-                          <span>Identity cross-verified successfully</span>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Verified Phone: {identityVerification.verifiedPhone}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center text-yellow-600">
-                        <Clock size={20} className="mr-2" />
-                        <span>Cross-verifying identity...</span>
-                      </div>
-                    )}
+                  <div className="mt-6 p-4 border rounded-lg bg-green-50">
+                    <div className="flex items-center text-green-600">
+                      <CheckCircle size={20} className="mr-2" />
+                      <span>Documents verified successfully. Proceeding to next step...</span>
+                    </div>
                   </div>
                 )}
 

@@ -944,34 +944,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: result.error });
       }
 
-      // Generate OTP for the registered phone number
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-
-      // Store OTP in database
-      await storage.createOtpVerification({
-        phone: result.registeredPhone!,
-        otp,
-        expiresAt,
-        verified: false,
-        attempts: 0
-      });
-
-      // In production, send actual SMS
-      console.log(`Aadhar verification OTP for ${result.registeredPhone}: ${otp} (expires at ${expiresAt})`);
-      
-      // Mask phone number for response
-      const maskedPhone = result.registeredPhone!.replace(/(\+91)(\d{4})(\d{6})/, '$1****$3');
-
       res.json({
         isValid: true,
         registeredPhone: result.registeredPhone,
         holderName: result.holderName,
-        otpSent: true,
-        maskedPhone,
-        message: `Aadhar verified. OTP sent to registered mobile ${maskedPhone}`,
-        // Only for testing - remove in production
-        debug_otp: process.env.NODE_ENV === 'development' ? otp : undefined
+        verified: true,
+        message: "Aadhar verified successfully with government database"
       });
     } catch (error) {
       console.error("Aadhar verification error:", error);
@@ -994,34 +972,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: result.error });
       }
 
-      // Generate OTP for the registered phone number
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-
-      // Store OTP in database
-      await storage.createOtpVerification({
-        phone: result.registeredPhone!,
-        otp,
-        expiresAt,
-        verified: false,
-        attempts: 0
-      });
-
-      // In production, send actual SMS
-      console.log(`PAN verification OTP for ${result.registeredPhone}: ${otp} (expires at ${expiresAt})`);
-      
-      // Mask phone number for response
-      const maskedPhone = result.registeredPhone!.replace(/(\+91)(\d{4})(\d{6})/, '$1****$3');
-
       res.json({
         isValid: true,
         registeredPhone: result.registeredPhone,
         holderName: result.holderName,
-        otpSent: true,
-        maskedPhone,
-        message: `PAN verified. OTP sent to registered mobile ${maskedPhone}`,
-        // Only for testing - remove in production
-        debug_otp: process.env.NODE_ENV === 'development' ? otp : undefined
+        verified: true,
+        message: "PAN verified successfully with government database"
       });
     } catch (error) {
       console.error("PAN verification error:", error);
