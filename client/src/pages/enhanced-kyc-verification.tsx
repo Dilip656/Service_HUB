@@ -134,7 +134,7 @@ export default function EnhancedKYCVerification() {
       
       // If both Aadhar and PAN are verified, trigger cross-verification
       if (identityVerification.panVerified) {
-        handleCrossVerification();
+        setTimeout(() => handleCrossVerification(), 100);
       }
     },
     onError: (error: any) => {
@@ -169,7 +169,7 @@ export default function EnhancedKYCVerification() {
       
       // If both Aadhar and PAN are verified, trigger cross-verification
       if (identityVerification.aadharVerified) {
-        handleCrossVerification();
+        setTimeout(() => handleCrossVerification(), 100);
       }
     },
     onError: (error: any) => {
@@ -610,7 +610,7 @@ export default function EnhancedKYCVerification() {
                 <div className="mt-8 flex justify-end">
                   <button
                     onClick={() => setCurrentStep(2)}
-                    disabled={!identityVerification.crossVerified}
+                    disabled={!identityVerification.aadharVerified || !identityVerification.panVerified}
                     className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Continue to Phone Verification
