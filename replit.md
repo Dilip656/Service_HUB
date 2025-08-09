@@ -55,6 +55,7 @@ ServiceHub is a professional service marketplace platform that connects users wi
 - **✓ Dynamic Identity Generation** - Creates realistic phone numbers and holder names for any valid government document format entered
 - **✓ Streamlined KYC Process** - Removed OTP verification requirements for faster document verification workflow
 - **✓ Auto-Progression System** - Documents are verified instantly and users automatically proceed to next step without manual intervention
+- **✓ Fixed Admin Access** - Recreated admin account in correct database table (admin_settings) with credentials admin@servicehub.com / Admin@123
 
 # User Preferences
 
