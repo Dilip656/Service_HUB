@@ -513,6 +513,7 @@ function ProvidersView() {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => {
+                      console.log('Selected provider KYC documents:', provider.kycDocuments);
                       setSelectedProvider(provider);
                       setShowKycDetails(true);
                     }}
@@ -697,19 +698,24 @@ function ProvidersView() {
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <h5 className="font-medium text-blue-900 mb-3">Uploaded Documents</h5>
                     <div className="grid grid-cols-1 gap-2">
-                      {selectedProvider.kycDocuments?.uploaded_documents && selectedProvider.kycDocuments.uploaded_documents.length > 0 ? (
-                        selectedProvider.kycDocuments.uploaded_documents.map((doc: string, index: number) => (
-                          <div key={index} className="flex items-center text-sm text-blue-700">
-                            <Check className="w-4 h-4 text-green-600 mr-2" />
-                            {doc}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-sm text-gray-500">No documents uploaded</div>
-                      )}
+                      {(() => {
+                        console.log('Rendering documents for provider:', selectedProvider.businessName);
+                        console.log('KYC Documents object:', selectedProvider.kycDocuments);
+                        console.log('Uploaded documents array:', selectedProvider.kycDocuments?.uploaded_documents);
+                        
+                        const docs = selectedProvider.kycDocuments?.uploaded_documents;
+                        if (docs && Array.isArray(docs) && docs.length > 0) {
+                          return docs.map((doc: string, index: number) => (
+                            <div key={index} className="flex items-center text-sm text-blue-700">
+                              <Check className="w-4 h-4 text-green-600 mr-2" />
+                              {doc}
+                            </div>
+                          ));
+                        } else {
+                          return <div className="text-sm text-gray-500">No documents uploaded (docs: {JSON.stringify(docs)})</div>;
+                        }
+                      })()}
                     </div>
-                    
-
                   </div>
 
                   {/* Submission Details */}
