@@ -31,8 +31,10 @@ export default function Admin() {
   const { showNotification } = useNotification();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
-  const [loginForm, setLoginForm] = useState({ email: 'admin@servicehub.com', password: 'ServiceHub@Admin2025!' });
+  const [loginForm, setLoginForm] = useState({ email: 'admin@servicehub.com', password: 'Admin@123' });
   const [showPaymentSetup, setShowPaymentSetup] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<any>(null);
+  const [showKycDetails, setShowKycDetails] = useState(false);
 
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
@@ -416,6 +418,8 @@ function UsersView() {
 
 function ProvidersView() {
   const { showNotification } = useNotification();
+  const [selectedProvider, setSelectedProvider] = useState<any>(null);
+  const [showKycDetails, setShowKycDetails] = useState(false);
   
   const { data: providers, isLoading } = useQuery({
     queryKey: ['/api/providers'],
@@ -508,6 +512,16 @@ function ProvidersView() {
                 </div>
                 <div className="flex space-x-2">
                   <button
+                    onClick={() => {
+                      setSelectedProvider(provider);
+                      setShowKycDetails(true);
+                    }}
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                  >
+                    <Eye className="w-4 h-4 inline mr-1" />
+                    View Details
+                  </button>
+                  <button
                     onClick={() => handleApproveKyc(provider.id)}
                     disabled={updateKycMutation.isPending}
                     className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50"
@@ -592,6 +606,171 @@ function ProvidersView() {
           </table>
         </div>
       </div>
+
+      {/* KYC Details Modal */}
+      {showKycDetails && selectedProvider && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  KYC Details - {selectedProvider.businessName}
+                </h3>
+                <button
+                  onClick={() => setShowKycDetails(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Business Information */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-medium text-gray-900">Business Information</h4>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Business Name</label>
+                      <p className="text-sm text-gray-900">{selectedProvider.businessName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Owner Name</label>
+                      <p className="text-sm text-gray-900">{selectedProvider.ownerName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Email</label>
+                      <p className="text-sm text-gray-900">{selectedProvider.email}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Phone</label>
+                      <p className="text-sm text-gray-900">{selectedProvider.phone}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Service</label>
+                      <p className="text-sm text-gray-900">{selectedProvider.serviceName}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Experience</label>
+                      <p className="text-sm text-gray-900">{selectedProvider.experience} years</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Hourly Rate</label>
+                      <p className="text-sm text-gray-900">₹{selectedProvider.hourlyRate}/hr</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Location</label>
+                      <p className="text-sm text-gray-900">{selectedProvider.location}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Description</label>
+                      <p className="text-sm text-gray-900">{selectedProvider.description}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* KYC Documents & Verification */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-medium text-gray-900">KYC Verification Details</h4>
+                  
+                  {/* Identity Verification */}
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h5 className="font-medium text-green-900 mb-3">Identity Verification</h5>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-green-700">Aadhar Number:</span>
+                        <span className="text-sm font-medium text-green-900">{selectedProvider.aadharNumber}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-green-700">PAN Number:</span>
+                        <span className="text-sm font-medium text-green-900">{selectedProvider.panNumber}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-green-700">Phone Verified:</span>
+                        <span className={`text-sm font-medium ${selectedProvider.phoneVerified ? 'text-green-900' : 'text-red-900'}`}>
+                          {selectedProvider.phoneVerified ? '✓ Verified' : '✗ Not Verified'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Uploaded Documents */}
+                  {selectedProvider.kycDocuments?.uploaded_documents && (
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h5 className="font-medium text-blue-900 mb-3">Uploaded Documents</h5>
+                      <div className="grid grid-cols-1 gap-2">
+                        {selectedProvider.kycDocuments.uploaded_documents.map((doc: string, index: number) => (
+                          <div key={index} className="flex items-center text-sm text-blue-700">
+                            <Check className="w-4 h-4 text-green-600 mr-2" />
+                            {doc}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Submission Details */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h5 className="font-medium text-gray-900 mb-3">Submission Details</h5>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-700">Submitted On:</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {selectedProvider.kycDocuments?.submitted_at ? 
+                            new Date(selectedProvider.kycDocuments.submitted_at).toLocaleDateString() : 
+                            'N/A'
+                          }
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-700">Current Status:</span>
+                        <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                          selectedProvider.status === 'Pending KYC Review' 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {selectedProvider.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowKycDetails(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    handleRejectProvider(selectedProvider.id);
+                    setShowKycDetails(false);
+                  }}
+                  disabled={updateStatusMutation.isPending}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                >
+                  <X className="w-4 h-4 inline mr-1" />
+                  Reject KYC
+                </button>
+                <button
+                  onClick={() => {
+                    handleApproveKyc(selectedProvider.id);
+                    setShowKycDetails(false);
+                  }}
+                  disabled={updateKycMutation.isPending}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                >
+                  <Check className="w-4 h-4 inline mr-1" />
+                  Approve KYC
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
