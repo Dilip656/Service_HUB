@@ -326,34 +326,73 @@ export class KYCAgent {
 
   private simulateAadharOCR(provider: any): string | null {
     // Simulate OCR reading from uploaded Aadhar document
-    // For legitimate providers with proper documentation, return the matching number
+    // Only approve real Aadhar numbers, reject fake/placeholder numbers
     
     const enteredNumber = provider.aadharNumber;
     
-    // If provider has uploaded Aadhar document and entered valid number, assume document matches
-    if (enteredNumber && enteredNumber.length === 12 && 
-        provider.kycDocuments?.uploaded_documents?.includes('Aadhar Card')) {
-      // Return the same number to simulate successful document verification
-      return enteredNumber;
+    if (!enteredNumber || enteredNumber.length !== 12 || 
+        !provider.kycDocuments?.uploaded_documents?.includes('Aadhar Card')) {
+      return null;
     }
     
-    return null;
+    // Detect fake/placeholder Aadhar numbers
+    if (this.isFakeAadharNumber(enteredNumber)) {
+      // Return a different number to simulate mismatch for fake documents
+      return '999999999999';
+    }
+    
+    // For real-looking Aadhar numbers, return matching number
+    return enteredNumber;
   }
 
   private simulatePANOCR(provider: any): string | null {
     // Simulate OCR reading from uploaded PAN document
-    // For legitimate providers with proper documentation, return the matching number
+    // Only approve real PAN numbers, reject fake/placeholder numbers
     
     const enteredNumber = provider.panNumber;
     
-    // If provider has uploaded PAN document and entered valid number, assume document matches
-    if (enteredNumber && enteredNumber.length === 10 && 
-        provider.kycDocuments?.uploaded_documents?.includes('PAN Card')) {
-      // Return the same number to simulate successful document verification
-      return enteredNumber;
+    if (!enteredNumber || enteredNumber.length !== 10 || 
+        !provider.kycDocuments?.uploaded_documents?.includes('PAN Card')) {
+      return null;
     }
     
-    return null;
+    // Detect fake/placeholder PAN numbers
+    if (this.isFakePANNumber(enteredNumber)) {
+      // Return a different number to simulate mismatch for fake documents
+      return 'FAKE1234Z';
+    }
+    
+    // For real-looking PAN numbers, return matching number
+    return enteredNumber;
+  }
+
+  private isFakeAadharNumber(aadharNumber: string): boolean {
+    // Detect common fake/placeholder Aadhar patterns
+    const fakePatterns = [
+      /^123412341234$/, // Repeating 1234 pattern
+      /^111111111111$/, // All 1s
+      /^000000000000$/, // All 0s
+      /^999999999999$/, // All 9s
+      /^123456789012$/, // Sequential pattern
+      /^987654321098$/, // Reverse sequential
+      /^(\d)\1{11}$/,   // All same digit
+    ];
+    
+    return fakePatterns.some(pattern => pattern.test(aadharNumber));
+  }
+
+  private isFakePANNumber(panNumber: string): boolean {
+    // Detect common fake/placeholder PAN patterns
+    const fakePatterns = [
+      /^ABCDE1234F$/, // Obvious placeholder
+      /^AAAAA1111A$/, // All same letters/numbers
+      /^ZZZZZ9999Z$/, // End of alphabet pattern
+      /^FAKE[0-9]{4}[A-Z]$/, // Contains "FAKE"
+      /^TEST[0-9]{4}[A-Z]$/, // Contains "TEST"
+      /^DEMO[0-9]{4}[A-Z]$/, // Contains "DEMO"
+    ];
+    
+    return fakePatterns.some(pattern => pattern.test(panNumber));
   }
 
   private isHighQualityProvider(provider: any): boolean {
