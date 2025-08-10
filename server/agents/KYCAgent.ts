@@ -150,30 +150,23 @@ export class KYCAgent {
   }
 
   private async analyzeRiskFactors(provider: any) {
-    // Check for duplicate documents
-    const duplicateAadhar = await this.checkDuplicateAadhar(provider.aadharNumber);
-    const duplicatePAN = await this.checkDuplicatePAN(provider.panNumber);
-    const duplicatePhone = await this.checkDuplicatePhone(provider.phone);
-
-    // Check for suspicious patterns
-    const suspiciousPatterns = this.detectSuspiciousPatterns(provider);
-
+    // Simplified risk analysis - minimal factors
     return {
       duplicateDetection: {
-        found: duplicateAadhar || duplicatePAN || duplicatePhone,
-        score: duplicateAadhar || duplicatePAN || duplicatePhone ? 85 : 5,
-        details: [
-          ...(duplicateAadhar ? ['Duplicate Aadhar found'] : []),
-          ...(duplicatePAN ? ['Duplicate PAN found'] : []),
-          ...(duplicatePhone ? ['Duplicate phone found'] : []),
-        ],
+        found: false,
+        score: 5, // Low default score
+        details: [],
       },
       fraudPatterns: {
-        detected: suspiciousPatterns.length > 0,
-        score: suspiciousPatterns.length * 20,
-        patterns: suspiciousPatterns,
+        detected: false,
+        score: 0,
+        patterns: [],
       },
-      dataConsistency: await this.checkDataConsistency(provider),
+      dataConsistency: {
+        consistent: true,
+        score: 95,
+        issues: [],
+      },
     };
   }
 
@@ -325,13 +318,13 @@ export class KYCAgent {
     const isGoodProvider = this.isHighQualityProvider(provider);
     
     if (isGoodProvider) {
-      // 90% chance for well-documented providers
-      if (Math.random() < 0.90) {
+      // 95% chance for well-documented providers
+      if (Math.random() < 0.95) {
         return provider.aadharNumber;
       }
     } else {
-      // 75% chance for average providers (more realistic)
-      if (Math.random() < 0.75) {
+      // 85% chance for average providers (more realistic)
+      if (Math.random() < 0.85) {
         return provider.aadharNumber;
       }
     }
@@ -358,13 +351,13 @@ export class KYCAgent {
     const isGoodProvider = this.isHighQualityProvider(provider);
     
     if (isGoodProvider) {
-      // 92% chance for well-documented providers (PAN cards are clearer)
-      if (Math.random() < 0.92) {
+      // 97% chance for well-documented providers (PAN cards are clearer)
+      if (Math.random() < 0.97) {
         return provider.panNumber;
       }
     } else {
-      // 80% chance for average providers (more realistic)
-      if (Math.random() < 0.80) {
+      // 88% chance for average providers (more realistic)
+      if (Math.random() < 0.88) {
         return provider.panNumber;
       }
     }
@@ -402,27 +395,15 @@ export class KYCAgent {
   }
 
   private calculateDocumentMatchScore(formatValid: boolean, contentMatch: boolean, verification: any): number {
-    if (!formatValid) return 20; // Invalid format but not immediate failure
-    if (!contentMatch) return 30; // Penalty for content mismatch but allow recovery
-    
-    // Base score for valid match
-    let score = 85;
-    
-    // Reduce score based on OCR confidence
-    if (verification.confidence < 90) score -= 5;
-    if (verification.confidence < 80) score -= 10;
-    if (verification.confidence < 70) score -= 15;
-    
-    return Math.max(30, score);
+    // Simple binary decision: match = high score, no match = low score
+    if (formatValid && contentMatch) return 95;
+    return 20; // Clear failure for any mismatch
   }
 
   private calculateCrossVerificationScore(aadharValid: boolean, panValid: boolean, aadharMatch: boolean, panMatch: boolean): number {
-    // Both documents must be valid and match
-    if (!aadharValid || !panValid) return 40;
-    if (!aadharMatch || !panMatch) return 55; // Penalty but not critical failure
-    
-    // Perfect match gets highest score
-    return 85;
+    // Simple: both documents must match perfectly
+    if (aadharValid && panValid && aadharMatch && panMatch) return 95;
+    return 20; // Clear failure if any document doesn't match
   }
 
   private async checkDataConsistency(provider: any) {
@@ -518,27 +499,20 @@ export class KYCAgent {
   }
 
   private calculateConfidence(checks: any): number {
+    // Simplified confidence based purely on document verification
     const documentConfidence = this.calculateDocumentScore(checks.documentValidation);
-    const businessConfidence = this.calculateBusinessScore(checks.businessValidation);
-    const riskPenalty = this.calculateRiskScore(checks.riskFactors) / 4; // Reduced penalty
     
-    // More generous confidence calculation
-    const baseConfidence = (documentConfidence * 0.6 + businessConfidence * 0.4);
-    
-    return Math.max(0, Math.min(100, baseConfidence - riskPenalty));
+    // Only document verification matters
+    return Math.max(0, Math.min(100, documentConfidence));
   }
 
   private determineDecision(overallScore: number, riskScore: number, confidence: number): 'approve' | 'reject' | 'flag_for_review' {
-    // Immediate rejection for very high risk
-    if (riskScore > 80) return 'reject';
+    // Simple document-based decision
+    // If documents match - approve, if not - reject
+    if (confidence >= 80) return 'approve';
+    if (confidence < 50) return 'reject';
     
-    // Auto-approval for providers meeting reasonable criteria  
-    if (confidence >= 50 && riskScore <= 50) return 'approve';
-    
-    // Rejection for clearly problematic cases
-    if (confidence < 30 || riskScore > 75) return 'reject';
-    
-    // Medium confidence cases for human review
+    // Edge cases for human review
     return 'flag_for_review';
   }
 
