@@ -1050,7 +1050,33 @@ export class KYCAgent {
 
   private async flagForHumanReview(providerId: number, decision: AgentDecision): Promise<void> {
     try {
-      await storage.updateProviderStatus(providerId, 'Pending Review');
+      // Update provider status to indicate human review needed
+      await storage.updateProviderStatus(providerId, 'Pending KYC Review');
+      
+      // Update KYC documents with detailed analysis results
+      const provider = await storage.getServiceProvider(providerId);
+      if (provider && provider.kycDocuments) {
+        const updatedKycDocuments = {
+          ...(provider.kycDocuments as any),
+          status: 'flagged_for_review',
+          flagged_at: new Date().toISOString(),
+          flagged_by: 'AI_KYC_Agent',
+          ai_analysis: {
+            decision: decision.decision,
+            confidence: decision.confidence,
+            riskScore: decision.riskScore,
+            overallScore: decision.overallScore,
+            documentChecks: decision.checks.documentValidation,
+            flagReason: decision.decision === 'flag_for_review' ? 'Document numbers do not match uploaded documents' : 'High fraud risk detected'
+          }
+        };
+        
+        await storage.updateProviderKycDocuments(
+          providerId, 
+          updatedKycDocuments, 
+          'Pending KYC Review'
+        );
+      }
       
       console.log(`🔍 Flagged provider ${providerId} for human review - Confidence: ${decision.confidence}%`);
     } catch (error) {
