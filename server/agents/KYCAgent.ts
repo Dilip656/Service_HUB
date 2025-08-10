@@ -432,21 +432,31 @@ export class KYCAgent {
     // - Some documents have different numbers (fake/incorrect data)
     
     // Define document verification scenarios based on provider data
-    const documentScenarios: Record<number, { aadhar: string; pan: string }> = {
+    // In real implementation, this would parse actual uploaded document files using OCR
+    const documentScenarios: Record<number, { aadhar: string; pan: string; legitimate: boolean }> = {
       // Provider 1 (Lakhan Photography) - legitimate documents
       1: {
         aadhar: '490448561130', // Matches entered data
-        pan: 'GOWPR7458D'      // Matches entered data
+        pan: 'GOWPR7458D',      // Matches entered data
+        legitimate: true
       },
       // Provider 2 (Suthar Electricals) - fake documents
       2: {
         aadhar: '498765432101', // Different from entered data (490448561122)
-        pan: 'ABCDE1234F'      // Different from entered data (GOWPR7568D)
+        pan: 'ABCDE1234F',      // Different from entered data (GOWPR7568D)
+        legitimate: false
       },
       // Provider 3 (IITIAN Baba) - legitimate documents
       3: {
         aadhar: '305997220942', // Matches entered data
-        pan: 'HKPPR1783H'      // Matches entered data
+        pan: 'HKPPR1783H',      // Matches entered data
+        legitimate: true
+      },
+      // Provider 4 (Banjara Plumbers) - fake documents
+      4: {
+        aadhar: '123456789012', // Different from entered data (491196275295)
+        pan: 'FAKE1234F',       // Different from entered data (HEVPR6956C)
+        legitimate: false
       }
     };
     
@@ -454,9 +464,28 @@ export class KYCAgent {
     const scenario = documentScenarios[providerId];
     
     if (!scenario) {
-      // For unknown providers, return entered data (assume legitimate for new providers)
-      if (documentType === 'aadhar') return provider.aadharNumber || null;
-      if (documentType === 'pan') return provider.panNumber || null;
+      // For new/unknown providers, use business logic to determine if documents are legitimate
+      // In a real system, this would parse actual uploaded files
+      console.log(`⚠️ Provider ${providerId}: No pre-defined scenario, using business logic verification`);
+      
+      // Use simple pattern detection for unknown providers
+      const aadharPattern = provider.aadharNumber;
+      const panPattern = provider.panNumber;
+      
+      // Check if numbers look suspicious (common fake patterns)
+      const isSuspiciousAadhar = this.isFakeAadharNumber(aadharPattern);
+      const isSuspiciousPAN = this.isFakePANNumber(panPattern);
+      
+      if (isSuspiciousAadhar || isSuspiciousPAN) {
+        // Return obviously fake numbers for suspicious patterns
+        if (documentType === 'aadhar') return '000000000000';
+        if (documentType === 'pan') return 'FAKE0000F';
+      } else {
+        // Return entered data for normal-looking numbers (assume legitimate)
+        if (documentType === 'aadhar') return provider.aadharNumber || null;
+        if (documentType === 'pan') return provider.panNumber || null;
+      }
+      
       return null;
     }
     
