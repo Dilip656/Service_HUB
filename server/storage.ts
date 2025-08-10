@@ -7,6 +7,7 @@ import {
   messages,
   services,
   otpVerifications,
+  kycDocuments,
   type User, 
   type InsertUser,
   type ServiceProvider,
@@ -25,7 +26,9 @@ import {
   type Service,
   type InsertService,
   type OtpVerification,
-  type InsertOtpVerification
+  type InsertOtpVerification,
+  type KycDocument,
+  type InsertKycDocument
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, sql, ne } from "drizzle-orm";
@@ -102,6 +105,11 @@ export interface IStorage {
   getLatestOtpVerification(phone: string): Promise<OtpVerification | undefined>;
   incrementOtpAttempts(id: number): Promise<void>;
   markOtpVerified(id: number): Promise<void>;
+
+  // KYC Documents methods
+  createKycDocument(kycDocument: InsertKycDocument): Promise<KycDocument>;
+  getKycDocuments(providerId: number): Promise<KycDocument[]>;
+  deleteKycDocument(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -636,6 +644,27 @@ export class DatabaseStorage implements IStorage {
       .update(otpVerifications)
       .set({ verified: true })
       .where(eq(otpVerifications.id, id));
+  }
+
+  // KYC Documents methods
+  async createKycDocument(kycDocumentData: InsertKycDocument): Promise<KycDocument> {
+    const [kycDocument] = await db
+      .insert(kycDocuments)
+      .values(kycDocumentData)
+      .returning();
+    return kycDocument;
+  }
+
+  async getKycDocuments(providerId: number): Promise<KycDocument[]> {
+    return await db
+      .select()
+      .from(kycDocuments)
+      .where(eq(kycDocuments.providerId, providerId))
+      .orderBy(desc(kycDocuments.uploadedAt));
+  }
+
+  async deleteKycDocument(id: number): Promise<void> {
+    await db.delete(kycDocuments).where(eq(kycDocuments.id, id));
   }
 }
 

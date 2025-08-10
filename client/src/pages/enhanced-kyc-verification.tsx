@@ -355,6 +355,35 @@ export default function EnhancedKYCVerification() {
     });
   };
 
+  // File upload mutation
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async ({ docName, file }: { docName: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('providerId', providerInfo.id?.toString() || '');
+      formData.append('documentType', docName);
+
+      const response = await fetch('/api/upload/kyc-document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to upload document');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data, { docName }) => {
+      setUploadedDocs(prev => [...prev, docName]);
+      showNotification(`${docName} uploaded successfully!`, 'success');
+    },
+    onError: (error: any, { docName }) => {
+      showNotification(`Failed to upload ${docName}: ${error.message}`, 'error');
+    },
+  });
+
   const handleDocumentUpload = (docName: string, file: File) => {
     // Validate file type and size
     const doc = requiredDocuments.find(d => d.name === docName);
@@ -372,14 +401,8 @@ export default function EnhancedKYCVerification() {
       return;
     }
     
-    // In a real app, upload to server/cloud storage here
-    // For now, we'll simulate successful upload
-    if (!uploadedDocs.includes(docName)) {
-      setUploadedDocs([...uploadedDocs, docName]);
-      showNotification(`${docName} uploaded successfully (${file.name})`, 'success');
-    } else {
-      showNotification(`${docName} replaced successfully (${file.name})`, 'success');
-    }
+    // Upload to server
+    uploadDocumentMutation.mutate({ docName, file });
   };
   
   const handleFileSelect = (docName: string, event: React.ChangeEvent<HTMLInputElement>) => {

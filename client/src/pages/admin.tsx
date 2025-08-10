@@ -23,8 +23,71 @@ import {
   LogOut,
   Settings,
   Wrench,
-  Plus
+  Plus,
+  FileText,
+  Download,
+  ExternalLink
 } from 'lucide-react';
+
+// KYC Document Viewer Component
+function KycDocumentViewer({ providerId }: { providerId: number }) {
+  const { data: documents, isLoading } = useQuery({
+    queryKey: ['/api/providers', providerId, 'kyc-documents'],
+    queryFn: async () => {
+      const response = await fetch(`/api/providers/${providerId}/kyc-documents`);
+      if (!response.ok) throw new Error('Failed to fetch documents');
+      return response.json();
+    },
+  });
+
+  if (isLoading) {
+    return <div className="text-sm text-gray-500">Loading documents...</div>;
+  }
+
+  if (!documents?.documents || documents.documents.length === 0) {
+    return <div className="text-sm text-gray-500">No documents uploaded yet</div>;
+  }
+
+  const handleViewDocument = (fileUrl: string, fileName: string) => {
+    window.open(fileUrl, '_blank');
+  };
+
+  return (
+    <div className="grid grid-cols-1 gap-3">
+      {documents.documents.map((doc: any, index: number) => (
+        <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+          <div className="flex items-center">
+            <FileText className="w-4 h-4 text-blue-600 mr-3" />
+            <div>
+              <div className="text-sm font-medium text-gray-900">{doc.documentType}</div>
+              <div className="text-xs text-gray-500">{doc.originalName}</div>
+              <div className="text-xs text-gray-400">
+                {new Date(doc.uploadedAt).toLocaleDateString()} • {(doc.fileSize / 1024).toFixed(1)} KB
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handleViewDocument(doc.fileUrl, doc.originalName)}
+              className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100"
+            >
+              <Eye className="w-3 h-3 mr-1" />
+              View
+            </button>
+            <a
+              href={doc.fileUrl}
+              download={doc.originalName}
+              className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100"
+            >
+              <Download className="w-3 h-3 mr-1" />
+              Download
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Admin() {
   const [, setLocation] = useLocation();
@@ -697,25 +760,7 @@ function ProvidersView() {
                   {/* Uploaded Documents */}
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <h5 className="font-medium text-blue-900 mb-3">Uploaded Documents</h5>
-                    <div className="grid grid-cols-1 gap-2">
-                      {(() => {
-                        console.log('Rendering documents for provider:', selectedProvider.businessName);
-                        console.log('KYC Documents object:', selectedProvider.kycDocuments);
-                        console.log('Uploaded documents array:', selectedProvider.kycDocuments?.uploaded_documents);
-                        
-                        const docs = selectedProvider.kycDocuments?.uploaded_documents;
-                        if (docs && Array.isArray(docs) && docs.length > 0) {
-                          return docs.map((doc: string, index: number) => (
-                            <div key={index} className="flex items-center text-sm text-blue-700">
-                              <Check className="w-4 h-4 text-green-600 mr-2" />
-                              {doc}
-                            </div>
-                          ));
-                        } else {
-                          return <div className="text-sm text-gray-500">No documents uploaded (docs: {JSON.stringify(docs)})</div>;
-                        }
-                      })()}
-                    </div>
+                    <KycDocumentViewer providerId={selectedProvider.id} />
                   </div>
 
                   {/* Submission Details */}

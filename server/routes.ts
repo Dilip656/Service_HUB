@@ -2,10 +2,13 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { IdentityVerificationService } from "./aadhar-pan-service";
-import { insertUserSchema, insertServiceProviderSchema, insertBookingSchema, insertPaymentSchema, insertReviewSchema, insertServiceSchema } from "@shared/schema";
+import { insertUserSchema, insertServiceProviderSchema, insertBookingSchema, insertPaymentSchema, insertReviewSchema, insertServiceSchema, insertKycDocumentSchema, type KycDocument } from "@shared/schema";
 import { z } from "zod";
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import { upload, getFileUrl } from "./fileUpload";
+import path from "path";
+import fs from "fs";
 
 // Initialize Razorpay only if keys are available
 let razorpay: Razorpay | null = null;
@@ -1193,6 +1196,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error verifying OTP:", error);
       res.status(500).json({ message: "Failed to verify OTP" });
+    }
+  });
+
+  // File Upload Routes for KYC Documents
+  app.post("/api/upload/kyc-document", upload.single('document'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const { providerId, documentType } = req.body;
+      
+      if (!providerId || !documentType) {
+        return res.status(400).json({ message: "Provider ID and document type are required" });
+      }
+
+      // Save file information to database
+      const kycDocument = await storage.createKycDocument({
+        providerId: parseInt(providerId),
+        documentType,
+        originalName: req.file.originalname,
+        filename: req.file.filename,
+        filePath: req.file.path,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+      });
+
+      res.json({
+        success: true,
+        message: "Document uploaded successfully",
+        document: {
+          id: kycDocument.id,
+          originalName: req.file.originalname,
+          documentType,
+          fileUrl: getFileUrl(req.file.filename)
+        }
+      });
+    } catch (error) {
+      console.error("File upload error:", error);
+      res.status(500).json({ message: "Failed to upload document" });
+    }
+  });
+
+  // Serve uploaded files
+  app.get("/api/files/kyc-documents/:filename", async (req, res) => {
+    try {
+      const { filename } = req.params;
+      const filePath = path.join(process.cwd(), 'uploads', 'kyc-documents', filename);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // Set appropriate headers based on file type
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream';
+      
+      if (ext === '.pdf') contentType = 'application/pdf';
+      else if (['.jpg', '.jpeg'].includes(ext)) contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.doc') contentType = 'application/msword';
+      else if (ext === '.docx') contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error("File serving error:", error);
+      res.status(500).json({ message: "Failed to serve file" });
+    }
+  });
+
+  // Get KYC documents for a provider
+  app.get("/api/providers/:id/kyc-documents", async (req, res) => {
+    try {
+      const providerId = parseInt(req.params.id);
+      const documents = await storage.getKycDocuments(providerId);
+      
+      // Add file URLs to documents
+      const documentsWithUrls = documents.map((doc: KycDocument) => ({
+        ...doc,
+        fileUrl: getFileUrl(doc.filename)
+      }));
+      
+      res.json({ documents: documentsWithUrls });
+    } catch (error) {
+      console.error("Error fetching KYC documents:", error);
+      res.status(500).json({ message: "Failed to fetch KYC documents" });
     }
   });
 

@@ -1,0 +1,11 @@
+Test KYC Document
+==================
+
+This is a sample document for testing the KYC document upload and viewing functionality.
+
+Document Details:
+- Type: Test Document
+- Date: August 10, 2025
+- Purpose: Testing file upload system for ServiceHub platform
+
+This document verifies that the file upload system is working correctly and that admins can view uploaded documents during the KYC approval process.
