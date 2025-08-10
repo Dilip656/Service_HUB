@@ -109,9 +109,39 @@ export interface KYCAnalysisResult {
   decision: 'approve' | 'reject' | 'flag_for_review';
   checks: {
     documentValidation: {
-      aadhar: { valid: boolean; score: number; issues: string[] };
-      pan: { valid: boolean; score: number; issues: string[] };
+      aadhar: { 
+        valid: boolean; 
+        score: number; 
+        issues: string[];
+        contentVerification?: {
+          documentFound: boolean;
+          matches: boolean;
+          confidence: number;
+          extractedNumber: string | null;
+          enteredNumber: string;
+          issues: string[];
+        };
+      };
+      pan: { 
+        valid: boolean; 
+        score: number; 
+        issues: string[];
+        contentVerification?: {
+          documentFound: boolean;
+          matches: boolean;
+          confidence: number;
+          extractedNumber: string | null;
+          enteredNumber: string;
+          issues: string[];
+        };
+      };
       crossVerification: { valid: boolean; score: number; issues: string[] };
+      documentContentAnalysis?: {
+        documentsProcessed: number;
+        verificationMethod: string;
+        confidence: number;
+        timestamp: string;
+      };
     };
     riskFactors: {
       duplicateDetection: { found: boolean; score: number; details: string[] };

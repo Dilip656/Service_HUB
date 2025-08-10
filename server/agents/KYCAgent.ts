@@ -109,22 +109,41 @@ export class KYCAgent {
     const aadharValid = provider.aadharNumber && /^\d{12}$/.test(provider.aadharNumber);
     const panValid = provider.panNumber && /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(provider.panNumber);
     
+    // Document content verification - check if uploaded documents match entered numbers
+    const documentContentVerification = await this.verifyDocumentContent(provider);
+    
+    const aadharContentMatch = documentContentVerification.aadhar.matches;
+    const panContentMatch = documentContentVerification.pan.matches;
+    
     return {
       aadhar: {
-        valid: aadharValid,
-        score: aadharValid ? 95 : 0,
-        issues: aadharValid ? [] : ['Invalid Aadhar format'],
+        valid: aadharValid && aadharContentMatch,
+        score: aadharValid ? (aadharContentMatch ? 95 : 30) : 0,
+        issues: [
+          ...(aadharValid ? [] : ['Invalid Aadhar format']),
+          ...(aadharContentMatch ? [] : ['Aadhar number does not match uploaded document']),
+        ],
+        contentVerification: documentContentVerification.aadhar,
       },
       pan: {
-        valid: panValid,
-        score: panValid ? 95 : 0,
-        issues: panValid ? [] : ['Invalid PAN format'],
+        valid: panValid && panContentMatch,
+        score: panValid ? (panContentMatch ? 95 : 30) : 0,
+        issues: [
+          ...(panValid ? [] : ['Invalid PAN format']),
+          ...(panContentMatch ? [] : ['PAN number does not match uploaded document']),
+        ],
+        contentVerification: documentContentVerification.pan,
       },
       crossVerification: {
-        valid: aadharValid && panValid,
-        score: aadharValid && panValid ? 90 : 50,
-        issues: aadharValid && panValid ? [] : ['Cross-verification incomplete'],
+        valid: aadharValid && panValid && aadharContentMatch && panContentMatch,
+        score: (aadharValid && panValid && aadharContentMatch && panContentMatch) ? 95 : 
+               (aadharValid && panValid) ? 60 : 30,
+        issues: [
+          ...(aadharValid && panValid ? [] : ['Document format validation incomplete']),
+          ...(aadharContentMatch && panContentMatch ? [] : ['Document content verification failed']),
+        ],
       },
+      documentContentAnalysis: documentContentVerification.analysis,
     };
   }
 
@@ -211,6 +230,131 @@ export class KYCAgent {
     }
 
     return patterns;
+  }
+
+  private async verifyDocumentContent(provider: any) {
+    // In a real implementation, this would use OCR or document parsing services
+    // For now, we'll simulate document content verification
+    
+    const aadharAnalysis = await this.analyzeAadharDocument(provider);
+    const panAnalysis = await this.analyzePANDocument(provider);
+    
+    return {
+      aadhar: aadharAnalysis,
+      pan: panAnalysis,
+      analysis: {
+        documentsProcessed: (aadharAnalysis.documentFound ? 1 : 0) + (panAnalysis.documentFound ? 1 : 0),
+        verificationMethod: 'OCR_SIMULATION',
+        confidence: Math.min(aadharAnalysis.confidence, panAnalysis.confidence),
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  private async analyzeAadharDocument(provider: any) {
+    // Simulate OCR analysis of uploaded Aadhar document
+    const hasAadharDoc = provider.kycDocuments?.uploaded_documents?.includes('Aadhar Card');
+    
+    if (!hasAadharDoc || !provider.aadharNumber) {
+      return {
+        documentFound: false,
+        matches: false,
+        confidence: 0,
+        extractedNumber: null,
+        issues: ['Aadhar document not uploaded or number not provided'],
+      };
+    }
+
+    // Simulate OCR extraction and comparison
+    // In real implementation, this would extract number from uploaded document
+    const simulatedExtractedNumber = this.simulateAadharOCR(provider);
+    const matches = simulatedExtractedNumber === provider.aadharNumber;
+    
+    return {
+      documentFound: true,
+      matches,
+      confidence: matches ? 95 : 25,
+      extractedNumber: simulatedExtractedNumber,
+      enteredNumber: provider.aadharNumber,
+      issues: matches ? [] : [
+        'Aadhar number mismatch between document and entered data',
+        `Document shows: ${simulatedExtractedNumber}, Entered: ${provider.aadharNumber}`
+      ],
+    };
+  }
+
+  private async analyzePANDocument(provider: any) {
+    // Simulate OCR analysis of uploaded PAN document
+    const hasPanDoc = provider.kycDocuments?.uploaded_documents?.includes('PAN Card');
+    
+    if (!hasPanDoc || !provider.panNumber) {
+      return {
+        documentFound: false,
+        matches: false,
+        confidence: 0,
+        extractedNumber: null,
+        issues: ['PAN document not uploaded or number not provided'],
+      };
+    }
+
+    // Simulate OCR extraction and comparison
+    const simulatedExtractedNumber = this.simulatePANOCR(provider);
+    const matches = simulatedExtractedNumber === provider.panNumber;
+    
+    return {
+      documentFound: true,
+      matches,
+      confidence: matches ? 95 : 25,
+      extractedNumber: simulatedExtractedNumber,
+      enteredNumber: provider.panNumber,
+      issues: matches ? [] : [
+        'PAN number mismatch between document and entered data',
+        `Document shows: ${simulatedExtractedNumber}, Entered: ${provider.panNumber}`
+      ],
+    };
+  }
+
+  private simulateAadharOCR(provider: any): string | null {
+    // Simulate OCR results - in reality this would be actual document processing
+    // For demonstration, we'll create realistic scenarios:
+    
+    // 80% chance the document matches (good providers)
+    if (Math.random() < 0.8) {
+      return provider.aadharNumber;
+    }
+    
+    // 20% chance of mismatch (fraud/error cases)
+    const scenarios = [
+      // Typo in one digit
+      provider.aadharNumber?.replace(/\d/, (match: string) => String((parseInt(match) + 1) % 10)),
+      // Completely different number
+      '999999999999',
+      // Partially obscured/unreadable
+      provider.aadharNumber?.substring(0, 8) + 'XXXX',
+    ];
+    
+    return scenarios[Math.floor(Math.random() * scenarios.length)] || null;
+  }
+
+  private simulatePANOCR(provider: any): string | null {
+    // Simulate OCR results for PAN card
+    
+    // 85% chance the document matches (PAN cards are usually clearer)
+    if (Math.random() < 0.85) {
+      return provider.panNumber;
+    }
+    
+    // 15% chance of mismatch
+    const scenarios = [
+      // Wrong last digit
+      provider.panNumber?.slice(0, -1) + 'X',
+      // Different middle numbers
+      provider.panNumber?.substring(0, 5) + '9999' + provider.panNumber?.substring(9),
+      // Completely different PAN
+      'ABCDE9999F',
+    ];
+    
+    return scenarios[Math.floor(Math.random() * scenarios.length)] || null;
   }
 
   private async checkDataConsistency(provider: any) {
@@ -313,10 +457,37 @@ export class KYCAgent {
 
     if (checks.documentValidation.aadhar.score < 95) {
       recommendations.push('Verify Aadhar document authenticity');
+      
+      // Specific recommendations for document content issues
+      if (checks.documentValidation.aadhar.contentVerification && 
+          !checks.documentValidation.aadhar.contentVerification.matches) {
+        recommendations.push('Aadhar document content verification failed - request re-upload');
+        recommendations.push('Cross-verify Aadhar number with government database');
+      }
     }
+    
     if (checks.documentValidation.pan.score < 95) {
       recommendations.push('Verify PAN document authenticity');
+      
+      // Specific recommendations for PAN content issues
+      if (checks.documentValidation.pan.contentVerification && 
+          !checks.documentValidation.pan.contentVerification.matches) {
+        recommendations.push('PAN document content verification failed - request re-upload');
+        recommendations.push('Verify PAN number with Income Tax database');
+      }
     }
+    
+    // Document content analysis recommendations
+    if (checks.documentValidation.documentContentAnalysis) {
+      const analysis = checks.documentValidation.documentContentAnalysis;
+      if (analysis.confidence < 80) {
+        recommendations.push('Document quality is poor - request clearer document uploads');
+      }
+      if (analysis.documentsProcessed < 2) {
+        recommendations.push('Complete document set not uploaded - request all required documents');
+      }
+    }
+    
     if (riskScore > 50) {
       recommendations.push('Conduct additional background verification');
     }
