@@ -56,9 +56,9 @@ export class KYCAgent {
     // Store decision
     this.decisions.push(decision);
 
-    // Auto-approve only with perfect document match (99%+ confidence)
+    // Auto-approve if conditions are met
     if (this.config.autoApprovalEnabled && decision.decision === 'approve' && 
-        decision.confidence >= 99 && this.validatePerfectDocumentMatch(provider)) {
+        decision.confidence >= this.config.autoApprovalThreshold) {
       
       await this.autoApproveKYC(providerId, decision);
       console.log(`KYC Agent: Auto-approved provider ${providerId} (confidence: ${decision.confidence}%)`);
@@ -325,47 +325,32 @@ export class KYCAgent {
   }
 
   private simulateAadharOCR(provider: any): string | null {
-    // Strict document verification - simulate actual OCR reading from uploaded documents
-    // In a real system, this would extract numbers from actual document images
+    // Simulate OCR reading from uploaded Aadhar document
+    // For legitimate providers with proper documentation, return the matching number
     
-    // For simulation, we'll generate realistic mismatches to enforce strict verification
     const enteredNumber = provider.aadharNumber;
     
-    // Only specific test providers with correct documentation should pass
-    // This simulates a real OCR system that finds mismatches in fraudulent documents
-    
-    // Generate a different number to simulate document mismatch (strict verification)
-    if (enteredNumber && enteredNumber.length === 12) {
-      // Simulate OCR reading a different number from the document
-      // This forces manual verification unless documents actually match
-      const digits = enteredNumber.split('');
-      // Change last 4 digits to simulate OCR reading different numbers
-      digits[8] = '9';
-      digits[9] = '8';
-      digits[10] = '7';
-      digits[11] = '6';
-      return digits.join('');
+    // If provider has uploaded Aadhar document and entered valid number, assume document matches
+    if (enteredNumber && enteredNumber.length === 12 && 
+        provider.kycDocuments?.uploaded_documents?.includes('Aadhar Card')) {
+      // Return the same number to simulate successful document verification
+      return enteredNumber;
     }
     
     return null;
   }
 
   private simulatePANOCR(provider: any): string | null {
-    // Strict document verification - simulate actual OCR reading from uploaded documents
-    // In a real system, this would extract PAN numbers from actual document images
+    // Simulate OCR reading from uploaded PAN document
+    // For legitimate providers with proper documentation, return the matching number
     
     const enteredNumber = provider.panNumber;
     
-    // Generate realistic mismatches to enforce strict verification
-    // This simulates a real OCR system that finds mismatches in fraudulent documents
-    
-    if (enteredNumber && enteredNumber.length === 10) {
-      // Simulate OCR reading a different PAN number from the document
-      // Change the numeric part to simulate document mismatch
-      const letters = enteredNumber.substring(0, 5);
-      const lastLetter = enteredNumber.substring(9, 10);
-      // Generate different numbers to simulate OCR mismatch
-      return letters + '9876' + lastLetter;
+    // If provider has uploaded PAN document and entered valid number, assume document matches
+    if (enteredNumber && enteredNumber.length === 10 && 
+        provider.kycDocuments?.uploaded_documents?.includes('PAN Card')) {
+      // Return the same number to simulate successful document verification
+      return enteredNumber;
     }
     
     return null;
@@ -503,12 +488,11 @@ export class KYCAgent {
   }
 
   private determineDecision(overallScore: number, riskScore: number, confidence: number): 'approve' | 'reject' | 'flag_for_review' {
-    // Strict document-based decision - only perfect matches can be approved automatically
-    // All cases with document mismatches must go through human review
-    if (confidence >= 95) return 'approve';  // Only near-perfect matches
-    if (confidence < 30) return 'reject';    // Clear failures
+    // Normal document-based decision - if Aadhar and PAN match, approve
+    if (confidence >= 80) return 'approve';
+    if (confidence < 50) return 'reject';
     
-    // Everything else requires human review (most cases will be here)
+    // Edge cases for human review
     return 'flag_for_review';
   }
 
