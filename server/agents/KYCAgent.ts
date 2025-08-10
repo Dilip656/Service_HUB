@@ -118,29 +118,31 @@ export class KYCAgent {
     return {
       aadhar: {
         valid: aadharValid && aadharContentMatch,
-        score: aadharValid ? (aadharContentMatch ? 95 : 30) : 0,
+        score: this.calculateDocumentMatchScore(aadharValid, aadharContentMatch, documentContentVerification.aadhar),
         issues: [
-          ...(aadharValid ? [] : ['Invalid Aadhar format']),
-          ...(aadharContentMatch ? [] : ['Aadhar number does not match uploaded document']),
+          ...(aadharValid ? [] : ['Invalid Aadhar format - must be 12 digits']),
+          ...(aadharContentMatch ? [] : ['CRITICAL: Aadhar number does not match uploaded document']),
+          ...(documentContentVerification.aadhar.confidence < 80 ? ['Low OCR confidence - document may be unclear'] : []),
         ],
         contentVerification: documentContentVerification.aadhar,
       },
       pan: {
         valid: panValid && panContentMatch,
-        score: panValid ? (panContentMatch ? 95 : 30) : 0,
+        score: this.calculateDocumentMatchScore(panValid, panContentMatch, documentContentVerification.pan),
         issues: [
-          ...(panValid ? [] : ['Invalid PAN format']),
-          ...(panContentMatch ? [] : ['PAN number does not match uploaded document']),
+          ...(panValid ? [] : ['Invalid PAN format - must be ABCDE1234F format']),
+          ...(panContentMatch ? [] : ['CRITICAL: PAN number does not match uploaded document']),
+          ...(documentContentVerification.pan.confidence < 80 ? ['Low OCR confidence - document may be unclear'] : []),
         ],
         contentVerification: documentContentVerification.pan,
       },
       crossVerification: {
         valid: aadharValid && panValid && aadharContentMatch && panContentMatch,
-        score: (aadharValid && panValid && aadharContentMatch && panContentMatch) ? 95 : 
-               (aadharValid && panValid) ? 60 : 30,
+        score: this.calculateCrossVerificationScore(aadharValid, panValid, aadharContentMatch, panContentMatch),
         issues: [
           ...(aadharValid && panValid ? [] : ['Document format validation incomplete']),
-          ...(aadharContentMatch && panContentMatch ? [] : ['Document content verification failed']),
+          ...(aadharContentMatch && panContentMatch ? [] : ['CRITICAL: Document content verification failed - potential fraud']),
+          ...(!aadharContentMatch || !panContentMatch ? ['Manual document review required'] : []),
         ],
       },
       documentContentAnalysis: documentContentVerification.analysis,
@@ -317,20 +319,31 @@ export class KYCAgent {
   }
 
   private simulateAadharOCR(provider: any): string | null {
-    // Simulate OCR results - in reality this would be actual document processing
-    // For demonstration, we'll create realistic scenarios:
+    // Enhanced document verification logic with stricter matching
     
-    // 80% chance the document matches (good providers)
-    if (Math.random() < 0.8) {
-      return provider.aadharNumber;
+    // Check if this is a known test case with good documentation
+    const isGoodProvider = this.isHighQualityProvider(provider);
+    
+    if (isGoodProvider) {
+      // 95% chance for well-documented providers
+      if (Math.random() < 0.95) {
+        return provider.aadharNumber;
+      }
+    } else {
+      // 60% chance for average providers  
+      if (Math.random() < 0.6) {
+        return provider.aadharNumber;
+      }
     }
     
-    // 20% chance of mismatch (fraud/error cases)
+    // Mismatch scenarios (fraud/error cases)
     const scenarios = [
-      // Typo in one digit
+      // Single digit typo
       provider.aadharNumber?.replace(/\d/, (match: string) => String((parseInt(match) + 1) % 10)),
+      // Multiple digit errors
+      provider.aadharNumber?.substring(0, 4) + '9999' + provider.aadharNumber?.substring(8),
       // Completely different number
-      '999999999999',
+      '123456789012',
       // Partially obscured/unreadable
       provider.aadharNumber?.substring(0, 8) + 'XXXX',
     ];
@@ -339,24 +352,77 @@ export class KYCAgent {
   }
 
   private simulatePANOCR(provider: any): string | null {
-    // Simulate OCR results for PAN card
+    // Enhanced PAN verification with stricter document matching
     
-    // 85% chance the document matches (PAN cards are usually clearer)
-    if (Math.random() < 0.85) {
-      return provider.panNumber;
+    // Check if this is a high-quality provider
+    const isGoodProvider = this.isHighQualityProvider(provider);
+    
+    if (isGoodProvider) {
+      // 98% chance for well-documented providers (PAN cards are clearer)
+      if (Math.random() < 0.98) {
+        return provider.panNumber;
+      }
+    } else {
+      // 70% chance for average providers
+      if (Math.random() < 0.7) {
+        return provider.panNumber;
+      }
     }
     
-    // 15% chance of mismatch
+    // Mismatch scenarios
     const scenarios = [
-      // Wrong last digit
-      provider.panNumber?.slice(0, -1) + 'X',
-      // Different middle numbers
+      // Wrong last character
+      provider.panNumber?.slice(0, -1) + 'Z',
+      // Different middle numbers  
       provider.panNumber?.substring(0, 5) + '9999' + provider.panNumber?.substring(9),
+      // Different first part
+      'ZZZZZ' + provider.panNumber?.substring(5),
       // Completely different PAN
-      'ABCDE9999F',
+      'FRAUD1234X',
     ];
     
     return scenarios[Math.floor(Math.random() * scenarios.length)] || null;
+  }
+
+  private isHighQualityProvider(provider: any): boolean {
+    // Determine if provider has high-quality documentation
+    const qualityIndicators = [
+      provider.experience >= 5,
+      provider.hourlyRate && parseFloat(provider.hourlyRate) >= 200,
+      provider.description && provider.description.length >= 100,
+      provider.businessName && provider.businessName.length >= 10,
+      provider.kycDocuments?.uploaded_documents?.length >= 6,
+      provider.phoneVerified === true,
+      provider.otpVerified === true
+    ];
+    
+    // Provider is high-quality if they meet most criteria
+    const score = qualityIndicators.filter(Boolean).length;
+    return score >= 5;
+  }
+
+  private calculateDocumentMatchScore(formatValid: boolean, contentMatch: boolean, verification: any): number {
+    if (!formatValid) return 0; // Invalid format = immediate failure
+    if (!contentMatch) return 15; // Major penalty for content mismatch
+    
+    // Base score for valid match
+    let score = 95;
+    
+    // Reduce score based on OCR confidence
+    if (verification.confidence < 90) score -= 10;
+    if (verification.confidence < 80) score -= 15;
+    if (verification.confidence < 70) score -= 25;
+    
+    return Math.max(15, score);
+  }
+
+  private calculateCrossVerificationScore(aadharValid: boolean, panValid: boolean, aadharMatch: boolean, panMatch: boolean): number {
+    // Both documents must be valid and match
+    if (!aadharValid || !panValid) return 20;
+    if (!aadharMatch || !panMatch) return 10; // Critical failure for content mismatch
+    
+    // Perfect match gets highest score
+    return 95;
   }
 
   private async checkDataConsistency(provider: any) {
@@ -448,35 +514,63 @@ export class KYCAgent {
   }
 
   private determineDecision(overallScore: number, riskScore: number, confidence: number): 'approve' | 'reject' | 'flag_for_review' {
+    // Immediate rejection for high risk or document mismatch
     if (riskScore > 70) return 'reject';
-    if (overallScore >= 80 && confidence >= 85 && riskScore <= 30) return 'approve';
-    if (overallScore < 50 || riskScore > 50) return 'reject';
+    
+    // High confidence auto-approval with strict document verification
+    if (overallScore >= 85 && confidence >= 90 && riskScore <= 20) return 'approve';
+    
+    // Rejection for low scores or document verification failures
+    if (overallScore < 60 || riskScore > 40) return 'reject';
+    
     return 'flag_for_review';
   }
 
   private generateRecommendations(checks: any, overallScore: number, riskScore: number): string[] {
     const recommendations: string[] = [];
 
+    // Enhanced document mismatch detection and recommendations
     if (checks.documentValidation.aadhar.score < 95) {
-      recommendations.push('Verify Aadhar document authenticity');
-      
-      // Specific recommendations for document content issues
       if (checks.documentValidation.aadhar.contentVerification && 
           !checks.documentValidation.aadhar.contentVerification.matches) {
-        recommendations.push('Aadhar document content verification failed - request re-upload');
-        recommendations.push('Cross-verify Aadhar number with government database');
+        recommendations.push('🚨 CRITICAL: Aadhar document number mismatch detected');
+        recommendations.push('Request new Aadhar document upload with clear, readable text');
+        recommendations.push('Verify Aadhar number manually with government database');
+        recommendations.push('Contact provider to confirm correct Aadhar number');
+      } else if (checks.documentValidation.aadhar.contentVerification?.confidence < 80) {
+        recommendations.push('Aadhar document quality is poor - request higher resolution upload');
+        recommendations.push('Verify document authenticity and readability');
+      } else {
+        recommendations.push('Verify Aadhar document format and authenticity');
       }
     }
     
     if (checks.documentValidation.pan.score < 95) {
-      recommendations.push('Verify PAN document authenticity');
-      
-      // Specific recommendations for PAN content issues
       if (checks.documentValidation.pan.contentVerification && 
           !checks.documentValidation.pan.contentVerification.matches) {
-        recommendations.push('PAN document content verification failed - request re-upload');
-        recommendations.push('Verify PAN number with Income Tax database');
+        recommendations.push('🚨 CRITICAL: PAN document number mismatch detected');
+        recommendations.push('Request new PAN document upload with clear, readable text');
+        recommendations.push('Verify PAN number with Income Tax Department database');
+        recommendations.push('Contact provider to confirm correct PAN number');
+      } else if (checks.documentValidation.pan.contentVerification?.confidence < 80) {
+        recommendations.push('PAN document quality is poor - request higher resolution upload');
+        recommendations.push('Verify document authenticity and readability');
+      } else {
+        recommendations.push('Verify PAN document format and authenticity');
       }
+    }
+
+    // Critical fraud detection for document mismatches
+    const hasDocumentMismatch = (
+      !checks.documentValidation.aadhar.contentVerification?.matches ||
+      !checks.documentValidation.pan.contentVerification?.matches
+    );
+    
+    if (hasDocumentMismatch) {
+      recommendations.push('⚠️ FRAUD ALERT: Document content does not match entered information');
+      recommendations.push('Manual verification required before approval');
+      recommendations.push('Consider requesting video verification call');
+      recommendations.push('Flag for enhanced due diligence review');
     }
     
     // Document content analysis recommendations
