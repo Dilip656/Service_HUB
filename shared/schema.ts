@@ -119,6 +119,18 @@ export const services = pgTable("services", {
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
+export const kycDocuments = pgTable("kyc_documents", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  providerId: integer("provider_id").notNull(),
+  documentType: text("document_type").notNull(), // 'aadhar', 'pan', 'business_reg', etc.
+  originalName: text("original_name").notNull(), // Original filename
+  filename: text("filename").notNull(), // Stored filename
+  filePath: text("file_path").notNull(), // Full file path
+  fileSize: integer("file_size").notNull(), // File size in bytes
+  mimeType: text("mime_type").notNull(), // MIME type
+  uploadedAt: timestamp("uploaded_at").default(sql`now()`).notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -130,6 +142,14 @@ export const serviceProvidersRelations = relations(serviceProviders, ({ many }) 
   bookings: many(bookings),
   payments: many(payments),
   reviews: many(reviews),
+  kycDocuments: many(kycDocuments),
+}));
+
+export const kycDocumentsRelations = relations(kycDocuments, ({ one }) => ({
+  provider: one(serviceProviders, {
+    fields: [kycDocuments.providerId],
+    references: [serviceProviders.id],
+  }),
 }));
 
 export const bookingsRelations = relations(bookings, ({ one }) => ({
@@ -219,6 +239,21 @@ export const otpVerifications = pgTable("otp_verifications", {
 // Type definitions for OTP verification
 export type OtpVerification = typeof otpVerifications.$inferSelect;
 export type InsertOtpVerification = typeof otpVerifications.$inferInsert;
+
+// Insert schema for KYC documents
+export const insertKycDocumentSchema = z.object({
+  providerId: z.number(),
+  documentType: z.string(),
+  originalName: z.string(),
+  filename: z.string(),
+  filePath: z.string(),
+  fileSize: z.number(),
+  mimeType: z.string(),
+});
+
+// Type definitions for KYC documents
+export type KycDocument = typeof kycDocuments.$inferSelect;
+export type InsertKycDocument = typeof kycDocuments.$inferInsert;
 
 // Insert schema for OTP verification
 export const insertOtpVerificationSchema = z.object({
