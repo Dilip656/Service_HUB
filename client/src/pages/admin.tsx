@@ -520,9 +520,8 @@ function ProvidersView() {
 
   const handleRejectProvider = (providerId: number) => {
     if (confirm('Are you sure you want to reject this provider\'s KYC application?')) {
-      // Update KYC status to rejected (false) and status to Rejected
+      // Update KYC status to rejected - this will automatically set status to 'Rejected' in backend
       updateKycMutation.mutate({ id: providerId, verified: false });
-      updateStatusMutation.mutate({ id: providerId, status: 'Rejected' });
     }
   };
 
