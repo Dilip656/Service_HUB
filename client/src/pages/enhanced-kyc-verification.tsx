@@ -138,7 +138,15 @@ export default function EnhancedKYCVerification() {
       
       // If both Aadhar and PAN are verified, trigger cross-verification
       if (identityVerification.panVerified) {
-        setTimeout(() => handleCrossVerification(), 100);
+        setTimeout(() => {
+          // Double-check both are verified before cross-verification
+          setIdentityVerification(current => {
+            if (current.aadharVerified && current.panVerified) {
+              crossVerifyMutation.mutate();
+            }
+            return current;
+          });
+        }, 100);
       }
     },
     onError: (error: any) => {
@@ -177,7 +185,15 @@ export default function EnhancedKYCVerification() {
       
       // If both Aadhar and PAN are verified, trigger cross-verification
       if (identityVerification.aadharVerified) {
-        setTimeout(() => handleCrossVerification(), 100);
+        setTimeout(() => {
+          // Double-check both are verified before cross-verification
+          setIdentityVerification(current => {
+            if (current.aadharVerified && current.panVerified) {
+              crossVerifyMutation.mutate();
+            }
+            return current;
+          });
+        }, 100);
       }
     },
     onError: (error: any) => {
@@ -247,7 +263,7 @@ export default function EnhancedKYCVerification() {
         ...prev, 
         sent: true, 
         loading: false, 
-        timeLeft: 600, // 10 minutes in seconds
+        timeLeft: 90, // 1.5 minutes in seconds
         canResend: false 
       }));
       showNotification(data.message || 'OTP sent successfully', 'success');
@@ -690,7 +706,7 @@ export default function EnhancedKYCVerification() {
                         OTP sent successfully! Check your phone for the verification code.
                       </p>
                       <p className="text-xs text-blue-600 mt-1">
-                        Code expires in 10 minutes. If not received, check spam or try resending.
+                        Code expires in 1.5 minutes. If not received, check spam or try resending.
                       </p>
                     </div>
                     
