@@ -514,6 +514,17 @@ function ProvidersView() {
     },
   });
 
+  const deleteProviderMutation = useMutation({
+    mutationFn: (id: number) => adminAPI.deleteProvider(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/providers'] });
+      showNotification('Provider deleted successfully', 'success');
+    },
+    onError: (error: any) => {
+      showNotification(error.message || 'Failed to delete provider', 'error');
+    },
+  });
+
   const handleApproveKyc = (providerId: number) => {
     updateKycMutation.mutate({ id: providerId, verified: true });
   };
@@ -522,6 +533,12 @@ function ProvidersView() {
     if (confirm('Are you sure you want to reject this provider\'s KYC application?')) {
       // Update KYC status to rejected - this will automatically set status to 'Rejected' in backend
       updateKycMutation.mutate({ id: providerId, verified: false });
+    }
+  };
+
+  const handleDeleteProvider = (providerId: number) => {
+    if (confirm('Are you sure you want to permanently delete this provider? This will remove all their data including bookings, payments, and reviews. This action cannot be undone.')) {
+      deleteProviderMutation.mutate(providerId);
     }
   };
 
@@ -598,11 +615,19 @@ function ProvidersView() {
                   </button>
                   <button
                     onClick={() => handleRejectProvider(provider.id)}
-                    disabled={updateStatusMutation.isPending}
+                    disabled={updateKycMutation.isPending}
                     className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 disabled:opacity-50"
                   >
                     <X className="w-4 h-4 inline mr-1" />
                     Reject
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProvider(provider.id)}
+                    disabled={deleteProviderMutation.isPending}
+                    className="bg-gray-800 text-white px-3 py-1 rounded text-sm hover:bg-gray-900 disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4 inline mr-1" />
+                    Delete
                   </button>
                 </div>
               </div>

@@ -51,6 +51,7 @@ export interface IStorage {
   updateProviderKycStatus(id: number, verified: boolean): Promise<void>;
   updateProviderKycDocuments(id: number, kycDocuments: any, status: string, additionalData?: { aadharNumber?: string; panNumber?: string; phoneVerified?: boolean; otpVerified?: boolean }): Promise<void>;
   updateProviderStatus(id: number, status: string): Promise<void>;
+  deleteProvider(id: number): Promise<void>;
   getProvidersByService(serviceName: string): Promise<ServiceProvider[]>;
   getAllServiceProviders(): Promise<ServiceProvider[]>;
   searchProviders(query: string): Promise<ServiceProvider[]>;
@@ -231,6 +232,27 @@ export class DatabaseStorage implements IStorage {
 
   async updateProviderStatus(id: number, status: string): Promise<void> {
     await db.update(serviceProviders).set({ status }).where(eq(serviceProviders.id, id));
+  }
+
+  async deleteProvider(id: number): Promise<void> {
+    console.log(`Deleting provider ${id} and all related data`);
+    
+    // Delete related KYC documents first
+    await db.delete(kycDocuments).where(eq(kycDocuments.providerId, id));
+    
+    // Delete related bookings
+    await db.delete(bookings).where(eq(bookings.providerId, id));
+    
+    // Delete related payments
+    await db.delete(payments).where(eq(payments.providerId, id));
+    
+    // Delete related reviews
+    await db.delete(reviews).where(eq(reviews.providerId, id));
+    
+    // Finally delete the provider
+    await db.delete(serviceProviders).where(eq(serviceProviders.id, id));
+    
+    console.log(`Successfully deleted provider ${id} and all related data`);
   }
 
   async getProvidersByService(serviceName: string): Promise<ServiceProvider[]> {

@@ -131,6 +131,10 @@ export const adminAPI = {
     const res = await apiRequest("DELETE", `/api/admin/users/${id}`);
     return res.json();
   },
+  deleteProvider: async (id: number) => {
+    const res = await apiRequest("DELETE", `/api/admin/providers/${id}`);
+    return res.json();
+  },
 
   updateProviderKyc: async (id: number, verified: boolean) => {
     const res = await apiRequest("PUT", `/api/admin/providers/${id}/kyc`, { verified });
