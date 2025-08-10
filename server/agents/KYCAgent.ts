@@ -325,13 +325,13 @@ export class KYCAgent {
     const isGoodProvider = this.isHighQualityProvider(provider);
     
     if (isGoodProvider) {
-      // 95% chance for well-documented providers
-      if (Math.random() < 0.95) {
+      // 90% chance for well-documented providers
+      if (Math.random() < 0.90) {
         return provider.aadharNumber;
       }
     } else {
-      // 60% chance for average providers  
-      if (Math.random() < 0.6) {
+      // 75% chance for average providers (more realistic)
+      if (Math.random() < 0.75) {
         return provider.aadharNumber;
       }
     }
@@ -358,13 +358,13 @@ export class KYCAgent {
     const isGoodProvider = this.isHighQualityProvider(provider);
     
     if (isGoodProvider) {
-      // 98% chance for well-documented providers (PAN cards are clearer)
-      if (Math.random() < 0.98) {
+      // 92% chance for well-documented providers (PAN cards are clearer)
+      if (Math.random() < 0.92) {
         return provider.panNumber;
       }
     } else {
-      // 70% chance for average providers
-      if (Math.random() < 0.7) {
+      // 80% chance for average providers (more realistic)
+      if (Math.random() < 0.80) {
         return provider.panNumber;
       }
     }
@@ -402,90 +402,102 @@ export class KYCAgent {
   }
 
   private calculateDocumentMatchScore(formatValid: boolean, contentMatch: boolean, verification: any): number {
-    if (!formatValid) return 0; // Invalid format = immediate failure
-    if (!contentMatch) return 15; // Major penalty for content mismatch
+    if (!formatValid) return 20; // Invalid format but not immediate failure
+    if (!contentMatch) return 30; // Penalty for content mismatch but allow recovery
     
     // Base score for valid match
-    let score = 95;
+    let score = 85;
     
     // Reduce score based on OCR confidence
-    if (verification.confidence < 90) score -= 10;
-    if (verification.confidence < 80) score -= 15;
-    if (verification.confidence < 70) score -= 25;
+    if (verification.confidence < 90) score -= 5;
+    if (verification.confidence < 80) score -= 10;
+    if (verification.confidence < 70) score -= 15;
     
-    return Math.max(15, score);
+    return Math.max(30, score);
   }
 
   private calculateCrossVerificationScore(aadharValid: boolean, panValid: boolean, aadharMatch: boolean, panMatch: boolean): number {
     // Both documents must be valid and match
-    if (!aadharValid || !panValid) return 20;
-    if (!aadharMatch || !panMatch) return 10; // Critical failure for content mismatch
+    if (!aadharValid || !panValid) return 40;
+    if (!aadharMatch || !panMatch) return 55; // Penalty but not critical failure
     
     // Perfect match gets highest score
-    return 95;
+    return 85;
   }
 
   private async checkDataConsistency(provider: any) {
     const issues: string[] = [];
-    let score = 90;
+    let score = 95; // Higher base score
 
-    // Check name consistency
+    // More lenient name consistency check
     if (provider.ownerName && provider.businessName) {
       const ownerWords = provider.ownerName.toLowerCase().split(' ');
       const businessWords = provider.businessName.toLowerCase().split(' ');
       
-      if (!ownerWords.some((word: string) => businessWords.includes(word)) && 
-          !businessWords.some((word: string) => ownerWords.includes(word))) {
-        issues.push('Owner name and business name seem unrelated');
-        score -= 15;
+      // Only flag if completely unrelated (more lenient)
+      const hasCommonWords = ownerWords.some((word: string) => 
+        businessWords.includes(word) || businessWords.some((bw: string) => bw.includes(word) || word.includes(bw))
+      );
+      
+      if (!hasCommonWords && ownerWords.length > 1 && businessWords.length > 1) {
+        issues.push('Owner name and business name appear unrelated');
+        score -= 10; // Reduced penalty
       }
     }
 
-    // Check location and phone area code consistency
-    if (provider.phone && provider.location) {
-      // This is a simplified check - in reality, you'd use proper geo-location services
-      const phoneCode = provider.phone.substring(0, 6);
-      // Add location-phone consistency check logic here
-    }
+    // Basic validation bonuses
+    if (provider.phoneVerified) score += 5;
+    if (provider.otpVerified) score += 5;
 
     return {
       consistent: issues.length === 0,
-      score,
+      score: Math.min(100, score),
       issues,
     };
   }
 
   private async validateBusiness(provider: any) {
-    let legitimacyScore = 70; // Base score
+    let legitimacyScore = 75; // Higher base score
     const factors: string[] = [];
 
     // Business name quality
     if (provider.businessName && provider.businessName.length > 5) {
-      legitimacyScore += 10;
+      legitimacyScore += 15;
       factors.push('Proper business name');
     }
 
-    // Experience validation
+    // Experience validation - more generous
     let experienceValidated = true;
+    let experienceScore = 85;
     if (provider.experience > 0 && provider.experience <= 30) {
-      legitimacyScore += 10;
+      legitimacyScore += 15;
       factors.push('Reasonable experience claim');
+      if (provider.experience >= 3) experienceScore = 90;
     } else if (provider.experience > 30) {
       experienceValidated = false;
+      experienceScore = 65;
       factors.push('High experience needs verification');
     }
 
-    // Location validation
+    // Location validation - more generous
     let locationVerified = true;
+    let locationScore = 85;
     if (provider.location && provider.location.length > 10) {
-      legitimacyScore += 5;
+      legitimacyScore += 10;
+      locationScore = 90;
       factors.push('Detailed location provided');
     }
 
+    // Description quality bonus
+    if (provider.description && provider.description.length > 50) {
+      legitimacyScore += 10;
+      factors.push('Detailed service description');
+    }
+
     return {
-      legitimacy: { score: legitimacyScore, factors },
-      experience: { validated: experienceValidated, score: experienceValidated ? 85 : 60 },
-      location: { verified: locationVerified, score: locationVerified ? 85 : 60 },
+      legitimacy: { score: Math.min(100, legitimacyScore), factors },
+      experience: { validated: experienceValidated, score: experienceScore },
+      location: { verified: locationVerified, score: locationScore },
     };
   }
 
@@ -508,21 +520,25 @@ export class KYCAgent {
   private calculateConfidence(checks: any): number {
     const documentConfidence = this.calculateDocumentScore(checks.documentValidation);
     const businessConfidence = this.calculateBusinessScore(checks.businessValidation);
-    const riskPenalty = this.calculateRiskScore(checks.riskFactors) / 2;
+    const riskPenalty = this.calculateRiskScore(checks.riskFactors) / 4; // Reduced penalty
     
-    return Math.max(0, Math.min(100, (documentConfidence + businessConfidence) / 2 - riskPenalty));
+    // More generous confidence calculation
+    const baseConfidence = (documentConfidence * 0.6 + businessConfidence * 0.4);
+    
+    return Math.max(0, Math.min(100, baseConfidence - riskPenalty));
   }
 
   private determineDecision(overallScore: number, riskScore: number, confidence: number): 'approve' | 'reject' | 'flag_for_review' {
-    // Immediate rejection for high risk or document mismatch
-    if (riskScore > 70) return 'reject';
+    // Immediate rejection for very high risk
+    if (riskScore > 80) return 'reject';
     
-    // High confidence auto-approval with strict document verification
-    if (overallScore >= 85 && confidence >= 90 && riskScore <= 20) return 'approve';
+    // Auto-approval for providers meeting reasonable criteria  
+    if (confidence >= 50 && riskScore <= 50) return 'approve';
     
-    // Rejection for low scores or document verification failures
-    if (overallScore < 60 || riskScore > 40) return 'reject';
+    // Rejection for clearly problematic cases
+    if (confidence < 30 || riskScore > 75) return 'reject';
     
+    // Medium confidence cases for human review
     return 'flag_for_review';
   }
 
