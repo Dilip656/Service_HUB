@@ -934,14 +934,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Identity Verification Routes
   app.post("/api/verify/aadhar", async (req, res) => {
     try {
-      const { aadharNumber } = req.body;
+      const { aadharNumber, ownerName } = req.body;
       
       if (!aadharNumber) {
         return res.status(400).json({ message: "Aadhar number is required" });
       }
 
-      console.log(`Verifying Aadhar number: ${aadharNumber}`);
-      const result = await IdentityVerificationService.verifyAadhar(aadharNumber);
+      console.log(`Verifying Aadhar number: ${aadharNumber}${ownerName ? ` for ${ownerName}` : ''}`);
+      const result = await IdentityVerificationService.verifyAadhar(aadharNumber, ownerName);
       
       if (!result.isValid) {
         return res.status(400).json({ message: result.error });
@@ -962,14 +962,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/verify/pan", async (req, res) => {
     try {
-      const { panNumber } = req.body;
+      const { panNumber, ownerName } = req.body;
       
       if (!panNumber) {
         return res.status(400).json({ message: "PAN number is required" });
       }
 
-      console.log(`Verifying PAN number: ${panNumber}`);
-      const result = await IdentityVerificationService.verifyPan(panNumber);
+      console.log(`Verifying PAN number: ${panNumber}${ownerName ? ` for ${ownerName}` : ''}`);
+      const result = await IdentityVerificationService.verifyPan(panNumber, ownerName);
       
       if (!result.isValid) {
         return res.status(400).json({ message: result.error });
