@@ -161,8 +161,10 @@ export default function Auth() {
 
   const handleProviderSignup = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Provider signup form submitted');
     const htmlFormData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(htmlFormData.entries());
+    console.log('Raw form data:', data);
     
     // Handle availability checkboxes
     const availability = Array.from(htmlFormData.getAll('availability')) as string[];
@@ -183,6 +185,8 @@ export default function Auth() {
       location: data.location as string,
     };
 
+    console.log('Form data being validated:', formData);
+    
     try {
       providerSignupSchema.parse(formData);
       
@@ -196,14 +200,17 @@ export default function Auth() {
         },
         status: 'Pending',
       };
+      console.log('Validation passed, submitting:', providerData);
       setFormErrors({});
       providerSignupMutation.mutate(providerData);
     } catch (error) {
+      console.error('Validation failed:', error);
       if (error instanceof z.ZodError) {
         const errors: any = {};
         error.errors.forEach((err) => {
           errors[err.path[0]] = err.message;
         });
+        console.log('Validation errors:', errors);
         setFormErrors(errors);
       }
     }
