@@ -42,7 +42,7 @@ export class KYCAgent {
     console.log(`KYC Agent: Analyzing provider ${providerId}`);
 
     // Get provider data
-    const provider = await storage.getServiceProviderById(providerId);
+    const provider = await storage.getServiceProvider(providerId);
     if (!provider) {
       throw new Error(`Provider ${providerId} not found`);
     }
@@ -261,6 +261,7 @@ export class KYCAgent {
         matches: false,
         confidence: 0,
         extractedNumber: null,
+        enteredNumber: provider.aadharNumber || '',
         issues: ['Aadhar document not uploaded or number not provided'],
       };
     }
@@ -293,6 +294,7 @@ export class KYCAgent {
         matches: false,
         confidence: 0,
         extractedNumber: null,
+        enteredNumber: provider.panNumber || '',
         issues: ['PAN document not uploaded or number not provided'],
       };
     }
@@ -366,8 +368,8 @@ export class KYCAgent {
       const ownerWords = provider.ownerName.toLowerCase().split(' ');
       const businessWords = provider.businessName.toLowerCase().split(' ');
       
-      if (!ownerWords.some(word => businessWords.includes(word)) && 
-          !businessWords.some(word => ownerWords.includes(word))) {
+      if (!ownerWords.some((word: string) => businessWords.includes(word)) && 
+          !businessWords.some((word: string) => ownerWords.includes(word))) {
         issues.push('Owner name and business name seem unrelated');
         score -= 15;
       }
@@ -520,54 +522,36 @@ export class KYCAgent {
 
   private async autoApproveKYC(providerId: number, decision: AgentDecision): Promise<void> {
     try {
-      await storage.updateServiceProviderKYC(providerId, {
-        kycVerified: true,
-        status: 'Active',
-        kycDocuments: {
-          ...decision.metadata.analysisResult,
-          auto_approved: true,
-          approved_by: 'KYC_AGENT',
-          approved_at: new Date().toISOString(),
-        },
-      });
+      await storage.updateProviderKycStatus(providerId, true);
+      
+      this.metrics.tasksCompleted++;
+      console.log(`✅ Auto-approved provider ${providerId} - Confidence: ${decision.confidence}%`);
     } catch (error) {
-      console.error(`Failed to auto-approve KYC for provider ${providerId}:`, error);
+      console.error(`Failed to auto-approve provider ${providerId}:`, error);
+      throw error;
     }
   }
 
   private async autoRejectKYC(providerId: number, decision: AgentDecision): Promise<void> {
     try {
-      await storage.updateServiceProviderKYC(providerId, {
-        kycVerified: false,
-        status: 'Rejected',
-        kycDocuments: {
-          ...decision.metadata.analysisResult,
-          auto_rejected: true,
-          rejected_by: 'KYC_AGENT',
-          rejected_at: new Date().toISOString(),
-          rejection_reason: decision.reasoning,
-        },
-      });
+      await storage.updateProviderKycStatus(providerId, false);
+      
+      this.metrics.tasksCompleted++;
+      console.log(`❌ Auto-rejected provider ${providerId} - Confidence: ${decision.confidence}%`);
     } catch (error) {
-      console.error(`Failed to auto-reject KYC for provider ${providerId}:`, error);
+      console.error(`Failed to auto-reject provider ${providerId}:`, error);
+      throw error;
     }
   }
 
   private async flagForHumanReview(providerId: number, decision: AgentDecision): Promise<void> {
     try {
-      await storage.updateServiceProviderKYC(providerId, {
-        kycVerified: false,
-        status: 'Pending',
-        kycDocuments: {
-          ...decision.metadata.analysisResult,
-          flagged_for_review: true,
-          flagged_by: 'KYC_AGENT',
-          flagged_at: new Date().toISOString(),
-          review_priority: decision.confidence < 50 ? 'high' : 'medium',
-        },
-      });
+      await storage.updateProviderStatus(providerId, 'Pending Review');
+      
+      console.log(`🔍 Flagged provider ${providerId} for human review - Confidence: ${decision.confidence}%`);
     } catch (error) {
-      console.error(`Failed to flag KYC for provider ${providerId}:`, error);
+      console.error(`Failed to flag provider ${providerId} for review:`, error);
+      throw error;
     }
   }
 
