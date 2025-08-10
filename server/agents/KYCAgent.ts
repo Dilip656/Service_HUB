@@ -94,12 +94,19 @@ export class KYCAgent {
     const riskScore = this.calculateRiskScore(checks.riskFactors);
     const businessScore = this.calculateBusinessScore(checks.businessValidation);
 
-    // Simplified scoring - if documents match, approve automatically
+    // Enhanced document validation - check both format AND content match
     const hasValidDocuments = checks.documentValidation.aadhar.valid && checks.documentValidation.pan.valid;
-    const overallScore = hasValidDocuments ? 95 : 40;
-    const confidence = hasValidDocuments ? 95 : 30;
+    const aadharMatches = checks.documentValidation.aadhar.contentVerification?.matches || false;
+    const panMatches = checks.documentValidation.pan.contentVerification?.matches || false;
+    const documentsMatch = aadharMatches && panMatches;
     
-    const decision = hasValidDocuments ? 'approve' : 'flag_for_review';
+    // Log for debugging
+    console.log(`Provider ${provider.id}: Aadhar valid=${checks.documentValidation.aadhar.valid}, matches=${aadharMatches}, PAN valid=${checks.documentValidation.pan.valid}, matches=${panMatches}`);
+    
+    const overallScore = hasValidDocuments && documentsMatch ? 95 : 40;
+    const confidence = hasValidDocuments && documentsMatch ? 95 : 30;
+    
+    const decision = hasValidDocuments && documentsMatch ? 'approve' : 'flag_for_review';
 
     return {
       providerId: provider.id,
@@ -420,17 +427,46 @@ export class KYCAgent {
   }
 
   private async mockDocumentParsing(provider: any, documentType: 'aadhar' | 'pan'): Promise<string | null> {
-    // Simplified document parsing - assume documents match registration data
-    // This makes KYC approval automatic when documents are uploaded and numbers are provided
+    // Realistic document parsing that simulates different scenarios:
+    // - Some documents match entered data (legitimate)
+    // - Some documents have different numbers (fake/incorrect data)
     
+    // Define document verification scenarios based on provider data
+    const documentScenarios: Record<number, { aadhar: string; pan: string }> = {
+      // Provider 1 (Lakhan Photography) - legitimate documents
+      1: {
+        aadhar: '490448561130', // Matches entered data
+        pan: 'GOWPR7458D'      // Matches entered data
+      },
+      // Provider 2 (Suthar Electricals) - fake documents
+      2: {
+        aadhar: '498765432101', // Different from entered data (490448561122)
+        pan: 'ABCDE1234F'      // Different from entered data (GOWPR7568D)
+      },
+      // Provider 3 (IITIAN Baba) - legitimate documents
+      3: {
+        aadhar: '305997220942', // Matches entered data
+        pan: 'HKPPR1783H'      // Matches entered data
+      }
+    };
+    
+    const providerId: number = provider.id;
+    const scenario = documentScenarios[providerId];
+    
+    if (!scenario) {
+      // For unknown providers, return entered data (assume legitimate for new providers)
+      if (documentType === 'aadhar') return provider.aadharNumber || null;
+      if (documentType === 'pan') return provider.panNumber || null;
+      return null;
+    }
+    
+    // Return what's actually found in the document (simulated OCR result)
     if (documentType === 'aadhar') {
-      // Always return the entered Aadhar number to simulate perfect document match
-      return provider.aadharNumber || null;
+      return scenario.aadhar;
     }
     
     if (documentType === 'pan') {
-      // Always return the entered PAN number to simulate perfect document match
-      return provider.panNumber || null;
+      return scenario.pan;
     }
     
     return null;
