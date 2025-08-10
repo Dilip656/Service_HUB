@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { messageAPI } from '@/lib/api';
 import MessagingModal from '@/components/modals/messaging-modal';
+import { formatIndianTime } from '@shared/utils/date';
 
 const profileUpdateSchema = z.object({
   businessName: z.string().min(2, 'Business name must be at least 2 characters'),
@@ -478,7 +479,7 @@ export default function ProviderDashboard() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 mr-2" />
-                          {booking.bookingDate} at {booking.bookingTime}
+                          {formatIndianTime(booking.bookingDate)} at {booking.bookingTime}
                         </div>
                         <div className="flex items-center">
                           <MapPin className="w-4 h-4 mr-2" />
@@ -566,7 +567,7 @@ export default function ProviderDashboard() {
                       <div className="text-sm text-gray-600 mt-1">
                         <div className="flex items-center">
                           <Clock className="w-4 h-4 mr-2" />
-                          {new Date(payment.transactionDate).toLocaleDateString()}
+                          {formatIndianTime(payment.transactionDate)}
                         </div>
                       </div>
                     </div>

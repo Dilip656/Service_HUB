@@ -28,6 +28,7 @@ import {
   Download,
   ExternalLink
 } from 'lucide-react';
+import { formatIndianTime } from '@shared/utils/date';
 
 // KYC Document Viewer Component
 function KycDocumentViewer({ providerId }: { providerId: number }) {
@@ -62,7 +63,7 @@ function KycDocumentViewer({ providerId }: { providerId: number }) {
               <div className="text-sm font-medium text-gray-900">{doc.documentType}</div>
               <div className="text-xs text-gray-500">{doc.originalName}</div>
               <div className="text-xs text-gray-400">
-                {new Date(doc.uploadedAt).toLocaleDateString()} • {(doc.fileSize / 1024).toFixed(1)} KB
+                {formatIndianTime(doc.uploadedAt)} • {(doc.fileSize / 1024).toFixed(1)} KB
               </div>
             </div>
           </div>
@@ -518,7 +519,9 @@ function ProvidersView() {
   };
 
   const handleRejectProvider = (providerId: number) => {
-    if (confirm('Are you sure you want to reject this provider?')) {
+    if (confirm('Are you sure you want to reject this provider\'s KYC application?')) {
+      // Update KYC status to rejected (false) and status to Rejected
+      updateKycMutation.mutate({ id: providerId, verified: false });
       updateStatusMutation.mutate({ id: providerId, status: 'Rejected' });
     }
   };
@@ -568,7 +571,7 @@ function ProvidersView() {
                     <div className="mt-2">
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
                         <Clock className="w-3 h-3 mr-1" />
-                        KYC submitted {new Date(provider.kycDocuments.submitted_at).toLocaleDateString()}
+                        KYC submitted {formatIndianTime(provider.kycDocuments.submitted_at)}
                       </span>
                     </div>
                   )}
@@ -770,10 +773,7 @@ function ProvidersView() {
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-700">Submitted On:</span>
                         <span className="text-sm font-medium text-gray-900">
-                          {selectedProvider.kycDocuments?.submitted_at ? 
-                            new Date(selectedProvider.kycDocuments.submitted_at).toLocaleDateString() : 
-                            'N/A'
-                          }
+                          {formatIndianTime(selectedProvider.kycDocuments?.submitted_at)}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -893,7 +893,7 @@ function BookingsView() {
                 <td className="px-6 py-4 text-sm text-gray-900">BK-{booking.id}</td>
                 <td className="px-6 py-4 text-sm text-gray-900">{getUserName(booking.userId)}</td>
                 <td className="px-6 py-4 text-sm text-gray-900">{getProviderName(booking.providerId)}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{booking.bookingDate}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">{formatIndianTime(booking.bookingDate)}</td>
                 <td className="px-6 py-4">
                   <span
                     className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -988,7 +988,7 @@ function PaymentsView() {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
-                  {new Date(payment.transactionDate).toLocaleDateString()}
+                  {formatIndianTime(payment.transactionDate)}
                 </td>
                 <td className="px-6 py-4 text-sm">
                   <button className="text-indigo-600 hover:text-indigo-900">View Details</button>

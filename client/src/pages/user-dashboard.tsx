@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { reviewAPI, messageAPI } from '@/lib/api';
 import MessagingModal from '@/components/modals/messaging-modal';
+import { formatIndianTime } from '@shared/utils/date';
 
 // Form validation schema for profile updates
 const profileUpdateSchema = z.object({
@@ -356,7 +357,7 @@ export default function UserDashboard() {
                       <h4 className="font-medium text-gray-900">{booking.serviceName}</h4>
                       <div className="flex items-center text-sm text-gray-500 mt-1">
                         <Calendar className="w-4 h-4 mr-1" />
-                        {booking.bookingDate} at {booking.bookingTime}
+                        {formatIndianTime(booking.bookingDate)} at {booking.bookingTime}
                       </div>
                       <div className="flex items-center text-sm text-gray-500 mt-1">
                         <MapPin className="w-4 h-4 mr-1" />
@@ -421,7 +422,7 @@ export default function UserDashboard() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 mr-2" />
-                          {booking.bookingDate} at {booking.bookingTime}
+                          {formatIndianTime(booking.bookingDate)} at {booking.bookingTime}
                         </div>
                         <div className="flex items-center">
                           <MapPin className="w-4 h-4 mr-2" />
@@ -496,7 +497,7 @@ export default function UserDashboard() {
                         </div>
                         <div className="flex items-center mt-1">
                           <Clock className="w-4 h-4 mr-2" />
-                          {new Date(payment.transactionDate).toLocaleDateString()}
+                          {formatIndianTime(payment.transactionDate)}
                         </div>
                       </div>
                     </div>

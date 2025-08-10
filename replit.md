@@ -60,6 +60,9 @@ ServiceHub is a professional service marketplace platform that connects users wi
 - **✓ Fixed Database Schema Issue** - Applied database migrations and created all required tables (users, service_providers, bookings, payments, reviews, etc.)
 - **✓ Populated Default Data** - Created admin account (admin@servicehub.com / Admin@123) and added 20 default services across all categories
 - **✓ Provider Registration Working** - Resolved "service_providers does not exist" error, provider registration now functional
+- **✓ Fixed KYC Rejection Bug** - Resolved KYC rejection errors by properly updating both provider status and verification state in admin panel
+- **✓ Indian Timezone Display** - Added comprehensive Indian timezone formatting for all timestamps across admin panel, user dashboard, provider dashboard, and booking displays
+- **✓ Shared Date Utility** - Created reusable date formatting utility in shared/utils/date.ts for consistent IST display throughout the platform
 
 # User Preferences
 
