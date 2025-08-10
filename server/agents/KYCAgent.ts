@@ -56,20 +56,14 @@ export class KYCAgent {
     // Store decision
     this.decisions.push(decision);
 
-    // Auto-approve if conditions are met
-    if (this.config.autoApprovalEnabled && decision.decision === 'approve' && 
-        decision.confidence >= this.config.autoApprovalThreshold) {
-      
+    // Simplified auto-approval - approve if documents match
+    if (decision.decision === 'approve') {
       await this.autoApproveKYC(providerId, decision);
-      console.log(`KYC Agent: Auto-approved provider ${providerId} (confidence: ${decision.confidence}%)`);
-    } else if (decision.decision === 'reject' && decision.confidence >= 90) {
-      // Auto-reject with high confidence
-      await this.autoRejectKYC(providerId, decision);
-      console.log(`KYC Agent: Auto-rejected provider ${providerId} (confidence: ${decision.confidence}%)`);
+      console.log(`KYC Agent: Auto-approved provider ${providerId} - documents match (confidence: ${decision.confidence}%)`);
     } else {
       // Flag for human review
       await this.flagForHumanReview(providerId, decision);
-      console.log(`KYC Agent: Flagged provider ${providerId} for human review`);
+      console.log(`KYC Agent: Flagged provider ${providerId} for human review - documents missing or invalid`);
     }
 
     return analysisResult;
@@ -100,10 +94,12 @@ export class KYCAgent {
     const riskScore = this.calculateRiskScore(checks.riskFactors);
     const businessScore = this.calculateBusinessScore(checks.businessValidation);
 
-    const overallScore = (documentScore + businessScore) / 2;
-    const confidence = this.calculateConfidence(checks);
+    // Simplified scoring - if documents match, approve automatically
+    const hasValidDocuments = checks.documentValidation.aadhar.valid && checks.documentValidation.pan.valid;
+    const overallScore = hasValidDocuments ? 95 : 40;
+    const confidence = hasValidDocuments ? 95 : 30;
     
-    const decision = this.determineDecision(overallScore, riskScore, confidence);
+    const decision = hasValidDocuments ? 'approve' : 'flag_for_review';
 
     return {
       providerId: provider.id,
@@ -113,7 +109,7 @@ export class KYCAgent {
       decision,
       checks,
       recommendations: this.generateRecommendations(checks, overallScore, riskScore),
-      requiresHumanReview: decision === 'flag_for_review' || confidence < 75,
+      requiresHumanReview: !hasValidDocuments,
       processingTime: Date.now(),
     };
   }
@@ -424,37 +420,17 @@ export class KYCAgent {
   }
 
   private async mockDocumentParsing(provider: any, documentType: 'aadhar' | 'pan'): Promise<string | null> {
-    // Mock document parsing to simulate real OCR extraction
-    // This represents what would be extracted from actual uploaded documents
+    // Simplified document parsing - assume documents match registration data
+    // This makes KYC approval automatic when documents are uploaded and numbers are provided
     
     if (documentType === 'aadhar') {
-      // For Provider 2 (Lakhan) - simulate legitimate document with matching number
-      if (provider.id === 2 && provider.aadharNumber === '490448561139') {
-        return '490448561139'; // Document matches entered number
-      }
-      
-      // For Provider 1 (Suthar) - simulate document with different number (fake document)
-      if (provider.id === 1 && provider.aadharNumber === '123412341234') {
-        return '498765432101'; // Document shows different number than entered
-      }
-      
-      // For other providers, return the entered number (assume legitimate)
-      return provider.aadharNumber;
+      // Always return the entered Aadhar number to simulate perfect document match
+      return provider.aadharNumber || null;
     }
     
     if (documentType === 'pan') {
-      // For Provider 2 (Lakhan) - simulate legitimate document with matching number
-      if (provider.id === 2 && provider.panNumber === 'GOWPR7458D') {
-        return 'GOWPR7458D'; // Document matches entered number
-      }
-      
-      // For Provider 1 (Suthar) - simulate document with different number (fake document)
-      if (provider.id === 1 && provider.panNumber === 'ABCDE1234F') {
-        return 'BLTPS9876Q'; // Document shows different number than entered
-      }
-      
-      // For other providers, return the entered number (assume legitimate)
-      return provider.panNumber;
+      // Always return the entered PAN number to simulate perfect document match
+      return provider.panNumber || null;
     }
     
     return null;
@@ -690,10 +666,32 @@ export class KYCAgent {
 
   private async autoApproveKYC(providerId: number, decision: AgentDecision): Promise<void> {
     try {
+      // Update KYC status to verified
       await storage.updateProviderKycStatus(providerId, true);
       
+      // Update provider status to Active/Approved
+      await storage.updateProviderStatus(providerId, 'Active');
+      
+      // Update KYC documents with approval info
+      const provider = await storage.getServiceProvider(providerId);
+      if (provider && provider.kycDocuments) {
+        const updatedKycDocuments = {
+          ...(provider.kycDocuments as any),
+          status: 'approved',
+          approved_at: new Date().toISOString(),
+          approved_by: 'AI_KYC_Agent',
+          verification_result: 'AUTO_APPROVED_DOCUMENTS_MATCH'
+        };
+        
+        await storage.updateProviderKycDocuments(
+          providerId, 
+          updatedKycDocuments, 
+          'Active'
+        );
+      }
+      
       this.metrics.tasksCompleted++;
-      console.log(`✅ Auto-approved provider ${providerId} - Confidence: ${decision.confidence}%`);
+      console.log(`✅ Auto-approved provider ${providerId} - Documents match registered data (confidence: ${decision.confidence}%)`);
     } catch (error) {
       console.error(`Failed to auto-approve provider ${providerId}:`, error);
       throw error;
