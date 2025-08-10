@@ -314,6 +314,35 @@ export class AgentManager {
       console.log(`Agent ${agentId} reactivated`);
     }
   }
+
+  // Process all pending KYC applications
+  public async processAllPendingKYCs(): Promise<void> {
+    try {
+      const { storage } = await import('../storage');
+      const providers = await storage.getAllServiceProviders();
+      
+      // Find providers with pending KYC status
+      const pendingProviders = providers.filter(provider => 
+        provider.status === 'Pending KYC Review' || 
+        (provider.kycVerified === false && provider.kycDocuments)
+      );
+
+      console.log(`Found ${pendingProviders.length} pending KYC applications`);
+
+      // Process each pending provider
+      for (const provider of pendingProviders) {
+        console.log(`Processing KYC for provider ${provider.id}: ${provider.businessName}`);
+        await this.processKYC(provider.id, 'high');
+      }
+
+      if (pendingProviders.length === 0) {
+        console.log('No pending KYC applications found');
+      }
+    } catch (error) {
+      console.error('Error processing pending KYCs:', error);
+      throw error;
+    }
+  }
 }
 
 // Singleton instance

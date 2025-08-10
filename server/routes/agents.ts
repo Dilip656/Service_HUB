@@ -134,4 +134,15 @@ router.post('/agents/restart', (req, res) => {
   }
 });
 
+// Process all pending KYCs
+router.post('/agents/process/all-pending-kyc', (req, res) => {
+  try {
+    agentManager.processAllPendingKYCs();
+    res.json({ message: 'Processing all pending KYC applications' });
+  } catch (error) {
+    console.error('Error processing pending KYCs:', error);
+    res.status(500).json({ message: 'Failed to process pending KYCs' });
+  }
+});
+
 export default router;
