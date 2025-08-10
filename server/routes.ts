@@ -580,6 +580,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/admin/providers/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      console.log(`Admin deleting provider ${id}`);
+      
+      await storage.deleteProvider(id);
+      res.json({ message: "Provider deleted successfully" });
+    } catch (error) {
+      console.error("Provider deletion error:", error);
+      res.status(400).json({ message: "Failed to delete provider", error: (error as Error).message });
+    }
+  });
+
   // Get bookings for a specific user
   app.get("/api/bookings/user/:userId", async (req, res) => {
     try {
