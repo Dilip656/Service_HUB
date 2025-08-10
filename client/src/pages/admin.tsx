@@ -539,7 +539,8 @@ function ProvidersView() {
       (p.kycDocuments.uploaded_documents && p.kycDocuments.uploaded_documents.length > 0 ||
        p.kycDocuments.status === 'pending_review');
     const isPendingReview = p.status === 'Pending KYC Review' || p.status === 'Pending';
-    return !p.kycVerified && (isPendingReview || hasKycDocuments);
+    const notRejected = p.status !== 'Rejected';
+    return !p.kycVerified && (isPendingReview || hasKycDocuments) && notRejected;
   }) || [];
   
   console.log('All providers:', providers);
