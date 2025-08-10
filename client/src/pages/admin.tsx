@@ -28,7 +28,8 @@ import {
   FileText,
   Download,
   ExternalLink,
-  Bot
+  Bot,
+  Brain
 } from 'lucide-react';
 import { formatIndianTime } from '@shared/utils/date';
 
@@ -536,6 +537,30 @@ function ProvidersView() {
     },
   });
 
+  // AI-Powered KYC Processing Mutation
+  const processPendingKYCsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/admin/agents/process/all-pending-kyc', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) throw new Error('Failed to process pending KYCs');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/providers'] });
+      showNotification(
+        `🤖 AI KYC verification initiated! Processing ${pendingKycProviders.length} pending application${pendingKycProviders.length !== 1 ? 's' : ''}. Auto-approved providers will be activated immediately.`,
+        'success'
+      );
+    },
+    onError: (error: any) => {
+      showNotification(error.message || 'Failed to process pending KYCs', 'error');
+    },
+  });
+
   const handleApproveKyc = (providerId: number) => {
     updateKycMutation.mutate({ id: providerId, verified: true });
   };
@@ -577,7 +602,33 @@ function ProvidersView() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Provider Management</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Provider Management</h2>
+        
+        {/* AI-Powered KYC Processing Button */}
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">{pendingKycProviders.length}</span> pending KYC review{pendingKycProviders.length !== 1 ? 's' : ''}
+          </div>
+          <button
+            onClick={() => processPendingKYCsMutation.mutate()}
+            disabled={processPendingKYCsMutation.isPending || pendingKycProviders.length === 0}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+          >
+            {processPendingKYCsMutation.isPending ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                Processing KYCs...
+              </>
+            ) : (
+              <>
+                <Brain className="w-5 h-5" />
+                🤖 AI Process Pending KYCs
+              </>
+            )}
+          </button>
+        </div>
+      </div>
       
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Pending KYC Reviews</h3>
