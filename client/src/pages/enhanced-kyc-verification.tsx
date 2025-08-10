@@ -112,7 +112,10 @@ export default function EnhancedKYCVerification() {
       const response = await fetch('/api/verify/aadhar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aadharNumber }),
+        body: JSON.stringify({ 
+          aadharNumber, 
+          ownerName: providerInfo.ownerName 
+        }),
       });
       
       if (!response.ok) {
@@ -149,7 +152,10 @@ export default function EnhancedKYCVerification() {
       const response = await fetch('/api/verify/pan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ panNumber }),
+        body: JSON.stringify({ 
+          panNumber, 
+          ownerName: providerInfo.ownerName 
+        }),
       });
       
       if (!response.ok) {

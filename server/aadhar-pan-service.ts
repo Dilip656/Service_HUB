@@ -40,7 +40,7 @@ export class IdentityVerificationService {
     ['ABCDE1234F', { phone: '+91 9644023612', name: 'Suthar' }]
   ]);
 
-  static async verifyAadhar(aadharNumber: string): Promise<AadharVerificationResponse> {
+  static async verifyAadhar(aadharNumber: string, ownerName?: string): Promise<AadharVerificationResponse> {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -61,10 +61,12 @@ export class IdentityVerificationService {
       const lastFour = aadharNumber.slice(-4);
       const phoneNumber = `+91 9${lastFour}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
       
-      // Generate a name based on the Aadhar number for consistency
-      const names = ['Amit Kumar', 'Priya Sharma', 'Rajesh Singh', 'Sunita Devi', 'Vikash Yadav', 'Pooja Gupta'];
-      const nameIndex = parseInt(aadharNumber.slice(0, 1)) % names.length;
-      const holderName = names[nameIndex];
+      // Use the provided owner name if available, otherwise generate a consistent name
+      const holderName = ownerName || (() => {
+        const names = ['Amit Kumar', 'Priya Sharma', 'Rajesh Singh', 'Sunita Devi', 'Vikash Yadav', 'Pooja Gupta'];
+        const nameIndex = parseInt(aadharNumber.slice(0, 1)) % names.length;
+        return names[nameIndex];
+      })();
       
       record = { phone: phoneNumber, name: holderName };
       
@@ -79,7 +81,7 @@ export class IdentityVerificationService {
     };
   }
 
-  static async verifyPan(panNumber: string): Promise<PanVerificationResponse> {
+  static async verifyPan(panNumber: string, ownerName?: string): Promise<PanVerificationResponse> {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -100,10 +102,12 @@ export class IdentityVerificationService {
       const numericPart = panNumber.slice(5, 9);
       const phoneNumber = `+91 9${numericPart}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`;
       
-      // Generate a name based on the PAN number for consistency
-      const names = ['Amit Kumar', 'Priya Sharma', 'Rajesh Singh', 'Sunita Devi', 'Vikash Yadav', 'Pooja Gupta'];
-      const nameIndex = panNumber.charCodeAt(0) % names.length;
-      const holderName = names[nameIndex];
+      // Use the provided owner name if available, otherwise generate a consistent name
+      const holderName = ownerName || (() => {
+        const names = ['Amit Kumar', 'Priya Sharma', 'Rajesh Singh', 'Sunita Devi', 'Vikash Yadav', 'Pooja Gupta'];
+        const nameIndex = panNumber.charCodeAt(0) % names.length;
+        return names[nameIndex];
+      })();
       
       record = { phone: phoneNumber, name: holderName };
       
@@ -132,8 +136,8 @@ export class IdentityVerificationService {
   }> {
     try {
       const [aadharResult, panResult] = await Promise.all([
-        this.verifyAadhar(aadharNumber),
-        this.verifyPan(panNumber)
+        this.verifyAadhar(aadharNumber, providedName),
+        this.verifyPan(panNumber, providedName)
       ]);
 
       if (!aadharResult.isValid) {
