@@ -3,7 +3,12 @@
 ServiceHub is a professional service marketplace platform that connects users with KYC-verified service providers. The application enables customers to browse services across multiple categories (home, events, personal care, business), view provider profiles, and book appointments. It includes comprehensive admin functionality for managing users, providers, bookings, and platform operations.
 
 ## Recent Changes (August 2025)
+- **✓ Fixed Database Schema Issues** - Applied database migrations and created all required tables (August 10, 2025)
 - **✓ Fixed DATABASE_URL connection issue** - Created PostgreSQL database and resolved startup errors (August 10, 2025)
+- **✓ Fixed KYC Verification UI** - Removed incorrect red error message when documents are verified, reduced OTP timer from 10 to 1.5 minutes
+- **✓ Created Admin Account** - Set up admin@servicehub.com with password Admin@123 for platform management
+- **✓ Populated Default Services** - Added 20 services across all categories (home, personal care, events, business)
+- **✓ Fixed Provider Registration** - Service provider registration now working correctly
 - **✓ Enhanced KYC Workflow** - Implemented comprehensive KYC submission and admin approval process
 - **✓ Improved Admin Dashboard** - Added dedicated KYC review section for pending approvals  
 - **✓ Provider Registration Flow** - Fixed provider ID storage for KYC process linking
