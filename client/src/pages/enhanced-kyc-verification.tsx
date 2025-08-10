@@ -114,7 +114,8 @@ export default function EnhancedKYCVerification() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           aadharNumber, 
-          ownerName: providerInfo.ownerName 
+          ownerName: providerInfo.ownerName,
+          providerId: providerInfo.id 
         }),
       });
       
@@ -154,7 +155,8 @@ export default function EnhancedKYCVerification() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           panNumber, 
-          ownerName: providerInfo.ownerName 
+          ownerName: providerInfo.ownerName,
+          providerId: providerInfo.id 
         }),
       });
       

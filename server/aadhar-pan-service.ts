@@ -40,7 +40,7 @@ export class IdentityVerificationService {
     ['ABCDE1234F', { phone: '+91 9644023612', name: 'Suthar' }]
   ]);
 
-  static async verifyAadhar(aadharNumber: string, ownerName?: string): Promise<AadharVerificationResponse> {
+  static async verifyAadhar(aadharNumber: string, ownerName?: string, actualPhone?: string): Promise<AadharVerificationResponse> {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -57,10 +57,6 @@ export class IdentityVerificationService {
     
     if (!record) {
       // Generate dynamic test data for any valid Aadhar number
-      // Use the last 4 digits to generate consistent but different phone numbers
-      const lastFour = aadharNumber.slice(-4);
-      const phoneNumber = `+91 9${lastFour}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
-      
       // Use the provided owner name if available, otherwise generate a consistent name
       const holderName = ownerName || (() => {
         const names = ['Amit Kumar', 'Priya Sharma', 'Rajesh Singh', 'Sunita Devi', 'Vikash Yadav', 'Pooja Gupta'];
@@ -68,9 +64,22 @@ export class IdentityVerificationService {
         return names[nameIndex];
       })();
       
+      // Use actual phone number if provided, otherwise generate one
+      const phoneNumber = actualPhone || (() => {
+        const lastFour = aadharNumber.slice(-4);
+        return `+91 9${lastFour}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+      })();
+      
       record = { phone: phoneNumber, name: holderName };
       
       // Store the generated record for consistency in future calls
+      this.aadharDatabase.set(aadharNumber, record);
+    } else if (actualPhone) {
+      // Update record with actual phone if provided
+      record.phone = actualPhone;
+      if (ownerName) {
+        record.name = ownerName;
+      }
       this.aadharDatabase.set(aadharNumber, record);
     }
 
@@ -81,7 +90,7 @@ export class IdentityVerificationService {
     };
   }
 
-  static async verifyPan(panNumber: string, ownerName?: string): Promise<PanVerificationResponse> {
+  static async verifyPan(panNumber: string, ownerName?: string, actualPhone?: string): Promise<PanVerificationResponse> {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -98,10 +107,6 @@ export class IdentityVerificationService {
     
     if (!record) {
       // Generate dynamic test data for any valid PAN number
-      // Use the numeric part to generate consistent phone numbers
-      const numericPart = panNumber.slice(5, 9);
-      const phoneNumber = `+91 9${numericPart}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`;
-      
       // Use the provided owner name if available, otherwise generate a consistent name
       const holderName = ownerName || (() => {
         const names = ['Amit Kumar', 'Priya Sharma', 'Rajesh Singh', 'Sunita Devi', 'Vikash Yadav', 'Pooja Gupta'];
@@ -109,9 +114,22 @@ export class IdentityVerificationService {
         return names[nameIndex];
       })();
       
+      // Use actual phone number if provided, otherwise generate one
+      const phoneNumber = actualPhone || (() => {
+        const numericPart = panNumber.slice(5, 9);
+        return `+91 9${numericPart}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`;
+      })();
+      
       record = { phone: phoneNumber, name: holderName };
       
       // Store the generated record for consistency in future calls
+      this.panDatabase.set(panNumber, record);
+    } else if (actualPhone) {
+      // Update record with actual phone if provided
+      record.phone = actualPhone;
+      if (ownerName) {
+        record.name = ownerName;
+      }
       this.panDatabase.set(panNumber, record);
     }
 
