@@ -32,6 +32,16 @@ export default function Booking() {
   const [customerPhone, setCustomerPhone] = useState('');
 
   useEffect(() => {
+    // Check if booking information is available
+    const providerId = sessionStorage.getItem('currentProviderId');
+    const serviceName = sessionStorage.getItem('currentService');
+    
+    if (!providerId || !serviceName) {
+      showNotification('Please select a service and provider first.', 'error');
+      setLocation('/services');
+      return;
+    }
+
     const name = sessionStorage.getItem('currentProviderName') || 'Service Provider';
     const rate = sessionStorage.getItem('currentProviderRate') || '100';
     setProviderName(name);
@@ -45,7 +55,7 @@ export default function Booking() {
       setCustomerName(user.name || '');
       setCustomerPhone(user.phone || '');
     }
-  }, []);
+  }, [setLocation, showNotification]);
 
   const bookingMutation = useMutation({
     mutationFn: bookingAPI.createBooking,
@@ -123,7 +133,8 @@ export default function Booking() {
       const serviceName = sessionStorage.getItem('currentService');
       
       if (!providerId || !serviceName) {
-        showNotification('Missing booking information. Please try again.', 'error');
+        showNotification('Please select a service and provider first.', 'error');
+        setLocation('/services');
         return;
       }
 

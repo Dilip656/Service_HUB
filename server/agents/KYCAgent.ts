@@ -1065,9 +1065,11 @@ export class KYCAgent {
             decision: decision.decision,
             confidence: decision.confidence,
             riskScore: decision.riskScore,
-            overallScore: decision.overallScore,
-            documentChecks: decision.checks.documentValidation,
-            flagReason: decision.decision === 'flag_for_review' ? 'Document numbers do not match uploaded documents' : 'High fraud risk detected'
+            reasoning: decision.reasoning,
+            evidence: decision.evidence,
+            flagReason: decision.decision === 'flag_for_review' ? 'Document numbers do not match uploaded documents' : 'High fraud risk detected',
+            humanReviewRequired: decision.humanReviewRequired,
+            processedAt: decision.processedAt
           }
         };
         
