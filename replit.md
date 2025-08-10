@@ -2,6 +2,15 @@
 
 ServiceHub is a professional service marketplace platform designed to connect users with KYC-verified service providers. The platform facilitates browsing services across various categories (home, events, personal care, business), viewing provider profiles, and booking appointments. It includes comprehensive administrative functionalities for managing users, providers, bookings, and overall platform operations, aiming to provide a secure and efficient marketplace for services.
 
+## Recent Changes
+
+**August 10, 2025** - Fixed database connection issue:
+- Resolved environment variable loading problem where DATABASE_URL was not available during app initialization
+- Added dotenv configuration to server/db.ts to ensure environment variables are loaded before database connection
+- Created PostgreSQL database and pushed schema using Drizzle migrations
+- Application now starts successfully with all agents initialized (KYC verification, service quality, fraud detection, user support, quality assurance)
+- Server running on port 5000 with both frontend and backend operational
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
