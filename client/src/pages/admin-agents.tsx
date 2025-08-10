@@ -157,6 +157,24 @@ export function AgentsView() {
     },
   });
 
+  const processPendingKYCsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/admin/agents/process/all-pending-kyc', {
+        method: 'POST',
+      });
+      if (!response.ok) throw new Error('Failed to process pending KYCs');
+      return response.json();
+    },
+    onSuccess: () => {
+      showNotification('Processing all pending KYC applications', 'success');
+      refetch();
+      refetchQueue();
+    },
+    onError: () => {
+      showNotification('Failed to process pending KYCs', 'error');
+    },
+  });
+
   const getAgentIcon = (agentType: string) => {
     switch (agentType) {
       case 'kyc_agent':
@@ -222,6 +240,15 @@ export function AgentsView() {
           <p className="text-gray-600">Monitor and control automated agents handling platform operations</p>
         </div>
         <div className="flex gap-2">
+          <Button
+            onClick={() => processPendingKYCsMutation.mutate()}
+            variant="outline"
+            disabled={processPendingKYCsMutation.isPending}
+            className="text-blue-600 border-blue-200 hover:bg-blue-50"
+          >
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            Process Pending KYCs
+          </Button>
           <Button
             onClick={() => emergencyStopMutation.mutate()}
             variant="outline"
