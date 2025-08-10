@@ -947,14 +947,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Identity Verification Routes
   app.post("/api/verify/aadhar", async (req, res) => {
     try {
-      const { aadharNumber, ownerName } = req.body;
+      const { aadharNumber, ownerName, providerId } = req.body;
       
       if (!aadharNumber) {
         return res.status(400).json({ message: "Aadhar number is required" });
       }
 
       console.log(`Verifying Aadhar number: ${aadharNumber}${ownerName ? ` for ${ownerName}` : ''}`);
-      const result = await IdentityVerificationService.verifyAadhar(aadharNumber, ownerName);
+      
+      // Get provider's actual phone number if providerId is provided
+      let registeredPhone = null;
+      if (providerId) {
+        try {
+          const provider = await storage.getServiceProvider(parseInt(providerId));
+          if (provider) {
+            registeredPhone = provider.phone;
+          }
+        } catch (error) {
+          console.error("Error fetching provider phone:", error);
+        }
+      }
+      
+      const result = await IdentityVerificationService.verifyAadhar(aadharNumber, ownerName, registeredPhone || undefined);
       
       if (!result.isValid) {
         return res.status(400).json({ message: result.error });
@@ -975,14 +989,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/verify/pan", async (req, res) => {
     try {
-      const { panNumber, ownerName } = req.body;
+      const { panNumber, ownerName, providerId } = req.body;
       
       if (!panNumber) {
         return res.status(400).json({ message: "PAN number is required" });
       }
 
       console.log(`Verifying PAN number: ${panNumber}${ownerName ? ` for ${ownerName}` : ''}`);
-      const result = await IdentityVerificationService.verifyPan(panNumber, ownerName);
+      
+      // Get provider's actual phone number if providerId is provided
+      let registeredPhone = null;
+      if (providerId) {
+        try {
+          const provider = await storage.getServiceProvider(parseInt(providerId));
+          if (provider) {
+            registeredPhone = provider.phone;
+          }
+        } catch (error) {
+          console.error("Error fetching provider phone:", error);
+        }
+      }
+      
+      const result = await IdentityVerificationService.verifyPan(panNumber, ownerName, registeredPhone || undefined);
       
       if (!result.isValid) {
         return res.status(400).json({ message: result.error });
