@@ -9,6 +9,7 @@ import crypto from "crypto";
 import { upload, getFileUrl } from "./fileUpload";
 import path from "path";
 import fs from "fs";
+import agentRoutes from "./routes/agents";
 
 // Initialize Razorpay only if keys are available
 let razorpay: Razorpay | null = null;
@@ -1331,6 +1332,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch KYC documents" });
     }
   });
+
+  // AI Agent Management Routes
+  app.use("/api/admin", agentRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

@@ -7,6 +7,7 @@ import { useLocation } from 'wouter';
 import { RealPaymentSetup } from '@/components/payment';
 import AdminSettingsComponent from './admin-settings';
 import { ServicesView } from './admin-services';
+import { AgentsView } from './admin-agents';
 import { 
   Shield, 
   Users, 
@@ -26,7 +27,8 @@ import {
   Plus,
   FileText,
   Download,
-  ExternalLink
+  ExternalLink,
+  Bot
 } from 'lucide-react';
 import { formatIndianTime } from '@shared/utils/date';
 
@@ -237,6 +239,14 @@ export default function Admin() {
               <Wrench className="w-5 h-5 mr-3" /> Services Management
             </button>
             <button
+              onClick={() => setActiveView('agents')}
+              className={`w-full flex items-center px-6 py-3 text-left hover:bg-gray-800 transition-colors ${
+                activeView === 'agents' ? 'bg-primary text-white font-bold' : 'text-gray-300'
+              }`}
+            >
+              <Bot className="w-5 h-5 mr-3" /> AI Agents
+            </button>
+            <button
               onClick={() => setActiveView('settings')}
               className={`w-full flex items-center px-6 py-3 text-left hover:bg-gray-800 transition-colors ${
                 activeView === 'settings' ? 'bg-primary text-white font-bold' : 'text-gray-300'
@@ -270,6 +280,7 @@ export default function Admin() {
           {activeView === 'payments' && <PaymentsView />}
           {activeView === 'reviews' && <ReviewsView />}
           {activeView === 'services' && <ServicesView />}
+          {activeView === 'agents' && <AgentsView />}
           {activeView === 'settings' && <AdminSettingsComponent />}
         </main>
       </div>
