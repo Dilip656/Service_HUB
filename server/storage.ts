@@ -189,10 +189,12 @@ export class DatabaseStorage implements IStorage {
           kycDocuments: updatedKyc
         }).where(eq(serviceProviders.id, id));
       } else {
+        // Rejecting KYC - set verified to false and status to Rejected
         await db.update(serviceProviders).set({ 
           kycVerified: false, 
           status: "Rejected" 
         }).where(eq(serviceProviders.id, id));
+        console.log(`Provider ${id} KYC rejected - status set to Rejected`);
       }
       
       console.log(`Successfully updated provider ${id} KYC status to ${verified ? 'approved' : 'rejected'}`);
