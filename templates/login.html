@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}Login - ServiceHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+        background: linear-gradient(135deg, var(--gray-100), var(--white));
+    }
+    
+    .auth-card {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-lg);
+        padding: 3rem;
+        width: 100%;
+        max-width: 450px;
+        margin: 0 1rem;
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-header h1 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .auth-header p {
+        color: var(--gray-600);
+        margin-bottom: 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-control {
+        padding: 1rem;
+        font-size: 1rem;
+        border: 2px solid var(--gray-300);
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+    
+    .btn-auth {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        margin-bottom: 1rem;
+    }
+    
+    .btn-primary {
+        background: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--box-shadow-lg);
+    }
+    
+    .divider {
+        text-align: center;
+        margin: 2rem 0;
+        position: relative;
+        color: var(--gray-500);
+    }
+    
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--gray-300);
+        z-index: 1;
+    }
+    
+    .divider span {
+        background: var(--white);
+        padding: 0 1rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .auth-links {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .auth-links a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .auth-links a:hover {
+        text-decoration: underline;
+    }
+    
+    .role-selector {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .role-option {
+        flex: 1;
+        padding: 1rem;
+        border: 2px solid var(--gray-300);
+        border-radius: var(--border-radius);
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        background: var(--white);
+    }
+    
+    .role-option.active {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .role-option:hover {
+        border-color: var(--primary-color);
+    }
+    
+    .role-option i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .password-toggle {
+        position: relative;
+    }
+    
+    .password-toggle-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--gray-500);
+        cursor: pointer;
+        padding: 0.25rem;
+    }
+    
+    .alert {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        border: 1px solid transparent;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1><i class="fas fa-sign-in-alt"></i> Welcome Back</h1>
+            <p>Sign in to your ServiceHub account</p>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <!-- Role Selector -->
+            <div class="role-selector">
+                <div class="role-option active" onclick="selectRole('user')">
+                    <i class="fas fa-user"></i>
+                    <div>Customer</div>
+                </div>
+                <div class="role-option" onclick="selectRole('admin')">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>Admin</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" 
+                       id="email" 
+                       name="email" 
+                       class="form-control" 
+                       placeholder="Enter your email"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <div class="password-toggle">
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           class="form-control" 
+                           placeholder="Enter your password"
+                           required>
+                    <button type="button" class="password-toggle-btn" onclick="togglePassword()">
+                        <i class="fas fa-eye" id="passwordIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-auth">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </form>
+
+        <div class="divider">
+            <span>Don't have an account?</span>
+        </div>
+
+        <div class="auth-links">
+            <p>
+                <a href="{{ url_for('register') }}">Create Customer Account</a> or 
+                <a href="{{ url_for('provider_register') }}">Join as Service Provider</a>
+            </p>
+        </div>
+
+        <!-- Quick Login Hint for Demo -->
+        <div style="margin-top: 2rem; padding: 1rem; background: var(--gray-100); border-radius: var(--border-radius); font-size: 0.9rem;">
+            <strong>Demo Credentials:</strong><br>
+            <strong>Admin:</strong> admin@servicehub.com / Admin@123<br>
+            <strong>Customer:</strong> Create a new account or register
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectRole(role) {
+    const options = document.querySelectorAll('.role-option');
+    options.forEach(option => option.classList.remove('active'));
+    
+    if (role === 'admin') {
+        options[1].classList.add('active');
+        document.getElementById('email').placeholder = 'Admin email address';
+    } else {
+        options[0].classList.add('active');
+        document.getElementById('email').placeholder = 'Enter your email';
+    }
+}
+
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const passwordIcon = document.getElementById('passwordIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordIcon.classList.remove('fa-eye');
+        passwordIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        passwordIcon.classList.remove('fa-eye-slash');
+        passwordIcon.classList.add('fa-eye');
+    }
+}
+
+// Auto-focus email field
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('email').focus();
+});
+</script>
+{% endblock %}

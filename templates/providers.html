@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}Find Providers - ServiceHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .provider-filters {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        margin-bottom: 2rem;
+    }
+    
+    .provider-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .provider-card {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+        transition: var(--transition);
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .provider-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--box-shadow-lg);
+    }
+    
+    .provider-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 1.5rem;
+        position: relative;
+    }
+    
+    .provider-avatar {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .kyc-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--success-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .provider-body {
+        padding: 1.5rem;
+    }
+    
+    .provider-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stars {
+        color: #ffc107;
+    }
+    
+    .provider-price {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .provider-details {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1.5rem;
+    }
+    
+    .provider-details li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--gray-600);
+    }
+    
+    .provider-details i {
+        width: 1rem;
+        color: var(--primary-color);
+    }
+    
+    .book-now-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .book-now-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    
+    .no-providers {
+        text-align: center;
+        padding: 4rem 0;
+        color: var(--gray-600);
+    }
+    
+    .service-filter {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .sort-options {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .provider-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .service-filter {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .sort-options {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; padding: 3rem 0;">
+    <div class="container">
+        <h1>Find Service Providers</h1>
+        <p style="font-size: 1.2rem;">
+            {% if selected_service %}
+                Showing providers for: <strong>{{ selected_service }}</strong>
+            {% else %}
+                Browse all verified professionals
+            {% endif %}
+        </p>
+    </div>
+</section>
+
+<!-- Filters -->
+<div class="container">
+    <div class="provider-filters">
+        <form method="GET" class="service-filter">
+            <div style="flex: 1;">
+                <label for="service" class="form-label">Filter by Service:</label>
+                <select name="service" id="service" class="form-control form-select" onchange="this.form.submit()">
+                    <option value="">All Services</option>
+                    {% for service in services %}
+                        <option value="{{ service.name }}" {% if service.name == selected_service %}selected{% endif %}>
+                            {{ service.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="sort-options">
+                <label for="sort" class="form-label">Sort by:</label>
+                <select name="sort" id="sort" class="form-control form-select" onchange="this.form.submit()">
+                    <option value="rating">Highest Rated</option>
+                    <option value="price_low">Price: Low to High</option>
+                    <option value="price_high">Price: High to Low</option>
+                    <option value="experience">Most Experienced</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Providers Grid -->
+<div class="container">
+    {% if providers %}
+        <div class="provider-grid">
+            {% for provider in providers %}
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="kyc-badge">
+                        <i class="fas fa-check"></i> KYC Verified
+                    </div>
+                    <div class="provider-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>{{ provider.business_name }}</h3>
+                    <p style="opacity: 0.9;">{{ provider.owner_name }}</p>
+                </div>
+                
+                <div class="provider-body">
+                    <div class="provider-rating">
+                        <div class="stars">
+                            {% if provider.avg_rating %}
+                                {% for i in range((provider.avg_rating|round)|int) %}
+                                    <i class="fas fa-star"></i>
+                                {% endfor %}
+                                {% for i in range(5 - (provider.avg_rating|round)|int) %}
+                                    <i class="far fa-star"></i>
+                                {% endfor %}
+                            {% else %}
+                                {% for i in range(5) %}
+                                    <i class="far fa-star"></i>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <span>
+                            {% if provider.avg_rating %}
+                                {{ "%.1f"|format(provider.avg_rating) }} ({{ provider.review_count }} reviews)
+                            {% else %}
+                                New Provider
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="provider-price">
+                        ₹{{ provider.hourly_rate }}/hour
+                    </div>
+                    
+                    <ul class="provider-details">
+                        <li>
+                            <i class="fas fa-cog"></i>
+                            {{ provider.service_name }}
+                        </li>
+                        <li>
+                            <i class="fas fa-map-marker-alt"></i>
+                            {{ provider.location }}
+                        </li>
+                        <li>
+                            <i class="fas fa-clock"></i>
+                            {{ provider.experience_years }} years experience
+                        </li>
+                        <li>
+                            <i class="fas fa-phone"></i>
+                            {{ provider.phone }}
+                        </li>
+                    </ul>
+                    
+                    {% if provider.description %}
+                    <p class="text-muted mb-3">
+                        {{ provider.description[:100] }}{% if provider.description|length > 100 %}...{% endif %}
+                    </p>
+                    {% endif %}
+                    
+                    <button class="book-now-btn" onclick="bookProvider({{ provider.id }}, '{{ provider.business_name }}', '{{ provider.service_name }}', {{ provider.hourly_rate }})">
+                        <i class="fas fa-calendar-plus"></i> Book Now
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <p class="text-muted">
+                Showing {{ providers|length }} provider{% if providers|length != 1 %}s{% endif %}
+                {% if selected_service %}for {{ selected_service }}{% endif %}
+            </p>
+        </div>
+    {% else %}
+        <div class="no-providers">
+            <i class="fas fa-users" style="font-size: 4rem; color: var(--gray-400); margin-bottom: 1rem;"></i>
+            <h3>No providers found</h3>
+            <p>
+                {% if selected_service %}
+                    No verified providers available for {{ selected_service }} at the moment.
+                {% else %}
+                    No verified providers available at the moment.
+                {% endif %}
+            </p>
+            <div style="margin-top: 2rem;">
+                <a href="{{ url_for('browse_services') }}" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Browse All Services
+                </a>
+                <a href="{{ url_for('provider_register') }}" class="btn btn-secondary" style="margin-left: 1rem;">
+                    <i class="fas fa-user-plus"></i> Become a Provider
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function bookProvider(providerId, businessName, serviceName, hourlyRate) {
+    {% if session.user_id %}
+        // Redirect to booking page
+        window.location.href = `/book?provider=${providerId}&service=${encodeURIComponent(serviceName)}`;
+    {% else %}
+        // Redirect to login with return URL
+        alert('Please login to book a service');
+        window.location.href = '/login';
+    {% endif %}
+}
+
+// Auto-submit form when sort option changes
+document.getElementById('sort').addEventListener('change', function() {
+    this.form.submit();
+});
+</script>
+{% endblock %}

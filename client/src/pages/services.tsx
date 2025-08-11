@@ -68,7 +68,7 @@ export default function Services() {
 
   // Group services by category dynamically
   useEffect(() => {
-    if (!allServices.length) {
+    if (!allServices || allServices.length === 0) {
       setFilteredCategories([]);
       return;
     }
