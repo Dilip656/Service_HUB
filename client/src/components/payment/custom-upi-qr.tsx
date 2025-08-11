@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { QrCode, Copy, CheckCircle, Smartphone } from 'lucide-react';
 import { useNotification } from '@/components/ui/notification';
-import customQRImage from '@assets/image_1754906543964.png';
+import customQRImage from '@assets/image_1754906844835.png';
 
 interface CustomUpiQRProps {
   amount: string;
@@ -14,8 +14,8 @@ export default function CustomUpiQR({ amount, serviceName, onPaymentComplete }: 
   const [copied, setCopied] = useState(false);
   const { showNotification } = useNotification();
 
-  // UPI payment string with your UPI ID (you can update this to your actual UPI ID)
-  const upiString = `upi://pay?pa=servicehub@upi&pn=ServiceHub&am=${amount}&cu=INR&tn=Payment for ${serviceName}`;
+  // UPI payment string for Lakhan Rathore (PhonePe)
+  const upiString = `upi://pay?pa=lakhan.rathore@phonepe&pn=Lakhan Rathore&am=${amount}&cu=INR&tn=Payment for ${serviceName}`;
 
   const copyUpiString = () => {
     navigator.clipboard.writeText(upiString);
@@ -43,12 +43,18 @@ export default function CustomUpiQR({ amount, serviceName, onPaymentComplete }: 
 
       <div className="flex flex-col items-center space-y-4">
         {/* Custom QR Code Image */}
-        <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-sm">
+          <div className="text-center mb-2">
+            <p className="text-sm font-medium text-gray-800">Scan & Pay Using PhonePe App</p>
+          </div>
           <img 
             src={customQRImage} 
-            alt="UPI QR Code" 
-            className="w-48 h-48 object-contain rounded"
+            alt="PhonePe UPI QR Code - Lakhan Rathore" 
+            className="w-52 h-52 object-contain rounded mx-auto"
           />
+          <div className="text-center mt-2">
+            <p className="text-sm font-medium text-gray-700">Lakhan Rathore</p>
+          </div>
         </div>
 
         {/* Payment Amount */}
@@ -61,20 +67,21 @@ export default function CustomUpiQR({ amount, serviceName, onPaymentComplete }: 
         {/* UPI Apps */}
         <div className="text-center">
           <p className="text-sm text-gray-600 mb-2">Supported UPI Apps</p>
-          <div className="flex justify-center space-x-2">
-            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+          <div className="flex justify-center space-x-3">
+            <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+              <span className="text-xs font-bold text-white">PhonePe</span>
+            </div>
+            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
               <span className="text-xs font-bold text-purple-600">GPay</span>
             </div>
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-xs font-bold text-blue-600">PhonePe</span>
-            </div>
-            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
               <span className="text-xs font-bold text-orange-600">Paytm</span>
             </div>
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
               <span className="text-xs font-bold text-green-600">BHIM</span>
             </div>
           </div>
+          <p className="text-xs text-gray-500 mt-2">Recommended: PhonePe for best experience</p>
         </div>
 
         {/* Copy UPI String Button */}
