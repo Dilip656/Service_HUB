@@ -1,0 +1,1993 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServiceHub - Professional Service Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#64748b',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        error: '#ef4444'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="font-sans bg-gray-50 text-gray-900">
+    
+    <!-- @COMPONENT: NavigationHeader -->
+    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="text-2xl font-bold text-primary" data-page="home">
+                        <i class="fas fa-tools mr-2"></i>ServiceHub
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="#" class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium nav-link" data-page="services">
+                        Browse Services
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium nav-link" data-page="login">
+                        Sign In
+                    </a>
+                    <a href="#" class="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 nav-link" data-page="signup">
+                        Get Started
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-600 px-2 py-2 text-xs nav-link" data-page="admin-login">
+                        Admin
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <!-- @END_COMPONENT: NavigationHeader -->
+
+    <main id="app" class="min-h-screen">
+        
+        <!-- @COMPONENT: HomePage -->
+        <section id="home" class="page active">
+            <div class="relative bg-gradient-to-br from-primary to-blue-700 text-white">
+                <div class="max-w-7xl mx-auto px-4 py-20 sm:px-6 lg:px-8">
+                    <div class="text-center">
+                        <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                            Find Trusted Service Professionals
+                        </h1>
+                        <p class="text-xl md:text-2xl mb-8 opacity-90 max-w-3xl mx-auto">
+                            Connect with verified, skilled professionals for all your service needs. From home repairs to personal care, we've got you covered.
+                        </p>
+                        <button class="bg-white text-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg nav-link" data-page="services">
+                            Explore Services <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features Section -->
+            <div class="py-20 bg-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Why Choose ServiceHub?</h2>
+                        <p class="text-xl text-gray-600">Built for trust, designed for convenience</p>
+                    </div>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="text-center p-6">
+                            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-shield-check text-primary text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">Verified Professionals</h3>
+                            <p class="text-gray-600">All service providers undergo thorough KYC verification and background checks</p>
+                        </div>
+                        <div class="text-center p-6">
+                            <div class="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-star text-success text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">Quality Guaranteed</h3>
+                            <p class="text-gray-600">Read reviews, compare ratings, and choose the best professional for your needs</p>
+                        </div>
+                        <div class="text-center p-6">
+                            <div class="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-clock text-warning text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">Quick & Easy</h3>
+                            <p class="text-gray-600">Book services in minutes with our streamlined booking process</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: HomePage -->
+
+        <!-- @COMPONENT: ServicesPage -->
+        <section id="services" class="page hidden">
+            <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+                <!-- Search and Filters -->
+                <div class="mb-8">
+                    <div class="relative mb-6">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" id="searchInput" placeholder="Search for services like 'Plumbing', 'Cleaning', 'Photography'..." 
+                               class="block w-full pl-10 pr-3 py-4 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary text-lg">
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button class="filter-btn px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:border-primary hover:text-primary transition-colors active" data-category="all">
+                            All Services
+                        </button>
+                        <button class="filter-btn px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:border-primary hover:text-primary transition-colors" data-category="home">
+                            <i class="fas fa-home mr-2"></i>Home & Property
+                        </button>
+                        <button class="filter-btn px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:border-primary hover:text-primary transition-colors" data-category="events">
+                            <i class="fas fa-calendar mr-2"></i>Events
+                        </button>
+                        <button class="filter-btn px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:border-primary hover:text-primary transition-colors" data-category="personal">
+                            <i class="fas fa-user mr-2"></i>Personal Care
+                        </button>
+                        <button class="filter-btn px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:border-primary hover:text-primary transition-colors" data-category="business">
+                            <i class="fas fa-briefcase mr-2"></i>Business
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Services Grid -->
+                <div id="servicesGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Home & Property Services -->
+                    <div class="service-category bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow" data-category="home">
+                        <div class="p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+                            <div class="flex items-center mb-4">
+                                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
+                                    <i class="fas fa-home text-primary text-xl"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-900">Home & Property</h3>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-3">
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Plumbing">
+                                    <i class="fas fa-wrench w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">Plumbing Services</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">12 Providers</span>
+                                    </div>
+                                </div>
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Electrical Work">
+                                    <i class="fas fa-bolt w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">Electrical Work</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">8 Providers</span>
+                                    </div>
+                                </div>
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Painting">
+                                    <i class="fas fa-paint-roller w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">House Painting</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">15 Providers</span>
+                                    </div>
+                                </div>
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Carpentry">
+                                    <i class="fas fa-hammer w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">Carpentry</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">6 Providers</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Events & Celebrations -->
+                    <div class="service-category bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow" data-category="events">
+                        <div class="p-6 border-b bg-gradient-to-r from-pink-50 to-purple-50">
+                            <div class="flex items-center mb-4">
+                                <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center mr-4">
+                                    <i class="fas fa-calendar text-pink-600 text-xl"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-900">Events & Celebrations</h3>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-3">
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Event Planner">
+                                    <i class="fas fa-calendar-alt w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">Event Planning</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">10 Providers</span>
+                                    </div>
+                                </div>
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Photography">
+                                    <i class="fas fa-camera w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">Photography</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">18 Providers</span>
+                                    </div>
+                                </div>
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Catering">
+                                    <i class="fas fa-utensils w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">Catering</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">7 Providers</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal & Lifestyle -->
+                    <div class="service-category bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow" data-category="personal">
+                        <div class="p-6 border-b bg-gradient-to-r from-green-50 to-emerald-50">
+                            <div class="flex items-center mb-4">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                    <i class="fas fa-user text-green-600 text-xl"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-900">Personal & Lifestyle</h3>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-3">
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Home Cleaning">
+                                    <i class="fas fa-broom w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">Home Cleaning</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">22 Providers</span>
+                                    </div>
+                                </div>
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Personal Trainer">
+                                    <i class="fas fa-dumbbell w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">Personal Training</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">14 Providers</span>
+                                    </div>
+                                </div>
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Pet Grooming">
+                                    <i class="fas fa-cut w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">Pet Grooming</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">5 Providers</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Services -->
+                    <div class="service-category bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow" data-category="business">
+                        <div class="p-6 border-b bg-gradient-to-r from-purple-50 to-indigo-50">
+                            <div class="flex items-center mb-4">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                                    <i class="fas fa-briefcase text-purple-600 text-xl"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-900">Business Services</h3>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-3">
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="IT Support">
+                                    <i class="fas fa-laptop w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">IT Support</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">9 Providers</span>
+                                    </div>
+                                </div>
+                                <div class="service-item flex items-center p-3 rounded-lg hover:bg-primary hover:text-white cursor-pointer transition-all group" data-service="Graphic Design">
+                                    <i class="fas fa-paint-brush w-5 text-gray-500 group-hover:text-white mr-3"></i>
+                                    <span class="font-medium">Graphic Design</span>
+                                    <div class="ml-auto">
+                                        <span class="text-xs bg-gray-100 group-hover:bg-white/20 px-2 py-1 rounded-full">13 Providers</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: ServicesPage -->
+
+        <!-- @COMPONENT: ProviderListPage -->
+        <section id="provider-list-page" class="page hidden">
+            <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+                <button class="back-button flex items-center text-gray-600 hover:text-primary mb-6 transition-colors" data-page="services">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Services
+                </button>
+                
+                <div class="mb-8">
+                    <h2 id="provider-list-title" class="text-3xl font-bold text-gray-900 mb-2">Plumbing Service Providers</h2>
+                    <p class="text-gray-600">Choose from verified professionals in your area</p>
+                </div>
+
+                <div id="provider-grid" class="grid lg:grid-cols-2 gap-6">
+                    <!-- Provider cards will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: ProviderListPage -->
+
+        <!-- @COMPONENT: AuthPages -->
+        <section id="login" class="page hidden">
+            <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+                <div class="max-w-md w-full space-y-8">
+                    <div class="text-center">
+                        <h2 class="text-3xl font-bold text-gray-900">Welcome Back</h2>
+                        <p class="mt-2 text-gray-600">Sign in to your ServiceHub account</p>
+                    </div>
+                    <form id="login-form" class="mt-8 space-y-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                <input type="email" name="email" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <input type="password" name="password" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            Sign In
+                        </button>
+                    </form>
+                    <p class="text-center text-gray-600">
+                        Don't have an account? 
+                        <a href="#" class="text-primary font-semibold hover:underline nav-link" data-page="signup">Sign Up</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="signup" class="page hidden">
+            <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+                <div class="max-w-md w-full space-y-8">
+                    <div class="text-center">
+                        <h2 class="text-3xl font-bold text-gray-900">Create Your Account</h2>
+                        <p class="mt-2 text-gray-600">Join ServiceHub today</p>
+                    </div>
+                    
+                    <!-- Account Type Toggle -->
+                    <div class="flex bg-gray-100 p-1 rounded-lg">
+                        <button id="user-signup-btn" class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors bg-white text-primary shadow-sm">
+                            As a Customer
+                        </button>
+                        <button id="provider-signup-btn" class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-900">
+                            As a Service Provider
+                        </button>
+                    </div>
+
+                    <!-- Customer Signup Form -->
+                    <form id="user-signup-form" class="mt-8 space-y-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                                <input type="text" name="fullName" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                <input type="email" name="email" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <input type="password" name="password" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                                <input type="tel" name="phone" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">City/Location</label>
+                                <input type="text" name="location" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            Create Account
+                        </button>
+                    </form>
+
+                    <!-- Provider Signup Form -->
+                    <form id="provider-signup-form" class="mt-8 space-y-6 hidden">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
+                                <input type="text" name="businessName" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Business Email</label>
+                                <input type="email" name="email" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <input type="password" name="password" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Business Phone</label>
+                                <input type="tel" name="phone" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Primary Service</label>
+                                <select name="serviceName" required 
+                                        class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                                    <option value="">Select your primary service</option>
+                                    <option value="Plumbing">Plumbing</option>
+                                    <option value="Electrical Work">Electrical Work</option>
+                                    <option value="Painting">Painting</option>
+                                    <option value="Home Cleaning">Home Cleaning</option>
+                                    <option value="Photography">Photography</option>
+                                    <option value="IT Support">IT Support</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Years of Experience</label>
+                                <input type="number" name="experience" min="0" max="50" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Service Description</label>
+                                <textarea name="description" rows="3" required 
+                                          class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                                          placeholder="Describe your services and expertise..."></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            Register as Provider
+                        </button>
+                    </form>
+
+                    <p class="text-center text-gray-600">
+                        Already have an account? 
+                        <a href="#" class="text-primary font-semibold hover:underline nav-link" data-page="login">Sign In</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: AuthPages -->
+
+        <!-- @COMPONENT: BookingPage -->
+        <section id="booking" class="page hidden">
+            <div class="max-w-2xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+                <button class="back-button flex items-center text-gray-600 hover:text-primary mb-6 transition-colors" id="back-to-providers-from-booking">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Providers
+                </button>
+                
+                <div class="bg-white rounded-xl shadow-sm border p-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Book Service</h2>
+                    
+                    <form id="booking-form" class="space-y-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 id="booking-provider-name" class="text-lg font-semibold text-primary">Provider Name</h3>
+                            <p class="text-gray-600" data-mock="true">Service details will be shown here</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Service Address</label>
+                            <textarea name="address" required rows="3" 
+                                      class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                                      placeholder="Enter the complete address where service is needed"></textarea>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Date</label>
+                                <input type="date" name="date" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Time</label>
+                                <select name="time" required 
+                                        class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                                    <option value="">Select time</option>
+                                    <option value="morning">Morning (9 AM - 12 PM)</option>
+                                    <option value="afternoon">Afternoon (12 PM - 5 PM)</option>
+                                    <option value="evening">Evening (5 PM - 8 PM)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Service Requirements</label>
+                            <textarea name="requirements" rows="4" 
+                                      class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                                      placeholder="Describe your specific requirements, any special instructions, or details about the work needed..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            Confirm Booking
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: BookingPage -->
+
+        <!-- @COMPONENT: AdminSection -->
+        <section id="admin-login" class="page hidden">
+            <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+                <div class="max-w-md w-full space-y-8">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-shield-alt text-primary text-2xl"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-900">Admin Portal</h2>
+                        <p class="mt-2 text-gray-600">Secure access to admin dashboard</p>
+                    </div>
+                    <form id="admin-login-form" class="mt-8 space-y-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                                <input type="text" id="admin-username" value="admin" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <input type="password" id="admin-password" value="password" required 
+                                       class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            Access Admin Panel
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section id="admin" class="page hidden bg-gray-50 min-h-screen">
+            <div class="flex">
+                <!-- Admin Sidebar -->
+                <aside class="w-64 bg-gray-900 text-white min-h-screen flex-shrink-0">
+                    <div class="p-6 border-b border-gray-700">
+                        <h3 class="text-xl font-bold">Admin Dashboard</h3>
+                    </div>
+                    <nav class="mt-6">
+                        <a href="#" class="admin-menu-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white active" data-view="dashboard">
+                            <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+                        </a>
+                        <a href="#" class="admin-menu-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white" data-view="users">
+                            <i class="fas fa-users mr-3"></i> User Management
+                        </a>
+                        <a href="#" class="admin-menu-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white" data-view="providers">
+                            <i class="fas fa-hard-hat mr-3"></i> Provider Management
+                        </a>
+                        <a href="#" class="admin-menu-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white" data-view="bookings">
+                            <i class="fas fa-calendar-check mr-3"></i> Bookings
+                        </a>
+                        <a href="#" class="admin-menu-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white" data-view="payments">
+                            <i class="fas fa-credit-card mr-3"></i> Payments
+                        </a>
+                        <a href="#" class="admin-menu-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white" data-view="reviews">
+                            <i class="fas fa-star mr-3"></i> Reviews
+                        </a>
+                        <div class="border-t border-gray-700 mt-6">
+                            <a href="#" id="admin-logout-btn" class="flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white">
+                                <i class="fas fa-sign-out-alt mr-3"></i> Logout
+                            </a>
+                        </div>
+                    </nav>
+                </aside>
+
+                <!-- Admin Main Content -->
+                <main class="flex-1 p-8">
+                    <!-- Dashboard View -->
+                    <div id="admin-dashboard-view" class="admin-view active">
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
+                            <p class="text-gray-600">Welcome to ServiceHub admin panel</p>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div class="bg-white p-6 rounded-lg shadow-sm border">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
+                                        <i class="fas fa-users text-primary text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Total Users</p>
+                                        <p id="stat-total-users" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white p-6 rounded-lg shadow-sm border">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center mr-4">
+                                        <i class="fas fa-hard-hat text-success text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Total Providers</p>
+                                        <p id="stat-total-providers" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white p-6 rounded-lg shadow-sm border">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center mr-4">
+                                        <i class="fas fa-calendar-check text-warning text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Total Bookings</p>
+                                        <p id="stat-total-bookings" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white p-6 rounded-lg shadow-sm border">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-error/10 rounded-lg flex items-center justify-center mr-4">
+                                        <i class="fas fa-dollar-sign text-error text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Total Revenue</p>
+                                        <p id="stat-total-revenue" class="text-2xl font-bold text-gray-900">$0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Users View -->
+                    <div id="admin-users-view" class="admin-view hidden">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">User Management</h2>
+                        <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-table-body" class="bg-white divide-y divide-gray-200">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Providers View -->
+                    <div id="admin-providers-view" class="admin-view hidden">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Provider Management</h2>
+                        
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Pending KYC Approvals</h3>
+                            <div id="admin-pending-providers-list" class="bg-white rounded-lg shadow-sm border divide-y divide-gray-200">
+                                <!-- Pending providers will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">All Providers</h3>
+                            <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYC Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-providers-table-body" class="bg-white divide-y divide-gray-200">
+                                        <!-- Table rows will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bookings View -->
+                    <div id="admin-bookings-view" class="admin-view hidden">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Booking Management</h2>
+                        <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booking ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-bookings-table-body" class="bg-white divide-y divide-gray-200">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Payments View -->
+                    <div id="admin-payments-view" class="admin-view hidden">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Payment Management</h2>
+                        <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-payments-table-body" class="bg-white divide-y divide-gray-200">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Reviews View -->
+                    <div id="admin-reviews-view" class="admin-view hidden">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Review Management</h2>
+                        <div id="admin-reviews-list" class="space-y-4">
+                            <!-- Reviews will be populated here -->
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: AdminSection -->
+    </main>
+
+    <!-- @COMPONENT: ProviderDetailModal -->
+    <div id="provider-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-900">Provider Details</h2>
+                <button class="close-modal-btn text-gray-400 hover:text-gray-600 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <div id="modal-content">
+                    <!-- Provider details will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ProviderDetailModal -->
+
+    <script>
+    (function() {
+        // Simulated PostgreSQL Database Structure
+        const database = {
+            users: [
+                { 
+                    id: 101, 
+                    name: "Alice Johnson", 
+                    email: "alice@example.com", 
+                    phone: "+1-555-0101",
+                    location: "New York, NY",
+                    status: "Active", 
+                    created_at: "2024-01-15",
+                    bookings_count: 3
+                },
+                { 
+                    id: 102, 
+                    name: "Bob Williams", 
+                    email: "bob@example.com", 
+                    phone: "+1-555-0102",
+                    location: "Los Angeles, CA",
+                    status: "Active", 
+                    created_at: "2024-02-20",
+                    bookings_count: 1
+                },
+                { 
+                    id: 103, 
+                    name: "Charlie Brown", 
+                    email: "charlie@example.com", 
+                    phone: "+1-555-0103",
+                    location: "Chicago, IL",
+                    status: "Disabled", 
+                    created_at: "2024-03-10",
+                    bookings_count: 0
+                }
+            ],
+            service_providers: [
+                {
+                    id: 1,
+                    business_name: "ProPlumb Solutions",
+                    owner_name: "John Martinez",
+                    email: "contact@proplumb.com",
+                    phone: "+1-555-0201",
+                    service_name: "Plumbing",
+                    service_category: "home",
+                    experience: 8,
+                    description: "Professional plumbing services with over 8 years of experience. We handle everything from leaky faucets to major pipe repairs, emergency calls, and bathroom renovations.",
+                    rating: 4.8,
+                    review_count: 127,
+                    hourly_rate: 75,
+                    availability: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                    location: "New York, NY",
+                    kyc_verified: true,
+                    kyc_documents: {
+                        pan_number: "ABCDE1234F",
+                        aadhar_number: "123456789012",
+                        business_license: "verified",
+                        verified_at: "2024-01-10"
+                    },
+                    status: "Active",
+                    created_at: "2024-01-05",
+                    last_booking: "2024-12-15"
+                },
+                {
+                    id: 2,
+                    business_name: "ElectriCare Pro",
+                    owner_name: "Sarah Thompson",
+                    email: "sarah@electricare.com",
+                    phone: "+1-555-0202",
+                    service_name: "Electrical Work",
+                    service_category: "home",
+                    experience: 12,
+                    description: "Licensed electrician with over a decade of experience in residential and commercial electrical work. Specializing in installations, repairs, and safety inspections.",
+                    rating: 5.0,
+                    review_count: 210,
+                    hourly_rate: 85,
+                    availability: ["tuesday", "wednesday", "thursday", "friday", "saturday"],
+                    location: "New York, NY",
+                    kyc_verified: true,
+                    kyc_documents: {
+                        pan_number: "FGHIJ5678K",
+                        aadhar_number: "987654321098",
+                        business_license: "verified",
+                        verified_at: "2024-01-08"
+                    },
+                    status: "Active",
+                    created_at: "2024-01-03",
+                    last_booking: "2024-12-18"
+                },
+                {
+                    id: 3,
+                    business_name: "Perfect Paint Co",
+                    owner_name: "Mike Rodriguez",
+                    email: "mike@perfectpaint.com",
+                    phone: "+1-555-0203",
+                    service_name: "Painting",
+                    service_category: "home",
+                    experience: 6,
+                    description: "Professional painting services for interior and exterior projects. We use premium paints and guarantee quality workmanship.",
+                    rating: 4.6,
+                    review_count: 89,
+                    hourly_rate: 45,
+                    availability: ["monday", "wednesday", "friday", "saturday"],
+                    location: "New York, NY",
+                    kyc_verified: false,
+                    kyc_documents: {
+                        pan_number: "LMNOP9012Q",
+                        aadhar_number: "456789123456",
+                        business_license: "pending_verification",
+                        submitted_at: "2024-12-10"
+                    },
+                    status: "Pending",
+                    created_at: "2024-12-05"
+                },
+                {
+                    id: 4,
+                    business_name: "SparkleClean Services",
+                    owner_name: "Emma Davis",
+                    email: "emma@sparkleclean.com",
+                    phone: "+1-555-0204",
+                    service_name: "Home Cleaning",
+                    service_category: "personal",
+                    experience: 5,
+                    description: "Eco-friendly home cleaning services. We provide weekly, bi-weekly, and one-time deep cleaning with all-natural products.",
+                    rating: 4.9,
+                    review_count: 156,
+                    hourly_rate: 35,
+                    availability: ["monday", "tuesday", "thursday", "friday", "saturday"],
+                    location: "New York, NY",
+                    kyc_verified: true,
+                    kyc_documents: {
+                        pan_number: "RSTUV3456W",
+                        aadhar_number: "789123456789",
+                        business_license: "verified",
+                        verified_at: "2024-02-15"
+                    },
+                    status: "Active",
+                    created_at: "2024-02-10",
+                    last_booking: "2024-12-20"
+                },
+                {
+                    id: 5,
+                    business_name: "Capture Moments",
+                    owner_name: "David Kim",
+                    email: "david@capturemoments.com",
+                    phone: "+1-555-0205",
+                    service_name: "Photography",
+                    service_category: "events",
+                    experience: 7,
+                    description: "Professional photographer specializing in weddings, events, and portraits. Creating beautiful memories that last a lifetime.",
+                    rating: 4.7,
+                    review_count: 94,
+                    hourly_rate: 120,
+                    availability: ["friday", "saturday", "sunday"],
+                    location: "New York, NY",
+                    kyc_verified: true,
+                    kyc_documents: {
+                        pan_number: "XYZAB7890C",
+                        aadhar_number: "321654987321",
+                        business_license: "verified",
+                        verified_at: "2024-03-20"
+                    },
+                    status: "Active",
+                    created_at: "2024-03-15",
+                    last_booking: "2024-12-19"
+                }
+            ],
+            bookings: [
+                {
+                    id: 1001,
+                    user_id: 101,
+                    provider_id: 1,
+                    service_name: "Plumbing",
+                    booking_date: "2024-12-25",
+                    booking_time: "morning",
+                    service_address: "123 Main St, New York, NY 10001",
+                    requirements: "Fix leaky kitchen faucet and check bathroom plumbing",
+                    status: "Completed",
+                    amount: 225.00,
+                    created_at: "2024-12-10",
+                    completed_at: "2024-12-25"
+                },
+                {
+                    id: 1002,
+                    user_id: 102,
+                    provider_id: 2,
+                    service_name: "Electrical Work",
+                    booking_date: "2024-12-28",
+                    booking_time: "afternoon",
+                    service_address: "456 Oak Ave, New York, NY 10002",
+                    requirements: "Install ceiling fan and fix outlet in bedroom",
+                    status: "Confirmed",
+                    amount: 340.00,
+                    created_at: "2024-12-15"
+                },
+                {
+                    id: 1003,
+                    user_id: 101,
+                    provider_id: 4,
+                    service_name: "Home Cleaning",
+                    booking_date: "2024-12-22",
+                    booking_time: "morning",
+                    service_address: "123 Main St, New York, NY 10001",
+                    requirements: "Deep cleaning before holiday party",
+                    status: "Cancelled",
+                    amount: 180.00,
+                    created_at: "2024-12-08",
+                    cancelled_at: "2024-12-20"
+                }
+            ],
+            payments: [
+                {
+                    id: 'txn_001',
+                    booking_id: 1001,
+                    user_id: 101,
+                    provider_id: 1,
+                    amount: 225.00,
+                    payment_method: 'Credit Card',
+                    status: 'Successful',
+                    transaction_date: '2024-12-25',
+                    created_at: '2024-12-25'
+                },
+                {
+                    id: 'txn_002',
+                    booking_id: 1002,
+                    user_id: 102,
+                    provider_id: 2,
+                    amount: 340.00,
+                    payment_method: 'PayPal',
+                    status: 'Successful',
+                    transaction_date: '2024-12-15',
+                    created_at: '2024-12-15'
+                }
+            ],
+            reviews: [
+                {
+                    id: 1,
+                    booking_id: 1001,
+                    user_id: 101,
+                    provider_id: 1,
+                    rating: 5,
+                    comment: "Excellent service! John was professional, punctual, and fixed all our plumbing issues quickly. Highly recommended!",
+                    created_at: "2024-12-26",
+                    status: "approved"
+                },
+                {
+                    id: 2,
+                    booking_id: 1003,
+                    user_id: 101,
+                    provider_id: 4,
+                    rating: 2,
+                    comment: "Service was cancelled last minute without proper notice. Very unprofessional.",
+                    created_at: "2024-12-21",
+                    status: "flagged"
+                }
+            ]
+        };
+
+        let isAdminLoggedIn = false;
+        let currentUser = null;
+
+        // Utility Functions
+        const getElement = (id) => document.getElementById(id);
+        const queryElements = (selector) => document.querySelectorAll(selector);
+
+        // Page Navigation System
+        function showPage(pageId) {
+            // Handle admin access control
+            if (pageId.startsWith('admin') && pageId !== 'admin-login' && !isAdminLoggedIn) {
+                showNotification('Please log in as admin first.', 'error');
+                showPage('admin-login');
+                return;
+            }
+
+            // Hide all pages
+            queryElements('.page').forEach(page => {
+                page.classList.add('hidden');
+                page.classList.remove('active');
+            });
+
+            // Show target page
+            const targetPage = getElement(pageId);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+                targetPage.classList.add('active');
+            }
+
+            // Handle admin dashboard initialization
+            if (pageId === 'admin') {
+                showAdminView('dashboard');
+            }
+
+            // Handle provider list page
+            if (pageId === 'provider-list-page') {
+                const serviceName = sessionStorage.getItem('currentService');
+                if (serviceName) {
+                    renderProvidersForService(serviceName);
+                }
+            }
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Notification System
+        function showNotification(message, type = 'success') {
+            // Create notification element if it doesn't exist
+            let notification = document.querySelector('.notification-container');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.className = 'notification-container fixed top-4 right-4 z-50';
+                document.body.appendChild(notification);
+            }
+
+            const notificationEl = document.createElement('div');
+            notificationEl.className = `notification p-4 rounded-lg shadow-lg text-white transform translate-x-full transition-transform duration-300 mb-2 ${
+                type === 'success' ? 'bg-success' : 
+                type === 'error' ? 'bg-error' : 
+                type === 'warning' ? 'bg-warning' : 'bg-primary'
+            }`;
+            notificationEl.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            notification.appendChild(notificationEl);
+            
+            // Animate in
+            setTimeout(() => {
+                notificationEl.classList.remove('translate-x-full');
+            }, 100);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notificationEl.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notificationEl.parentNode) {
+                        notificationEl.parentNode.removeChild(notificationEl);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Search and Filter Functions
+        function setupSearchAndFilters() {
+            const searchInput = getElement('searchInput');
+            const filterButtons = queryElements('.filter-btn');
+            const serviceCategories = queryElements('.service-category');
+
+            // Search functionality
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase().trim();
+                    
+                    serviceCategories.forEach(category => {
+                        let categoryHasMatch = false;
+                        const serviceItems = category.querySelectorAll('.service-item');
+                        
+                        serviceItems.forEach(item => {
+                            const serviceName = item.textContent.toLowerCase();
+                            const matches = serviceName.includes(searchTerm);
+                            item.style.display = matches ? 'flex' : 'none';
+                            if (matches) categoryHasMatch = true;
+                        });
+                        
+                        category.style.display = categoryHasMatch || searchTerm === '' ? 'block' : 'none';
+                    });
+                });
+            }
+
+            // Filter functionality
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Update active button
+                    filterButtons.forEach(btn => btn.classList.remove('active', 'bg-primary', 'text-white'));
+                    button.classList.add('active', 'bg-primary', 'text-white');
+                    
+                    const categoryToShow = button.getAttribute('data-category');
+                    
+                    serviceCategories.forEach(category => {
+                        const categoryName = category.getAttribute('data-category');
+                        const shouldShow = categoryToShow === 'all' || categoryName === categoryToShow;
+                        category.style.display = shouldShow ? 'block' : 'none';
+                    });
+                    
+                    // Clear search when filtering
+                    if (searchInput) searchInput.value = '';
+                });
+            });
+        }
+
+        // Service Selection Handler
+        function setupServiceSelection() {
+            const servicesGrid = getElement('servicesGrid');
+            if (servicesGrid) {
+                servicesGrid.addEventListener('click', (e) => {
+                    const serviceItem = e.target.closest('.service-item');
+                    if (serviceItem) {
+                        const serviceName = serviceItem.getAttribute('data-service');
+                        sessionStorage.setItem('currentService', serviceName);
+                        showPage('provider-list-page');
+                    }
+                });
+            }
+        }
+
+        // Provider List Rendering
+        function renderProvidersForService(serviceName) {
+            const titleElement = getElement('provider-list-title');
+            const gridElement = getElement('provider-grid');
+            
+            if (titleElement) {
+                titleElement.textContent = `${serviceName} Service Providers`;
+            }
+            
+            if (gridElement) {
+                const providers = database.service_providers.filter(p => p.service_name === serviceName);
+                
+                if (providers.length === 0) {
+                    gridElement.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <div class="text-gray-400 mb-4">
+                                <i class="fas fa-search text-6xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-600 mb-2">No providers found</h3>
+                            <p class="text-gray-500">No verified providers available for ${serviceName} at the moment.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const providersHTML = providers.map(provider => {
+                    const kycBadge = provider.kyc_verified 
+                        ? '<span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-success/10 text-success rounded-full"><i class="fas fa-shield-check mr-1"></i>KYC Verified</span>'
+                        : '<span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-warning/10 text-warning rounded-full"><i class="fas fa-clock mr-1"></i>KYC Pending</span>';
+                    
+                    const ratingStars = provider.rating ? '★'.repeat(Math.floor(provider.rating)) + (provider.rating % 1 ? '☆' : '') : '';
+                    
+                    return `
+                        <div class="provider-card bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow cursor-pointer" 
+                             data-provider-id="${provider.id}">
+                            <div class="p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+                                            <span class="text-primary font-semibold">${provider.owner_name.charAt(0)}</span>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-gray-900">${provider.business_name}</h3>
+                                            <p class="text-gray-600">${provider.owner_name}</p>
+                                        </div>
+                                    </div>
+                                    ${kycBadge}
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <p class="text-gray-700 text-sm line-clamp-2">${provider.description}</p>
+                                </div>
+                                
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-star text-warning mr-1"></i>
+                                        <span class="font-medium">${provider.rating || 'New'}</span>
+                                        ${provider.review_count ? `<span class="mx-2">•</span><span>${provider.review_count} reviews</span>` : ''}
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        ${provider.experience} years exp.
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <div class="text-lg font-semibold text-primary">
+                                        $${provider.hourly_rate}/hour
+                                    </div>
+                                    <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                                        View Profile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                gridElement.innerHTML = providersHTML;
+            }
+        }
+
+        // Provider Detail Modal
+        function setupProviderModal() {
+            const modal = getElement('provider-modal');
+            const providerGrid = getElement('provider-grid');
+            const closeBtn = modal?.querySelector('.close-modal-btn');
+
+            if (providerGrid) {
+                providerGrid.addEventListener('click', (e) => {
+                    const card = e.target.closest('.provider-card');
+                    if (card) {
+                        const providerId = parseInt(card.getAttribute('data-provider-id'));
+                        showProviderDetail(providerId);
+                    }
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                });
+            }
+
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        function showProviderDetail(providerId) {
+            const provider = database.service_providers.find(p => p.id === providerId);
+            const modal = getElement('provider-modal');
+            const modalContent = getElement('modal-content');
+            
+            if (!provider || !modal || !modalContent) return;
+
+            const kycStatusBadge = provider.kyc_verified 
+                ? '<span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-success/10 text-success rounded-full"><i class="fas fa-shield-check mr-2"></i>KYC Verified</span>'
+                : '<span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-warning/10 text-warning rounded-full"><i class="fas fa-clock mr-2"></i>KYC Pending</span>';
+
+            const availabilityDays = provider.availability.map(day => 
+                day.charAt(0).toUpperCase() + day.slice(1)
+            ).join(', ');
+
+            modalContent.innerHTML = `
+                <div class="flex items-start space-x-6 mb-8">
+                    <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+                        <span class="text-primary font-bold text-2xl">${provider.owner_name.charAt(0)}</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <h2 class="text-3xl font-bold text-gray-900">${provider.business_name}</h2>
+                            ${kycStatusBadge}
+                        </div>
+                        <p class="text-gray-600 text-lg">${provider.owner_name}</p>
+                        <div class="flex items-center mt-2 text-gray-600">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            <span>${provider.location}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Service Details</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <i class="fas fa-tools text-primary mr-3"></i>
+                                    <span><strong>Service:</strong> ${provider.service_name}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-primary mr-3"></i>
+                                    <span><strong>Experience:</strong> ${provider.experience} years</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-dollar-sign text-primary mr-3"></i>
+                                    <span><strong>Rate:</strong> $${provider.hourly_rate}/hour</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Contact Information</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <i class="fas fa-envelope text-primary mr-3"></i>
+                                    <span>${provider.email}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-phone text-primary mr-3"></i>
+                                    <span>${provider.phone}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Rating & Reviews</h3>
+                            <div class="flex items-center mb-2">
+                                <div class="flex text-warning text-lg mr-3">
+                                    ${'★'.repeat(Math.floor(provider.rating || 0))}${'☆'.repeat(5 - Math.floor(provider.rating || 0))}
+                                </div>
+                                <span class="text-2xl font-bold text-gray-900">${provider.rating || 'New'}</span>
+                            </div>
+                            ${provider.review_count ? `<p class="text-gray-600">${provider.review_count} reviews</p>` : '<p class="text-gray-600">No reviews yet</p>'}
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Availability</h3>
+                            <p class="text-gray-700">${availabilityDays}</p>
+                        </div>
+
+                        ${provider.kyc_verified ? `
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Verification Status</h3>
+                            <div class="bg-success/5 border border-success/20 rounded-lg p-4">
+                                <div class="flex items-center text-success mb-2">
+                                    <i class="fas fa-shield-check mr-2"></i>
+                                    <span class="font-medium">Fully Verified Provider</span>
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    <p>✓ Identity verified</p>
+                                    <p>✓ Business license verified</p>
+                                    <p>✓ Background check completed</p>
+                                    <p class="mt-2">Verified on ${new Date(provider.kyc_documents.verified_at).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                        ` : `
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Verification Status</h3>
+                            <div class="bg-warning/5 border border-warning/20 rounded-lg p-4">
+                                <div class="flex items-center text-warning mb-2">
+                                    <i class="fas fa-clock mr-2"></i>
+                                    <span class="font-medium">KYC Verification Pending</span>
+                                </div>
+                                <p class="text-sm text-gray-600">This provider's verification is currently in progress.</p>
+                            </div>
+                        </div>
+                        `}
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">About ${provider.business_name}</h3>
+                    <p class="text-gray-700 leading-relaxed">${provider.description}</p>
+                </div>
+
+                ${provider.kyc_verified ? `
+                <div class="flex justify-center space-x-4">
+                    <button class="book-provider-btn bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        Book Now
+                    </button>
+                    <button class="text-primary border border-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary/5 transition-colors">
+                        Send Message
+                    </button>
+                </div>
+                ` : `
+                <div class="text-center">
+                    <p class="text-gray-600 mb-4">This provider is currently undergoing verification and is not available for booking.</p>
+                    <button class="bg-gray-300 text-gray-600 px-8 py-3 rounded-lg font-semibold cursor-not-allowed" disabled>
+                        Booking Unavailable
+                    </button>
+                </div>
+                `}
+            `;
+
+            // Add booking functionality
+            const bookBtn = modalContent.querySelector('.book-provider-btn');
+            if (bookBtn) {
+                bookBtn.addEventListener('click', () => {
+                    sessionStorage.setItem('currentProviderId', provider.id);
+                    sessionStorage.setItem('currentProviderName', provider.business_name);
+                    modal.classList.add('hidden');
+                    showPage('booking');
+                });
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        // Form Handlers
+        function setupFormHandlers() {
+            // Toggle between user and provider signup
+            const userSignupBtn = getElement('user-signup-btn');
+            const providerSignupBtn = getElement('provider-signup-btn');
+            const userForm = getElement('user-signup-form');
+            const providerForm = getElement('provider-signup-form');
+
+            if (userSignupBtn && providerSignupBtn) {
+                userSignupBtn.addEventListener('click', () => {
+                    userSignupBtn.classList.add('bg-white', 'text-primary', 'shadow-sm');
+                    userSignupBtn.classList.remove('text-gray-600');
+                    providerSignupBtn.classList.add('text-gray-600');
+                    providerSignupBtn.classList.remove('bg-white', 'text-primary', 'shadow-sm');
+                    if (userForm) userForm.classList.remove('hidden');
+                    if (providerForm) providerForm.classList.add('hidden');
+                });
+
+                providerSignupBtn.addEventListener('click', () => {
+                    providerSignupBtn.classList.add('bg-white', 'text-primary', 'shadow-sm');
+                    providerSignupBtn.classList.remove('text-gray-600');
+                    userSignupBtn.classList.add('text-gray-600');
+                    userSignupBtn.classList.remove('bg-white', 'text-primary', 'shadow-sm');
+                    if (providerForm) providerForm.classList.remove('hidden');
+                    if (userForm) userForm.classList.add('hidden');
+                });
+            }
+
+            // User signup form
+            if (userForm) {
+                userForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const userData = Object.fromEntries(formData.entries());
+                    
+                    const newUser = {
+                        id: Math.max(...database.users.map(u => u.id)) + 1,
+                        name: userData.fullName,
+                        email: userData.email,
+                        phone: userData.phone,
+                        location: userData.location,
+                        status: "Active",
+                        created_at: new Date().toISOString().split('T')[0],
+                        bookings_count: 0
+                    };
+                    
+                    database.users.push(newUser);
+                    showNotification('Account created successfully! Please sign in.', 'success');
+                    e.target.reset();
+                    showPage('login');
+                });
+            }
+
+            // Provider signup form
+            if (providerForm) {
+                providerForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const providerData = Object.fromEntries(formData.entries());
+                    
+                    const newProvider = {
+                        id: Math.max(...database.service_providers.map(p => p.id)) + 1,
+                        business_name: providerData.businessName,
+                        owner_name: "Provider Name", // This would come from a separate field
+                        email: providerData.email,
+                        phone: providerData.phone,
+                        service_name: providerData.serviceName,
+                        service_category: getServiceCategory(providerData.serviceName),
+                        experience: parseInt(providerData.experience),
+                        description: providerData.description,
+                        rating: null,
+                        review_count: 0,
+                        hourly_rate: 50, // Default rate
+                        availability: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                        location: "New York, NY", // Default location
+                        kyc_verified: false,
+                        kyc_documents: {
+                            submitted_at: new Date().toISOString().split('T')[0]
+                        },
+                        status: "Pending",
+                        created_at: new Date().toISOString().split('T')[0]
+                    };
+                    
+                    database.service_providers.push(newProvider);
+                    showNotification('Registration successful! Your application is under review.', 'success');
+                    e.target.reset();
+                    showPage('login');
+                });
+            }
+
+            // Login form
+            const loginForm = getElement('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    showNotification('Login successful!', 'success');
+                    showPage('services');
+                });
+            }
+
+            // Booking form
+            const bookingForm = getElement('booking-form');
+            if (bookingForm) {
+                bookingForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const bookingData = Object.fromEntries(formData.entries());
+                    
+                    const newBooking = {
+                        id: Math.max(...database.bookings.map(b => b.id)) + 1,
+                        user_id: 101, // Mock user ID
+                        provider_id: parseInt(sessionStorage.getItem('currentProviderId')),
+                        service_name: sessionStorage.getItem('currentService'),
+                        booking_date: bookingData.date,
+                        booking_time: bookingData.time,
+                        service_address: bookingData.address,
+                        requirements: bookingData.requirements,
+                        status: "Pending",
+                        amount: 0, // Will be calculated
+                        created_at: new Date().toISOString().split('T')[0]
+                    };
+                    
+                    database.bookings.push(newBooking);
+                    showNotification('Booking request submitted successfully!', 'success');
+                    e.target.reset();
+                    showPage('services');
+                });
+            }
+        }
+
+        // Helper function to get service category
+        function getServiceCategory(serviceName) {
+            const categories = {
+                'Plumbing': 'home',
+                'Electrical Work': 'home',
+                'Painting': 'home',
+                'Carpentry': 'home',
+                'Home Cleaning': 'personal',
+                'Personal Training': 'personal',
+                'Pet Grooming': 'personal',
+                'Photography': 'events',
+                'Event Planning': 'events',
+                'Catering': 'events',
+                'IT Support': 'business',
+                'Graphic Design': 'business'
+            };
+            return categories[serviceName] || 'business';
+        }
+
+        // Admin Functions
+        function setupAdminHandlers() {
+            const adminLoginForm = getElement('admin-login-form');
+            const adminLogoutBtn = getElement('admin-logout-btn');
+
+            if (adminLoginForm) {
+                adminLoginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const username = getElement('admin-username').value;
+                    const password = getElement('admin-password').value;
+
+                    if (username === 'admin' && password === 'password') {
+                        isAdminLoggedIn = true;
+                        showNotification('Admin login successful', 'success');
+                        showPage('admin');
+                    } else {
+                        showNotification('Invalid admin credentials', 'error');
+                    }
+                });
+            }
+
+            if (adminLogoutBtn) {
+                adminLogoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    isAdminLoggedIn = false;
+                    showNotification('Logged out successfully', 'success');
+                    showPage('home');
+                });
+            }
+
+            // Admin menu navigation
+            queryElements('.admin-menu-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    if (link.id !== 'admin-logout-btn') {
+                        e.preventDefault();
+                        const view = link.getAttribute('data-view');
+                        if (view) {
+                            queryElements('.admin-menu-link').forEach(l => l.classList.remove('active'));
+                            link.classList.add('active');
+                            showAdminView(view);
+                        }
+                    }
+                });
+            });
+        }
+
+        function showAdminView(viewName) {
+            // Hide all admin views
+            queryElements('.admin-view').forEach(view => {
+                view.classList.add('hidden');
+                view.classList.remove('active');
+            });
+
+            // Show selected view
+            const targetView = getElement(`admin-${viewName}-view`);
+            if (targetView) {
+                targetView.classList.remove('hidden');
+                targetView.classList.add('active');
+            }
+
+            // Render view content
+            switch(viewName) {
+                case 'dashboard':
+                    renderDashboardStats();
+                    break;
+                case 'users':
+                    renderUsersTable();
+                    break;
+                case 'providers':
+                    renderProvidersTable();
+                    break;
+                case 'bookings':
+                    renderBookingsTable();
+                    break;
+                case 'payments':
+                    renderPaymentsTable();
+                    break;
+                case 'reviews':
+                    renderReviewsTable();
+                    break;
+            }
+        }
+
+        function renderDashboardStats() {
+            const totalUsers = database.users.length;
+            const totalProviders = database.service_providers.length;
+            const totalBookings = database.bookings.length;
+            const totalRevenue = database.payments.reduce((sum, payment) => 
+                payment.status === 'Successful' ? sum + payment.amount : sum, 0
+            );
+
+            const statElements = {
+                'stat-total-users': totalUsers,
+                'stat-total-providers': totalProviders,
+                'stat-total-bookings': totalBookings,
+                'stat-total-revenue': `$${totalRevenue.toFixed(2)}`
+            };
+
+            Object.entries(statElements).forEach(([id, value]) => {
+                const element = getElement(id);
+                if (element) element.textContent = value;
+            });
+        }
+
+        function renderUsersTable() {
+            const tbody = getElement('admin-users-table-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = database.users.map(user => `
+                <tr data-id="${user.id}" class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div>
+                            <div class="font-medium text-gray-900">${user.name}</div>
+                            <div class="text-sm text-gray-500">ID: ${user.id}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${user.email}</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }">
+                            ${user.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-2" onclick="toggleUserStatus(${user.id})">
+                            ${user.status === 'Active' ? 'Disable' : 'Enable'}
+                        </button>
+                        <button class="text-red-600 hover:text-red-900" onclick="deleteUser(${user.id})">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderProvidersTable() {
+            const pendingList = getElement('admin-pending-providers-list');
+            const tbody = getElement('admin-providers-table-body');
+            
+            if (pendingList) {
+                const pendingProviders = database.service_providers.filter(p => !p.kyc_verified);
+                
+                if (pendingProviders.length === 0) {
+                    pendingList.innerHTML = '<div class="p-4 text-gray-500 text-center">No pending KYC approvals</div>';
+                } else {
+                    pendingList.innerHTML = pendingProviders.map(provider => `
+                        <div class="flex items-center justify-between p-4" data-id="${provider.id}">
+                            <div>
+                                <div class="font-medium text-gray-900">${provider.business_name}</div>
+                                <div class="text-sm text-gray-500">${provider.service_name} • ${provider.owner_name}</div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700" onclick="approveProvider(${provider.id})">
+                                    Approve
+                                </button>
+                                <button class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" onclick="rejectProvider(${provider.id})">
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+            
+            if (tbody) {
+                tbody.innerHTML = database.service_providers.map(provider => `
+                    <tr data-id="${provider.id}" class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div>
+                                <div class="font-medium text-gray-900">${provider.business_name}</div>
+                                <div class="text-sm text-gray-500">${provider.owner_name}</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${provider.service_name}</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                provider.kyc_verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }">
+                                ${provider.kyc_verified ? 'Verified' : 'Pending'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${provider.rating || 'N/A'}</td>
+                        <td class="px-6 py-4 text-sm">
+                            <button class="text-indigo-600 hover:text-indigo-900 mr-2" onclick="viewProvider(${provider.id})">
+                                View
+                            </button>
+                            <button class="text-orange-600 hover:text-orange-900 mr-2" onclick="suspendProvider(${provider.id})">
+                                Suspend
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function renderBookingsTable() {
+            const tbody = getElement('admin-bookings-table-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = database.bookings.map(booking => {
+                const user = database.users.find(u => u.id === booking.user_id);
+                const provider = database.service_providers.find(p => p.id === booking.provider_id);
+                
+                return `
+                    <tr data-id="${booking.id}" class="hover:bg-gray-50">
+                        <td class="px-6 py-4 text-sm text-gray-900">BK-${booking.id}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${user?.name || 'Unknown'}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${provider?.business_name || 'Unknown'}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${booking.booking_date}</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                booking.status === 'Completed' ? 'bg-green-100 text-green-800' : 
+                                booking.status === 'Confirmed' ? 'bg-blue-100 text-blue-800' : 
+                                booking.status === 'Cancelled' ? 'bg-red-100 text-red-800' : 
+                                'bg-yellow-100 text-yellow-800'
+                            }">
+                                ${booking.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            <button class="text-indigo-600 hover:text-indigo-900" onclick="viewBooking(${booking.id})">
+                                View Details
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPaymentsTable() {
+            const tbody = getElement('admin-payments-table-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = database.payments.map(payment => {
+                const user = database.users.find(u => u.id === payment.user_id);
+                
+                return `
+                    <tr data-id="${payment.id}" class="hover:bg-gray-50">
+                        <td class="px-6 py-4 text-sm text-gray-900">${payment.id}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${user?.name || 'Unknown'}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">$${payment.amount.toFixed(2)}</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                payment.status === 'Successful' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }">
+                                ${payment.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${payment.transaction_date}</td>
+                        <td class="px-6 py-4 text-sm">
+                            <button class="text-indigo-600 hover:text-indigo-900" onclick="viewPayment('${payment.id}')">
+                                View Details
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderReviewsTable() {
+            const reviewsList = getElement('admin-reviews-list');
+            if (!reviewsList) return;
+
+            reviewsList.innerHTML = database.reviews.map(review => {
+                const user = database.users.find(u => u.id === review.user_id);
+                const provider = database.service_providers.find(p => p.id === review.provider_id);
+                
+                return `
+                    <div class="bg-white p-6 rounded-lg shadow-sm border" data-id="${review.id}">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="flex items-center mb-2">
+                                    <span class="font-medium text-gray-900">${user?.name || 'Anonymous'}</span>
+                                    <span class="mx-2 text-gray-300">•</span>
+                                    <div class="flex text-warning">
+                                        ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600">Review for ${provider?.business_name || 'Unknown Provider'}</p>
+                            </div>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                review.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                review.status === 'flagged' ? 'bg-red-100 text-red-800' : 
+                                'bg-yellow-100 text-yellow-800'
+                            }">
+                                ${review.status}
+                            </span>
+                        </div>
+                        <p class="text-gray-700 mb-4">${review.comment}</p>
+                        <div class="flex justify-between items-center text-sm text-gray-500">
+                            <span>${new Date(review.created_at).toLocaleDateString()}</span>
+                            <div class="space-x-2">
+                                ${review.status !== 'approved' ? `<button class="text-green-600 hover:text-green-800" onclick="approveReview(${review.id})">Approve</button>` : ''}
+                                ${review.status !== 'flagged' ? `<button class="text-red-600 hover:text-red-800" onclick="flagReview(${review.id})">Flag</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Global admin action functions
+        window.toggleUserStatus = (userId) => {
+            const user = database.users.find(u => u.id === userId);
+            if (user) {
+                user.status = user.status === 'Active' ? 'Disabled' : 'Active';
+                showNotification(`User ${user.status.toLowerCase()} successfully`, 'success');
+                renderUsersTable();
+            }
+        };
+
+        window.deleteUser = (userId) => {
+            if (confirm('Are you sure you want to delete this user?')) {
+                database.users = database.users.filter(u => u.id !== userId);
+                showNotification('User deleted successfully', 'success');
+                renderUsersTable();
+            }
+        };
+
+        window.approveProvider = (providerId) => {
+            const provider = database.service_providers.find(p => p.id === providerId);
+            if (provider) {
+                provider.kyc_verified = true;
+                provider.status = 'Active';
+                provider.kyc_documents.verified_at = new Date().toISOString().split('T')[0];
+                showNotification('Provider approved successfully', 'success');
+                renderProvidersTable();
+            }
+        };
+
+        window.rejectProvider = (providerId) => {
+            if (confirm('Are you sure you want to reject this provider?')) {
+                database.service_providers = database.service_providers.filter(p => p.id !== providerId);
+                showNotification('Provider rejected', 'success');
+                renderProvidersTable();
+            }
+        };
+
+        // Navigation Setup
+        function setupNavigation() {
+            document.addEventListener('click', (e) => {
+                const navLink = e.target.closest('.nav-link, .back-button');
+                if (navLink && navLink.hasAttribute('data-page')) {
+                    e.preventDefault();
+                    const targetPage = navLink.getAttribute('data-page');
+                    showPage(targetPage);
+                }
+            });
+
+            // Back button for booking page
+            const backToProvidersBtn = getElement('back-to-providers-from-booking');
+            if (backToProvidersBtn) {
+                backToProvidersBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage('provider-list-page');
+                });
+            }
+        }
+
+        // Initialize Application
+        function initializeApp() {
+            setupNavigation();
+            setupSearchAndFilters();
+            setupServiceSelection();
+            setupProviderModal();
+            setupFormHandlers();
+            setupAdminHandlers();
+            
+            // Set initial booking provider name
+            const bookingProviderName = getElement('booking-provider-name');
+            if (bookingProviderName) {
+                const providerName = sessionStorage.getItem('currentProviderName');
+                if (providerName) {
+                    bookingProviderName.textContent = providerName;
+                }
+            }
+
+            // Show initial page
+            showPage('home');
+            
+            console.log('ServiceHub application initialized successfully');
+        }
+
+        // Start the application when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+    })();
+    </script>
+</body>
+</html>
