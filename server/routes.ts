@@ -561,9 +561,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       if (verified !== undefined) {
-        // Admin approving/rejecting KYC
-        console.log(`Admin ${verified ? 'approving' : 'rejecting'} KYC for provider ${id}`);
+        // Admin approving/rejecting KYC or suspending provider
+        console.log(`Admin ${verified ? 'approving' : 'rejecting/suspending'} KYC for provider ${id}`);
         await storage.updateProviderKycStatus(id, verified);
+        
+        // If status is provided (for suspend case), update it too
+        if (status) {
+          await storage.updateProviderStatus(id, status);
+        }
       } else if (kycDocuments && status) {
         // Provider submitting KYC documents
         if (shouldAutoApprove) {
@@ -664,6 +669,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Provider status updated" });
     } catch (error) {
       res.status(400).json({ message: "Failed to update provider status" });
+    }
+  });
+
+  app.put("/api/admin/providers/:id/suspend", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Reset KYC verification and move to pending review
+      await storage.updateProviderKycStatus(id, false);
+      await storage.updateProviderStatus(id, 'Pending KYC Review');
+      
+      console.log(`Provider ${id} suspended and moved to pending KYC review`);
+      res.json({ message: "Provider suspended and moved to pending KYC review" });
+    } catch (error) {
+      console.error("Suspend provider error:", error);
+      res.status(400).json({ message: "Failed to suspend provider" });
     }
   });
 

@@ -591,8 +591,21 @@ function ProvidersView() {
   };
 
   const handleSuspendProvider = (provider: any) => {
-    const newStatus = provider.status === 'Active' ? 'Suspended' : 'Active';
-    updateStatusMutation.mutate({ id: provider.id, status: newStatus });
+    if (provider.status === 'Active') {
+      // When suspending an active provider, use a custom API call to reset KYC and status
+      fetch(`/api/admin/providers/${provider.id}/suspend`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/providers'] });
+        showNotification('Provider suspended and moved to pending KYC review', 'success');
+      }).catch(() => {
+        showNotification('Failed to suspend provider', 'error');
+      });
+    } else {
+      // When activating a suspended provider, just change status to Active
+      updateStatusMutation.mutate({ id: provider.id, status: 'Active' });
+    }
   };
 
   if (isLoading) {
