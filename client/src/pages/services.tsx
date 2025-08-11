@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
@@ -59,11 +59,20 @@ export default function Services() {
     },
   });
 
+  // Memoize provider counts to prevent infinite re-renders
+  const providerCounts = useMemo(() => {
+    if (!allProviders) return {};
+    const counts: { [serviceName: string]: number } = {};
+    allProviders.forEach((provider: any) => {
+      if (provider.kycVerified) {
+        counts[provider.serviceName] = (counts[provider.serviceName] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [allProviders]);
+
   const getProviderCount = (serviceName: string) => {
-    if (!allProviders) return 0;
-    return allProviders.filter((provider: any) => 
-      provider.serviceName === serviceName && provider.kycVerified
-    ).length;
+    return providerCounts[serviceName] || 0;
   };
 
   // Group services by category dynamically
