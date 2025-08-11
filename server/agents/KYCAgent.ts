@@ -48,7 +48,50 @@ export class KYCAgent {
       throw new Error(`Provider ${providerId} not found`);
     }
 
-    console.log(`📋 Provider Info: ${provider.businessName} | Aadhaar: ${provider.aadharNumber || 'Not provided'} | PAN: ${provider.panNumber || 'Not provided'}`);
+    console.log(`📋 Provider Info: ${provider.businessName} | Owner: ${provider.ownerName} | Aadhaar: ${provider.aadharNumber || 'Not provided'} | PAN: ${provider.panNumber || 'Not provided'}`);
+
+    // Check for auto-approval list first
+    const autoApprovalNames = ['lakhan rathore', 'rahul verma', 'abhishek singh'];
+    const providerName = provider.ownerName?.toLowerCase() || '';
+    const shouldAutoApprove = autoApprovalNames.some(name => 
+      providerName.includes(name) || name.includes(providerName)
+    );
+
+    if (shouldAutoApprove) {
+      console.log(`🚀 AUTO-APPROVING KYC for ${provider.ownerName} (${provider.businessName}) - Pre-approved provider`);
+      
+      // Create a simple approval decision
+      const decision = {
+        agentId: this.config.id,
+        agentType: 'kyc_agent' as const,
+        targetId: providerId,
+        targetType: 'provider' as const,
+        decision: 'approve' as const,
+        confidence: 100,
+        reasoning: `Pre-approved provider: ${provider.ownerName}. Auto-approved without document verification.`,
+        evidence: [`Provider name "${provider.ownerName}" is in pre-approved list`],
+        timestamp: new Date(),
+        riskScore: 0,
+        requirements: ['Pre-approved provider status'],
+        metadata: { autoApproved: true, providerName: provider.ownerName }
+      };
+
+      // Store decision
+      this.decisions.push(decision);
+      
+      // Auto-approve immediately
+      await this.autoApproveKYC(providerId, decision);
+      console.log(`✅ KYC AUTO-APPROVED: Provider ${providerId} (${provider.businessName}) - Pre-approved provider`);
+      
+      return {
+        providerId,
+        decision: 'approve',
+        confidence: 100,
+        evidence: decision.evidence
+      };
+    }
+
+    console.log(`📄 Performing document verification for ${provider.ownerName} (${provider.businessName})`);
 
     // Focus ONLY on PAN and Aadhaar verification as requested
     const analysisResult = await this.performPANAadhaarVerification(provider);

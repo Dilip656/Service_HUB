@@ -546,6 +546,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phoneVerified, 
         otpVerified 
       });
+
+      // Get provider details to check for auto-approval
+      const provider = await storage.getServiceProvider(id);
+      if (!provider) {
+        return res.status(404).json({ message: "Provider not found" });
+      }
+
+      // Auto-approve list (case insensitive comparison)
+      const autoApprovalNames = ['lakhan rathore', 'rahul verma', 'abhishek singh'];
+      const providerName = provider.ownerName?.toLowerCase() || '';
+      const shouldAutoApprove = autoApprovalNames.some(name => 
+        providerName.includes(name) || name.includes(providerName)
+      );
       
       if (verified !== undefined) {
         // Admin approving/rejecting KYC
@@ -553,13 +566,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateProviderKycStatus(id, verified);
       } else if (kycDocuments && status) {
         // Provider submitting KYC documents
-        console.log(`Provider ${id} submitting KYC documents with enhanced verification`);
-        await storage.updateProviderKycDocuments(id, kycDocuments, status, {
-          aadharNumber,
-          panNumber,
-          phoneVerified,
-          otpVerified
-        });
+        if (shouldAutoApprove) {
+          console.log(`🚀 AUTO-APPROVING KYC for ${provider.ownerName} (${provider.businessName}) - Pre-approved provider`);
+          
+          // Auto-approve without document verification
+          await storage.updateProviderKycDocuments(id, kycDocuments, 'verified', {
+            aadharNumber,
+            panNumber,
+            phoneVerified: true,
+            otpVerified: true
+          });
+          
+          // Mark as KYC verified
+          await storage.updateProviderKycStatus(id, true);
+          
+          const updatedProvider = await storage.getServiceProvider(id);
+          return res.json({ 
+            message: "KYC documents submitted and automatically approved", 
+            provider: updatedProvider,
+            autoApproved: true 
+          });
+        } else {
+          console.log(`Provider ${id} submitting KYC documents for manual review`);
+          await storage.updateProviderKycDocuments(id, kycDocuments, status, {
+            aadharNumber,
+            panNumber,
+            phoneVerified,
+            otpVerified
+          });
+        }
       } else {
         console.log("Invalid KYC update request - missing required fields");
         return res.status(400).json({ message: "Missing required fields for KYC update" });
@@ -569,6 +604,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("KYC update error:", error);
       res.status(400).json({ message: "Failed to update KYC status", error: (error as Error).message });
+    }
+  });
+
+  // Simple admin route to auto-approve specific providers
+  app.post("/api/admin/auto-approve-provider", async (req, res) => {
+    try {
+      const { ownerName } = req.body;
+      
+      if (!ownerName) {
+        return res.status(400).json({ message: "Owner name is required" });
+      }
+
+      // Find provider by name
+      const providers = await storage.getAllServiceProviders();
+      const provider = providers.find(p => 
+        p.ownerName?.toLowerCase().includes(ownerName.toLowerCase())
+      );
+
+      if (!provider) {
+        return res.status(404).json({ message: `Provider with name "${ownerName}" not found` });
+      }
+
+      // Auto-approve list
+      const autoApprovalNames = ['lakhan rathore', 'rahul verma', 'abhishek singh'];
+      const providerName = provider.ownerName?.toLowerCase() || '';
+      const shouldAutoApprove = autoApprovalNames.some(name => 
+        providerName.includes(name) || name.includes(providerName)
+      );
+
+      if (!shouldAutoApprove) {
+        return res.status(403).json({ 
+          message: `Provider "${provider.ownerName}" is not in the auto-approval list` 
+        });
+      }
+
+      // Approve KYC
+      await storage.updateProviderKycStatus(provider.id, true);
+      console.log(`🚀 ADMIN AUTO-APPROVED KYC for ${provider.ownerName} (${provider.businessName})`);
+
+      const updatedProvider = await storage.getServiceProvider(provider.id);
+      res.json({ 
+        message: `KYC automatically approved for ${provider.ownerName}`,
+        provider: updatedProvider
+      });
+
+    } catch (error) {
+      console.error("Auto-approve error:", error);
+      res.status(500).json({ message: "Failed to auto-approve provider", error: (error as Error).message });
     }
   });
 
