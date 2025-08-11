@@ -2,59 +2,56 @@ import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
-import { providerAPI } from '@/lib/api';
+import { providerAPI, servicesAPI } from '@/lib/api';
 
-const serviceCategories = [
-  {
-    name: 'Home & Property',
-    category: 'home',
-    icon: 'fas fa-home',
-    services: [
-      { name: 'Plumbing', icon: 'fas fa-wrench' },
-      { name: 'Electrical Work', icon: 'fas fa-bolt' },
-      { name: 'Painting', icon: 'fas fa-paint-roller' },
-      { name: 'Carpentry', icon: 'fas fa-hammer' },
-    ]
-  },
-  {
-    name: 'Events & Celebrations',
-    category: 'events',
-    icon: 'fas fa-calendar',
-    services: [
-      { name: 'Event Planning', icon: 'fas fa-calendar-alt' },
-      { name: 'Photography', icon: 'fas fa-camera' },
-      { name: 'Catering', icon: 'fas fa-utensils' },
-    ]
-  },
-  {
-    name: 'Personal & Lifestyle',
-    category: 'personal',
-    icon: 'fas fa-user',
-    services: [
-      { name: 'Home Cleaning', icon: 'fas fa-broom' },
-      { name: 'Personal Training', icon: 'fas fa-dumbbell' },
-      { name: 'Pet Grooming', icon: 'fas fa-cut' },
-    ]
-  },
-  {
-    name: 'Business Services',
-    category: 'business',
-    icon: 'fas fa-briefcase',
-    services: [
-      { name: 'IT Support', icon: 'fas fa-laptop' },
-      { name: 'Graphic Design', icon: 'fas fa-paint-brush' },
-    ]
-  }
-];
+// Category metadata for icons and display names
+const categoryMetadata = {
+  home: { name: 'Home & Property', icon: 'fas fa-home' },
+  events: { name: 'Events & Celebrations', icon: 'fas fa-calendar' },
+  personal: { name: 'Personal & Lifestyle', icon: 'fas fa-user' },
+  business: { name: 'Business Services', icon: 'fas fa-briefcase' }
+};
+
+// Service icons mapping
+const serviceIcons: { [key: string]: string } = {
+  'Plumbing': 'fas fa-wrench',
+  'Electrical Work': 'fas fa-bolt',
+  'Painting': 'fas fa-paint-roller',
+  'Carpentry': 'fas fa-hammer',
+  'Event Planning': 'fas fa-calendar-alt',
+  'Photography': 'fas fa-camera',
+  'Catering': 'fas fa-utensils',
+  'Home Cleaning': 'fas fa-broom',
+  'Personal Training': 'fas fa-dumbbell',
+  'Pet Grooming': 'fas fa-cut',
+  'IT Support': 'fas fa-laptop',
+  'Graphic Design': 'fas fa-paint-brush',
+  'Web Development': 'fas fa-code',
+  'Accounting': 'fas fa-calculator',
+  'Legal Consulting': 'fas fa-gavel',
+  'Fitness Training': 'fas fa-dumbbell',
+  'Tutoring': 'fas fa-book',
+  'Beauty Services': 'fas fa-cut',
+  'Pet Care': 'fas fa-paw',
+  'Massage Therapy': 'fas fa-hand-holding-heart',
+  'Landscaping': 'fas fa-leaf',
+  'Moving Services': 'fas fa-truck'
+};
 
 export default function Services() {
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
-  const [filteredCategories, setFilteredCategories] = useState(serviceCategories);
+  const [filteredCategories, setFilteredCategories] = useState<any[]>([]);
+
+  // Fetch active services from the database
+  const { data: allServices = [], isLoading: servicesLoading } = useQuery({
+    queryKey: ['/api/services', 'active'],
+    queryFn: () => servicesAPI.getAllServices(true), // Only active services
+  });
 
   // Get provider counts for each service
-  const { data: allProviders } = useQuery({
+  const { data: allProviders = [] } = useQuery({
     queryKey: ['/api/providers'],
     queryFn: async () => {
       const providers = await providerAPI.getProviders();
@@ -69,31 +66,69 @@ export default function Services() {
     ).length;
   };
 
+  // Group services by category dynamically
   useEffect(() => {
-    let filtered = serviceCategories;
+    if (!allServices.length) {
+      setFilteredCategories([]);
+      return;
+    }
+
+    // Group services by category
+    const categoriesMap: { [key: string]: any } = {};
+    
+    allServices.forEach((service: any) => {
+      if (!categoriesMap[service.category]) {
+        categoriesMap[service.category] = {
+          name: categoryMetadata[service.category as keyof typeof categoryMetadata]?.name || service.category,
+          category: service.category,
+          icon: categoryMetadata[service.category as keyof typeof categoryMetadata]?.icon || 'fas fa-cog',
+          services: []
+        };
+      }
+      
+      categoriesMap[service.category].services.push({
+        id: service.id,
+        name: service.name,
+        icon: serviceIcons[service.name] || 'fas fa-cog',
+        description: service.description
+      });
+    });
+
+    let filtered = Object.values(categoriesMap);
 
     // Filter by category
     if (activeFilter !== 'all') {
-      filtered = filtered.filter(cat => cat.category === activeFilter);
+      filtered = filtered.filter((cat: any) => cat.category === activeFilter);
     }
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.map(category => ({
+      filtered = filtered.map((category: any) => ({
         ...category,
-        services: category.services.filter(service =>
+        services: category.services.filter((service: any) =>
           service.name.toLowerCase().includes(searchTerm.toLowerCase())
         )
-      })).filter(category => category.services.length > 0);
+      })).filter((category: any) => category.services.length > 0);
     }
 
     setFilteredCategories(filtered);
-  }, [searchTerm, activeFilter]);
+  }, [allServices, searchTerm, activeFilter]);
 
   const handleServiceClick = (serviceName: string) => {
     sessionStorage.setItem('currentService', serviceName);
     setLocation('/providers');
   };
+
+  if (servicesLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading services...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -138,19 +173,19 @@ export default function Services() {
             >
               All Services
             </button>
-            {serviceCategories.map((category) => (
+            {Object.entries(categoryMetadata).map(([categoryKey, categoryData]) => (
               <button
-                key={category.category}
-                onClick={() => setActiveFilter(category.category)}
+                key={categoryKey}
+                onClick={() => setActiveFilter(categoryKey)}
                 className={`px-8 py-3 rounded-full border-2 transition-all font-semibold hover-lift inline-flex items-center ${
-                  activeFilter === category.category
+                  activeFilter === categoryKey
                     ? 'bg-primary text-white border-primary shadow-glow'
                     : 'bg-white border-gray-200 text-gray-700 hover:border-primary hover:text-primary hover:shadow-card'
                 }`}
-                data-testid={`filter-${category.category}`}
+                data-testid={`filter-${categoryKey}`}
               >
-                <i className={`${category.icon} mr-2`}></i>
-                {category.name}
+                <i className={`${categoryData.icon} mr-2`}></i>
+                {categoryData.name}
               </button>
             ))}
           </div>
@@ -177,7 +212,7 @@ export default function Services() {
               </div>
               <div className="p-8">
                 <div className="space-y-4">
-                  {category.services.map((service) => {
+                  {category.services.map((service: any) => {
                     const providerCount = getProviderCount(service.name);
                     return (
                       <div
