@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Calendar, Clock, MapPin, DollarSign, Star, ChevronRight, User, TrendingUp, Shield, Users, CheckCircle, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, MapPin, IndianRupee, Star, ChevronRight, User, TrendingUp, Shield, Users, CheckCircle, MessageSquare } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useNotification } from '@/components/ui/notification';
 import { queryClient } from '@/lib/queryClient';

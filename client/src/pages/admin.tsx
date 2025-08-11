@@ -13,7 +13,7 @@ import {
   Users, 
   HardHat, 
   CalendarCheck, 
-  DollarSign, 
+  IndianRupee, 
   Star,
   Eye,
   Ban,
@@ -233,7 +233,7 @@ export default function Admin() {
                 activeView === 'payments' ? 'bg-primary text-white font-bold' : 'text-gray-300'
               }`}
             >
-              <DollarSign className="w-5 h-5 mr-3" /> Payments
+              <IndianRupee className="w-5 h-5 mr-3" /> Payments
             </button>
             <button
               onClick={() => setActiveView('reviews')}
@@ -376,11 +376,11 @@ function DashboardView() {
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4">
-              <DollarSign className="text-red-600 w-6 h-6" />
+              <IndianRupee className="text-red-600 w-6 h-6" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">${stats?.totalRevenue?.toFixed(2) || '0.00'}</p>
+              <p className="text-2xl font-bold text-gray-900">₹{stats?.totalRevenue?.toFixed(2) || '0.00'}</p>
             </div>
           </div>
         </div>
