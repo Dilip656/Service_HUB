@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, Clock, MapPin, DollarSign, Star, ChevronRight, User, History, CreditCard, Save, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, MapPin, IndianRupee, Star, ChevronRight, User, History, CreditCard, Save, MessageSquare } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useNotification } from '@/components/ui/notification';
 import { useForm } from 'react-hook-form';
@@ -226,7 +226,7 @@ export default function UserDashboard() {
           <div className="bg-white rounded-3xl shadow-card p-8 hover-lift transition-all">
             <div className="flex items-center">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-glow">
-                <DollarSign className="h-8 w-8 text-white" />
+                <IndianRupee className="h-8 w-8 text-white" />
               </div>
               <div className="ml-6">
                 <h3 className="text-3xl font-bold text-gray-900">{formatAmountInINR(totalSpent)}</h3>

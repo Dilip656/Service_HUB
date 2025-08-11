@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Star, Shield, Clock, Phone, Mail, MapPin, DollarSign, MessageSquare } from 'lucide-react';
+import { X, Star, Shield, Clock, Phone, Mail, MapPin, IndianRupee, MessageSquare } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { ServiceProvider } from '@shared/schema';
 import { useNotification } from '@/components/ui/notification';
@@ -153,7 +153,7 @@ export default function ProviderDetailModal({ provider, isOpen, onClose }: Provi
                     <span><strong>Experience:</strong> {provider.experience} years</span>
                   </div>
                   <div className="flex items-center">
-                    <DollarSign className="w-5 h-5 text-primary mr-3" />
+                    <IndianRupee className="w-5 h-5 text-primary mr-3" />
                     <span><strong>Rate:</strong> ₹{provider.hourlyRate}/hour</span>
                   </div>
                 </div>
