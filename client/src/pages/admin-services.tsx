@@ -120,9 +120,9 @@ export function ServicesView() {
                   required
                 >
                   <option value="">Select category</option>
-                  <option value="home">Home Services</option>
-                  <option value="personal">Personal Care</option>
-                  <option value="events">Events</option>
+                  <option value="home">Home & Property</option>
+                  <option value="personal">Personal & Lifestyle</option>
+                  <option value="events">Events & Celebrations</option>
                   <option value="business">Business Services</option>
                 </select>
               </div>
