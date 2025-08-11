@@ -8,13 +8,14 @@ export const initializeRazorpayPayment = (
     serviceName: string;
     userEmail?: string;
     userPhone?: string;
+    razorpayKeyId?: string;
   },
   onSuccess: () => void,
   onFailure: (error: string) => void
 ) => {
   // Razorpay configuration
   const options = {
-    key: 'rzp_test_1234567890', // Demo key - in production, use actual key
+    key: paymentDetails.razorpayKeyId || 'rzp_test_1234567890', // Use real key if available
     amount: parseFloat(paymentDetails.amount) * 100, // Amount in paise
     currency: 'INR',
     name: 'ServiceHub',
