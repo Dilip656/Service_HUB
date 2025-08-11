@@ -42,7 +42,6 @@ export default function Services() {
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
-  const [filteredCategories, setFilteredCategories] = useState<any[]>([]);
 
   // Fetch active services from the database
   const { data: allServices = [], isLoading: servicesLoading } = useQuery({
@@ -75,11 +74,10 @@ export default function Services() {
     return providerCounts[serviceName] || 0;
   };
 
-  // Group services by category dynamically
-  useEffect(() => {
+  // Group services by category dynamically using useMemo to prevent infinite rerenders
+  const filteredCategories = useMemo(() => {
     if (!allServices || allServices.length === 0) {
-      setFilteredCategories([]);
-      return;
+      return [];
     }
 
     // Group services by category
@@ -120,7 +118,7 @@ export default function Services() {
       })).filter((category: any) => category.services.length > 0);
     }
 
-    setFilteredCategories(filtered);
+    return filtered;
   }, [allServices, searchTerm, activeFilter]);
 
   const handleServiceClick = (serviceName: string) => {
