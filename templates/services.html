@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Services - ServiceHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        justify-content: center;
+    }
+    
+    .filter-tab {
+        padding: 0.75rem 1.5rem;
+        border: 2px solid var(--gray-300);
+        background: white;
+        border-radius: 25px;
+        text-decoration: none;
+        color: var(--gray-700);
+        transition: var(--transition);
+        font-weight: 500;
+    }
+    
+    .filter-tab:hover, .filter-tab.active {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .service-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        cursor: pointer;
+        border: 1px solid var(--gray-200);
+        margin-bottom: 0.5rem;
+    }
+    
+    .service-item:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateX(5px);
+    }
+    
+    .service-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        background: var(--gray-100);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        transition: var(--transition);
+    }
+    
+    .service-item:hover .service-icon {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .provider-count {
+        margin-left: auto;
+        padding: 0.25rem 0.75rem;
+        background: var(--success-color);
+        color: white;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .service-item:hover .provider-count {
+        background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .category-section {
+        margin-bottom: 3rem;
+    }
+    
+    .category-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-color);
+    }
+    
+    .category-icon {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .search-section {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .search-box {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border: none;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        box-shadow: var(--box-shadow-lg);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-500);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Search Section -->
+<section class="search-section">
+    <div class="container text-center">
+        <h1>Browse Our Services</h1>
+        <p style="font-size: 1.2rem; margin-bottom: 2rem;">Find the perfect professional for your needs</p>
+        
+        <div class="search-box">
+            <div class="search-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <input type="text" class="search-input" placeholder="Search for services like 'Plumbing', 'Cleaning', 'Photography'..." id="serviceSearch">
+        </div>
+    </div>
+</section>
+
+<!-- Filter Tabs -->
+<div class="container">
+    <div class="filter-tabs">
+        <a href="#" class="filter-tab active" data-category="all">
+            <i class="fas fa-th-large"></i> All Services
+        </a>
+        <a href="#" class="filter-tab" data-category="home">
+            <i class="fas fa-home"></i> Home Services
+        </a>
+        <a href="#" class="filter-tab" data-category="personal">
+            <i class="fas fa-user"></i> Personal Care
+        </a>
+        <a href="#" class="filter-tab" data-category="events">
+            <i class="fas fa-calendar-alt"></i> Event Services
+        </a>
+        <a href="#" class="filter-tab" data-category="business">
+            <i class="fas fa-briefcase"></i> Business Services
+        </a>
+    </div>
+</div>
+
+<!-- Services by Category -->
+<div class="container">
+    <div id="servicesContainer">
+        {% for category, services in categories.items() %}
+        <div class="category-section" data-category="{{ category }}">
+            <div class="category-header">
+                <div class="category-icon">
+                    {% if category == 'home' %}
+                        <i class="fas fa-home"></i>
+                    {% elif category == 'personal' %}
+                        <i class="fas fa-user"></i>
+                    {% elif category == 'events' %}
+                        <i class="fas fa-calendar-alt"></i>
+                    {% elif category == 'business' %}
+                        <i class="fas fa-briefcase"></i>
+                    {% else %}
+                        <i class="fas fa-cogs"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h2>
+                        {% if category == 'home' %}
+                            Home Services
+                        {% elif category == 'personal' %}
+                            Personal Care
+                        {% elif category == 'events' %}
+                            Event Services
+                        {% elif category == 'business' %}
+                            Business Services
+                        {% else %}
+                            {{ category|title }} Services
+                        {% endif %}
+                    </h2>
+                    <p class="text-muted">{{ services|length }} services available</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                {% for service in services %}
+                <div class="col-lg-6 mb-3">
+                    <div class="service-item" onclick="selectService('{{ service.name }}')">
+                        <div class="service-icon">
+                            {% if service.name == 'Plumbing' %}
+                                <i class="fas fa-wrench"></i>
+                            {% elif service.name == 'Electrical Work' %}
+                                <i class="fas fa-bolt"></i>
+                            {% elif service.name == 'Home Cleaning' %}
+                                <i class="fas fa-broom"></i>
+                            {% elif service.name == 'Painting' %}
+                                <i class="fas fa-paint-roller"></i>
+                            {% elif service.name == 'Carpentry' %}
+                                <i class="fas fa-hammer"></i>
+                            {% elif service.name == 'Landscaping' %}
+                                <i class="fas fa-leaf"></i>
+                            {% elif service.name == 'Moving Services' %}
+                                <i class="fas fa-truck"></i>
+                            {% elif service.name == 'Beauty Services' %}
+                                <i class="fas fa-cut"></i>
+                            {% elif service.name == 'Fitness Training' %}
+                                <i class="fas fa-dumbbell"></i>
+                            {% elif service.name == 'Massage Therapy' %}
+                                <i class="fas fa-spa"></i>
+                            {% elif service.name == 'Pet Care' %}
+                                <i class="fas fa-paw"></i>
+                            {% elif service.name == 'Tutoring' %}
+                                <i class="fas fa-graduation-cap"></i>
+                            {% elif service.name == 'Photography' %}
+                                <i class="fas fa-camera"></i>
+                            {% elif service.name == 'Event Planning' %}
+                                <i class="fas fa-calendar-plus"></i>
+                            {% elif service.name == 'Catering' %}
+                                <i class="fas fa-utensils"></i>
+                            {% elif service.name == 'Web Development' %}
+                                <i class="fas fa-code"></i>
+                            {% elif service.name == 'Graphic Design' %}
+                                <i class="fas fa-palette"></i>
+                            {% elif service.name == 'Accounting' %}
+                                <i class="fas fa-calculator"></i>
+                            {% elif service.name == 'Legal Consulting' %}
+                                <i class="fas fa-gavel"></i>
+                            {% elif service.name == 'IT Support' %}
+                                <i class="fas fa-laptop"></i>
+                            {% else %}
+                                <i class="fas fa-cog"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5>{{ service.name }}</h5>
+                            <p class="text-muted mb-0">{{ service.description[:60] }}{% if service.description|length > 60 %}...{% endif %}</p>
+                        </div>
+                        <div class="provider-count">
+                            {% if service.provider_count > 0 %}
+                                {{ service.provider_count }} Pro{% if service.provider_count > 1 %}s{% endif %}
+                            {% else %}
+                                Coming Soon
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- No results message -->
+    <div id="noResults" class="text-center py-5" style="display: none;">
+        <i class="fas fa-search" style="font-size: 4rem; color: var(--gray-400); margin-bottom: 1rem;"></i>
+        <h3>No services found</h3>
+        <p class="text-muted">Try adjusting your search or browse our categories above</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectService(serviceName) {
+    window.location.href = '/providers?service=' + encodeURIComponent(serviceName);
+}
+
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const categorySections = document.querySelectorAll('.category-section');
+    const searchInput = document.getElementById('serviceSearch');
+    const noResults = document.getElementById('noResults');
+    
+    // Filter by category
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active tab
+            filterTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            const category = this.dataset.category;
+            filterCategories(category);
+        });
+    });
+    
+    // Search functionality
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        filterServices(searchTerm);
+    });
+    
+    function filterCategories(category) {
+        let visibleCount = 0;
+        
+        categorySections.forEach(section => {
+            if (category === 'all' || section.dataset.category === category) {
+                section.style.display = 'block';
+                visibleCount++;
+            } else {
+                section.style.display = 'none';
+            }
+        });
+        
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+    
+    function filterServices(searchTerm) {
+        let visibleCount = 0;
+        
+        categorySections.forEach(section => {
+            const serviceItems = section.querySelectorAll('.service-item');
+            let sectionHasVisible = false;
+            
+            serviceItems.forEach(item => {
+                const serviceName = item.querySelector('h5').textContent.toLowerCase();
+                const serviceDesc = item.querySelector('p').textContent.toLowerCase();
+                
+                if (serviceName.includes(searchTerm) || serviceDesc.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    sectionHasVisible = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            if (sectionHasVisible && searchTerm) {
+                section.style.display = 'block';
+                visibleCount++;
+            } else if (!searchTerm) {
+                section.style.display = 'block';
+                visibleCount++;
+            } else {
+                section.style.display = 'none';
+            }
+        });
+        
+        noResults.style.display = visibleCount === 0 && searchTerm ? 'block' : 'none';
+    }
+});
+</script>
+{% endblock %}

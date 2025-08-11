@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}Register - ServiceHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+        background: linear-gradient(135deg, var(--gray-100), var(--white));
+    }
+    
+    .auth-card {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-lg);
+        padding: 3rem;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 1rem;
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-header h1 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .auth-header p {
+        color: var(--gray-600);
+        margin-bottom: 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .form-row .form-group {
+        flex: 1;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-control {
+        padding: 1rem;
+        font-size: 1rem;
+        border: 2px solid var(--gray-300);
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+    
+    .btn-auth {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        margin-bottom: 1rem;
+    }
+    
+    .btn-primary {
+        background: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--box-shadow-lg);
+    }
+    
+    .password-requirements {
+        font-size: 0.85rem;
+        color: var(--gray-600);
+        margin-top: 0.5rem;
+    }
+    
+    .password-requirements li {
+        margin-bottom: 0.25rem;
+    }
+    
+    .password-requirements .valid {
+        color: var(--success-color);
+    }
+    
+    .password-requirements .invalid {
+        color: var(--danger-color);
+    }
+    
+    .password-toggle {
+        position: relative;
+    }
+    
+    .password-toggle-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--gray-500);
+        cursor: pointer;
+        padding: 0.25rem;
+    }
+    
+    .auth-links {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .auth-links a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .auth-links a:hover {
+        text-decoration: underline;
+    }
+    
+    .divider {
+        text-align: center;
+        margin: 2rem 0;
+        position: relative;
+        color: var(--gray-500);
+    }
+    
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--gray-300);
+        z-index: 1;
+    }
+    
+    .divider span {
+        background: var(--white);
+        padding: 0 1rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .alert {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        border: 1px solid transparent;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .auth-card {
+            padding: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1><i class="fas fa-user-plus"></i> Create Account</h1>
+            <p>Join ServiceHub as a customer</p>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" id="registerForm">
+            <div class="form-group">
+                <label for="full_name" class="form-label">Full Name</label>
+                <input type="text" 
+                       id="full_name" 
+                       name="full_name" 
+                       class="form-control" 
+                       placeholder="Enter your full name"
+                       required
+                       value="{{ request.form.full_name if request.form }}">
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" 
+                       id="email" 
+                       name="email" 
+                       class="form-control" 
+                       placeholder="Enter your email address"
+                       required
+                       value="{{ request.form.email if request.form }}">
+            </div>
+
+            <div class="form-group">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input type="tel" 
+                       id="phone" 
+                       name="phone" 
+                       class="form-control" 
+                       placeholder="Enter your phone number"
+                       value="{{ request.form.phone if request.form }}">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <div class="password-toggle">
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           class="form-control" 
+                           placeholder="Create a strong password"
+                           required
+                           minlength="8">
+                    <button type="button" class="password-toggle-btn" onclick="togglePassword()">
+                        <i class="fas fa-eye" id="passwordIcon"></i>
+                    </button>
+                </div>
+                <div class="password-requirements">
+                    <ul style="list-style: none; padding: 0; margin: 0.5rem 0 0 0;">
+                        <li id="req-length"><i class="fas fa-times invalid"></i> At least 8 characters</li>
+                        <li id="req-letter"><i class="fas fa-times invalid"></i> Contains letters</li>
+                        <li id="req-number"><i class="fas fa-times invalid"></i> Contains numbers</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password" class="form-label">Confirm Password</label>
+                <div class="password-toggle">
+                    <input type="password" 
+                           id="confirm_password" 
+                           name="confirm_password" 
+                           class="form-control" 
+                           placeholder="Confirm your password"
+                           required>
+                    <button type="button" class="password-toggle-btn" onclick="toggleConfirmPassword()">
+                        <i class="fas fa-eye" id="confirmPasswordIcon"></i>
+                    </button>
+                </div>
+                <div id="password-match" style="font-size: 0.85rem; margin-top: 0.5rem;"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-auth" id="submitBtn">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+        </form>
+
+        <div class="divider">
+            <span>Already have an account?</span>
+        </div>
+
+        <div class="auth-links">
+            <p>
+                <a href="{{ url_for('login') }}">Sign In</a> or 
+                <a href="{{ url_for('provider_register') }}">Join as Service Provider</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const passwordIcon = document.getElementById('passwordIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordIcon.classList.remove('fa-eye');
+        passwordIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        passwordIcon.classList.remove('fa-eye-slash');
+        passwordIcon.classList.add('fa-eye');
+    }
+}
+
+function toggleConfirmPassword() {
+    const passwordInput = document.getElementById('confirm_password');
+    const passwordIcon = document.getElementById('confirmPasswordIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordIcon.classList.remove('fa-eye');
+        passwordIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        passwordIcon.classList.remove('fa-eye-slash');
+        passwordIcon.classList.add('fa-eye');
+    }
+}
+
+function validatePassword() {
+    const password = document.getElementById('password').value;
+    const lengthReq = document.getElementById('req-length');
+    const letterReq = document.getElementById('req-letter');
+    const numberReq = document.getElementById('req-number');
+    
+    // Length check
+    if (password.length >= 8) {
+        lengthReq.innerHTML = '<i class="fas fa-check valid"></i> At least 8 characters';
+    } else {
+        lengthReq.innerHTML = '<i class="fas fa-times invalid"></i> At least 8 characters';
+    }
+    
+    // Letter check
+    if (/[a-zA-Z]/.test(password)) {
+        letterReq.innerHTML = '<i class="fas fa-check valid"></i> Contains letters';
+    } else {
+        letterReq.innerHTML = '<i class="fas fa-times invalid"></i> Contains letters';
+    }
+    
+    // Number check
+    if (/\d/.test(password)) {
+        numberReq.innerHTML = '<i class="fas fa-check valid"></i> Contains numbers';
+    } else {
+        numberReq.innerHTML = '<i class="fas fa-times invalid"></i> Contains numbers';
+    }
+}
+
+function validatePasswordMatch() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    const matchDiv = document.getElementById('password-match');
+    
+    if (confirmPassword.length === 0) {
+        matchDiv.innerHTML = '';
+        return;
+    }
+    
+    if (password === confirmPassword) {
+        matchDiv.innerHTML = '<i class="fas fa-check" style="color: var(--success-color);"></i> Passwords match';
+    } else {
+        matchDiv.innerHTML = '<i class="fas fa-times" style="color: var(--danger-color);"></i> Passwords do not match';
+    }
+}
+
+// Event listeners
+document.getElementById('password').addEventListener('input', validatePassword);
+document.getElementById('confirm_password').addEventListener('input', validatePasswordMatch);
+
+// Form validation
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Passwords do not match');
+        return;
+    }
+    
+    if (password.length < 8) {
+        e.preventDefault();
+        alert('Password must be at least 8 characters long');
+        return;
+    }
+});
+
+// Auto-focus full name field
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('full_name').focus();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}ServiceHub - Professional Service Marketplace{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1>Find Trusted Service Professionals</h1>
+        <p>Connect with verified experts for all your home, personal, business, and event needs</p>
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('browse_services') }}" class="btn btn-outline-light" style="margin-right: 1rem;">
+                <i class="fas fa-search"></i> Browse Services
+            </a>
+            <a href="{{ url_for('provider_register') }}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Join as Provider
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <span class="stat-number">{{ services|length }}</span>
+                    <div class="stat-label">Service Categories</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <span class="stat-number">{{ provider_count }}</span>
+                    <div class="stat-label">Verified Providers</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <span class="stat-number">24/7</span>
+                    <div class="stat-label">Customer Support</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <span class="stat-number">100%</span>
+                    <div class="stat-label">Satisfaction Guarantee</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Service Categories -->
+<section class="py-5" style="background-color: var(--gray-100);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>Popular Service Categories</h2>
+            <p class="text-muted">Discover our wide range of professional services</p>
+        </div>
+        
+        <div class="row">
+            {% for service in services %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="service-category">
+                    <div class="icon">
+                        {% if service.category == 'home' %}
+                            <i class="fas fa-home"></i>
+                        {% elif service.category == 'personal' %}
+                            <i class="fas fa-user"></i>
+                        {% elif service.category == 'events' %}
+                            <i class="fas fa-calendar-alt"></i>
+                        {% elif service.category == 'business' %}
+                            <i class="fas fa-briefcase"></i>
+                        {% else %}
+                            <i class="fas fa-cogs"></i>
+                        {% endif %}
+                    </div>
+                    <h3>
+                        {% if service.category == 'home' %}
+                            Home Services
+                        {% elif service.category == 'personal' %}
+                            Personal Care
+                        {% elif service.category == 'events' %}
+                            Event Services
+                        {% elif service.category == 'business' %}
+                            Business Services
+                        {% else %}
+                            {{ service.category|title }}
+                        {% endif %}
+                    </h3>
+                    <div class="count">{{ service.count }} Services Available</div>
+                    <div style="margin-top: 1rem;">
+                        <a href="{{ url_for('browse_services') }}#{{ service.category }}" class="btn btn-primary">
+                            Explore Services
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>How ServiceHub Works</h2>
+            <p class="text-muted">Simple steps to get your service needs fulfilled</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 text-center mb-4">
+                <div style="font-size: 4rem; color: var(--primary-color); margin-bottom: 1rem;">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h4>1. Browse & Search</h4>
+                <p class="text-muted">Find the perfect service provider from our verified professionals</p>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <div style="font-size: 4rem; color: var(--primary-color); margin-bottom: 1rem;">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h4>2. Book & Schedule</h4>
+                <p class="text-muted">Schedule your service at a convenient time that works for you</p>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <div style="font-size: 4rem; color: var(--primary-color); margin-bottom: 1rem;">
+                    <i class="fas fa-thumbs-up"></i>
+                </div>
+                <h4>3. Enjoy Quality Service</h4>
+                <p class="text-muted">Relax while our verified professionals take care of your needs</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Reviews -->
+{% if recent_reviews %}
+<section class="py-5" style="background-color: var(--gray-100);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>What Our Customers Say</h2>
+            <p class="text-muted">Real reviews from satisfied customers</p>
+        </div>
+        
+        <div class="row">
+            {% for review in recent_reviews[:3] %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="provider-rating mb-3">
+                            <div class="stars">
+                                {% for i in range(review.rating) %}
+                                    <i class="fas fa-star"></i>
+                                {% endfor %}
+                                {% for i in range(5 - review.rating) %}
+                                    <i class="far fa-star"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="text-muted">({{ review.rating }}/5)</span>
+                        </div>
+                        <p class="card-text">"{{ review.comment[:100] }}{% if review.comment|length > 100 %}...{% endif %}"</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ review.full_name }}</small>
+                            <small class="text-primary">{{ review.service_name }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to Action -->
+<section class="py-5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white;">
+    <div class="container text-center">
+        <h2>Ready to Get Started?</h2>
+        <p style="font-size: 1.2rem; margin-bottom: 2rem;">Join thousands of satisfied customers who trust ServiceHub</p>
+        <div>
+            <a href="{{ url_for('register') }}" class="btn btn-outline-light" style="margin-right: 1rem;">
+                <i class="fas fa-user-plus"></i> Sign Up as Customer
+            </a>
+            <a href="{{ url_for('provider_register') }}" class="btn" style="background-color: white; color: var(--primary-color);">
+                <i class="fas fa-briefcase"></i> Become a Provider
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

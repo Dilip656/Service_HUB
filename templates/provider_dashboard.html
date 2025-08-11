@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}Provider Dashboard - ServiceHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: var(--white);
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .kyc-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-top: 0.5rem;
+    }
+    
+    .kyc-verified {
+        background: rgba(40, 167, 69, 0.2);
+        color: var(--white);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .kyc-pending {
+        background: rgba(255, 193, 7, 0.2);
+        color: var(--white);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .kyc-rejected {
+        background: rgba(220, 53, 69, 0.2);
+        color: var(--white);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        text-align: center;
+        border-left: 4px solid var(--primary-color);
+        transition: var(--transition);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--box-shadow-lg);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+    
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .bookings-section, .profile-section, .quick-actions {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+    }
+    
+    .section-header {
+        background: var(--gray-100);
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .section-header h3 {
+        margin: 0;
+        color: var(--dark-color);
+    }
+    
+    .booking-item {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        transition: var(--transition);
+    }
+    
+    .booking-item:hover {
+        background: var(--gray-50);
+    }
+    
+    .booking-item:last-child {
+        border-bottom: none;
+    }
+    
+    .booking-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    
+    .booking-info h4 {
+        margin-bottom: 0.25rem;
+        color: var(--dark-color);
+    }
+    
+    .booking-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: var(--gray-600);
+        flex-wrap: wrap;
+    }
+    
+    .booking-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-confirmed {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .booking-amount {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+    
+    .profile-item {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .profile-item:last-child {
+        border-bottom: none;
+    }
+    
+    .profile-label {
+        font-weight: 500;
+        color: var(--gray-700);
+    }
+    
+    .profile-value {
+        color: var(--dark-color);
+        text-align: right;
+    }
+    
+    .action-btn {
+        display: block;
+        width: 100%;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: none;
+        border-radius: var(--border-radius);
+        text-decoration: none;
+        text-align: center;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    
+    .action-btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--box-shadow);
+    }
+    
+    .rating-display {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .stars {
+        color: #ffc107;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: var(--gray-500);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .dashboard-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .booking-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .booking-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .dashboard-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="dashboard-header">
+    <div class="container">
+        <h1><i class="fas fa-store"></i> {{ provider.business_name }}</h1>
+        <p style="font-size: 1.1rem; opacity: 0.9;">Welcome back, {{ provider.owner_name }}</p>
+        <div class="kyc-status {% if provider.kyc_verified %}kyc-verified{% elif provider.kyc_status == 'rejected' %}kyc-rejected{% else %}kyc-pending{% endif %}">
+            {% if provider.kyc_verified %}
+                <i class="fas fa-check-circle"></i> KYC Verified
+            {% elif provider.kyc_status == 'rejected' %}
+                <i class="fas fa-times-circle"></i> KYC Rejected
+            {% else %}
+                <i class="fas fa-clock"></i> KYC Pending
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Dashboard Stats -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <span class="stat-number">{{ bookings|length }}</span>
+            <div class="stat-label">Total Bookings</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">₹{{ "%.0f"|format(monthly_earnings) }}</span>
+            <div class="stat-label">This Month's Earnings</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">
+                {% if avg_rating %}
+                    {{ "%.1f"|format(avg_rating) }}
+                {% else %}
+                    -
+                {% endif %}
+            </span>
+            <div class="stat-label">Average Rating</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ review_count }}</span>
+            <div class="stat-label">Total Reviews</div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Recent Bookings -->
+            <div class="bookings-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-calendar-alt"></i> Recent Bookings</h3>
+                    {% if bookings|length > 5 %}
+                        <a href="#" class="btn btn-outline-primary btn-sm">View All</a>
+                    {% endif %}
+                </div>
+                
+                {% if bookings %}
+                    {% for booking in bookings[:10] %}
+                    <div class="booking-item">
+                        <div class="booking-header">
+                            <div class="booking-info">
+                                <h4>{{ booking.service_name }}</h4>
+                                <div class="booking-meta">
+                                    <span><i class="fas fa-user"></i> {{ booking.customer_name }}</span>
+                                    <span><i class="fas fa-calendar"></i> {{ booking.booking_date }}</span>
+                                    <span><i class="fas fa-clock"></i> {{ booking.booking_time }}</span>
+                                    <span><i class="fas fa-hourglass"></i> {{ booking.duration_hours }}h</span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="booking-amount">₹{{ booking.total_amount }}</div>
+                                <div class="mt-2">
+                                    <span class="status-badge status-{{ booking.status }}">
+                                        {{ booking.status|title }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% if booking.special_instructions %}
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: var(--gray-100); border-radius: var(--border-radius); font-size: 0.9rem;">
+                            <strong>Special Instructions:</strong> {{ booking.special_instructions }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <h3>No bookings yet</h3>
+                        <p>Your bookings will appear here once customers start booking your services</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Profile Information -->
+            <div class="profile-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-user"></i> Profile</h3>
+                    <a href="#" class="btn btn-outline-primary btn-sm">Edit</a>
+                </div>
+                
+                <div class="profile-item">
+                    <div class="profile-label">Service</div>
+                    <div class="profile-value">{{ provider.service_name }}</div>
+                </div>
+                <div class="profile-item">
+                    <div class="profile-label">Location</div>
+                    <div class="profile-value">{{ provider.location }}</div>
+                </div>
+                <div class="profile-item">
+                    <div class="profile-label">Hourly Rate</div>
+                    <div class="profile-value">₹{{ provider.hourly_rate }}/hour</div>
+                </div>
+                <div class="profile-item">
+                    <div class="profile-label">Experience</div>
+                    <div class="profile-value">{{ provider.experience_years }} years</div>
+                </div>
+                <div class="profile-item">
+                    <div class="profile-label">Phone</div>
+                    <div class="profile-value">{{ provider.phone }}</div>
+                </div>
+                {% if avg_rating %}
+                <div class="profile-item">
+                    <div class="profile-label">Rating</div>
+                    <div class="profile-value">
+                        <div class="rating-display">
+                            <div class="stars">
+                                {% for i in range((avg_rating|round)|int) %}
+                                    <i class="fas fa-star"></i>
+                                {% endfor %}
+                                {% for i in range(5 - (avg_rating|round)|int) %}
+                                    <i class="far fa-star"></i>
+                                {% endfor %}
+                            </div>
+                            <span>({{ "%.1f"|format(avg_rating) }})</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="section-header">
+                    <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                </div>
+                
+                <div style="padding: 1.5rem;">
+                    <a href="#" class="action-btn btn-primary">
+                        <i class="fas fa-edit"></i> Update Profile
+                    </a>
+                    <a href="#" class="action-btn btn-success">
+                        <i class="fas fa-calendar-check"></i> Manage Availability
+                    </a>
+                    <a href="#" class="action-btn btn-info">
+                        <i class="fas fa-chart-line"></i> View Analytics
+                    </a>
+                    <a href="#" class="action-btn btn-warning">
+                        <i class="fas fa-dollar-sign"></i> Update Pricing
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add interactive functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stat numbers on load
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach(stat => {
+        const finalValue = stat.textContent;
+        if (!isNaN(finalValue.replace('₹', '').replace('-', ''))) {
+            const numValue = parseFloat(finalValue.replace('₹', ''));
+            if (!isNaN(numValue)) {
+                animateValue(stat, 0, numValue, 1000);
+            }
+        }
+    });
+});
+
+function animateValue(element, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const current = Math.floor(progress * (end - start) + start);
+        
+        // Preserve currency symbol if present
+        if (element.textContent.includes('₹')) {
+            element.textContent = '₹' + current;
+        } else {
+            element.textContent = current;
+        }
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+// Status update functionality (if needed)
+function updateBookingStatus(bookingId, newStatus) {
+    // Implementation for updating booking status
+    console.log('Updating booking', bookingId, 'to status', newStatus);
+}
+</script>
+{% endblock %}
