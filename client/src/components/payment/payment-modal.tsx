@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, CreditCard, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, CreditCard, Loader2, CheckCircle, AlertCircle, QrCode } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { paymentAPI } from '@/lib/api';
 import { useNotification } from '@/components/ui/notification';
+import CustomUpiQR from './custom-upi-qr';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -49,6 +50,7 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [error, setError] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'custom-upi'>('razorpay');
   const { showNotification } = useNotification();
 
   const loadRazorpayScript = (): Promise<boolean> => {
@@ -370,51 +372,105 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
             </div>
           ) : (
             <div>
-              <div className="mb-6 text-center">
-                <CreditCard className="w-16 h-16 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Secure Payment Gateway</h3>
-                <p className="text-gray-600 text-sm">
-                  Powered by Razorpay - India's most trusted payment gateway
-                </p>
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center">
+                  <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+                  <span className="text-sm text-red-700">{error}</span>
+                </div>
+              )}
+
+              {/* Payment Method Selection */}
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Choose Payment Method</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setPaymentMethod('razorpay')}
+                    className={`p-3 rounded-lg border-2 transition-colors flex flex-col items-center text-center ${
+                      paymentMethod === 'razorpay'
+                        ? 'border-primary bg-blue-50 text-primary'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    <CreditCard className="w-6 h-6 mb-2" />
+                    <div className="text-sm font-medium">Razorpay</div>
+                    <div className="text-xs">All Payment Methods</div>
+                  </button>
+
+                  <button
+                    onClick={() => setPaymentMethod('custom-upi')}
+                    className={`p-3 rounded-lg border-2 transition-colors flex flex-col items-center text-center ${
+                      paymentMethod === 'custom-upi'
+                        ? 'border-primary bg-blue-50 text-primary'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    <QrCode className="w-6 h-6 mb-2" />
+                    <div className="text-sm font-medium">UPI QR</div>
+                    <div className="text-xs">Scan & Pay</div>
+                  </button>
+                </div>
               </div>
 
-              {/* Payment Button */}
-              <button
-                onClick={handlePayment}
-                disabled={isProcessing}
-                className="w-full bg-primary text-white py-4 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4 text-lg"
-                data-testid="button-pay-now"
-              >
-                {isProcessing ? (
-                  <div className="flex items-center justify-center">
-                    <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                    Loading Payment...
+              {/* Payment Method Content */}
+              {paymentMethod === 'razorpay' ? (
+                <div className="space-y-4">
+                  <div className="mb-6 text-center">
+                    <CreditCard className="w-16 h-16 text-primary mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Secure Payment Gateway</h3>
+                    <p className="text-gray-600 text-sm">
+                      Powered by Razorpay - India's most trusted payment gateway
+                    </p>
                   </div>
-                ) : (
-                  `Pay ${formatAmountInINR(bookingDetails.amount)}`
-                )}
-              </button>
 
-              {/* Payment Methods Info */}
-              <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                <h4 className="font-medium text-blue-900 mb-2">Accepted Payment Methods:</h4>
-                <div className="text-sm text-blue-700 space-y-1">
-                  <div>• Credit/Debit Cards (Visa, Mastercard, RuPay)</div>
-                  <div>• UPI (PhonePe, GooglePay, Paytm, etc.)</div>
-                  <div>• Net Banking</div>
-                  <div>• Wallets (Paytm, PhonePe, Amazon Pay)</div>
-                </div>
-              </div>
+                  <button
+                    onClick={handlePayment}
+                    disabled={isProcessing}
+                    className="w-full bg-primary text-white py-4 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4 text-lg"
+                    data-testid="button-pay-now"
+                  >
+                    {isProcessing ? (
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                        Loading Payment...
+                      </div>
+                    ) : (
+                      `Pay ${formatAmountInINR(bookingDetails.amount)}`
+                    )}
+                  </button>
 
-              {/* Security Note */}
-              <div className="text-xs text-gray-500 text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                  <span className="font-medium">256-bit SSL Encrypted</span>
+                  <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Accepted Payment Methods:</h4>
+                    <div className="text-sm text-blue-700 space-y-1">
+                      <div>• Credit/Debit Cards (Visa, Mastercard, RuPay)</div>
+                      <div>• UPI (PhonePe, GooglePay, Paytm, etc.)</div>
+                      <div>• Net Banking</div>
+                      <div>• Wallets (Paytm, PhonePe, Amazon Pay)</div>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-gray-500 text-center">
+                    <div className="flex items-center justify-center mb-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                      <span className="font-medium">256-bit SSL Encrypted</span>
+                    </div>
+                    <p>Your payment information is completely secure and encrypted.</p>
+                    <p className="mt-1">Transaction will be processed by Razorpay.</p>
+                  </div>
                 </div>
-                <p>Your payment information is completely secure and encrypted.</p>
-                <p className="mt-1">Transaction will be processed by Razorpay.</p>
-              </div>
+              ) : (
+                <CustomUpiQR
+                  amount={bookingDetails.amount}
+                  serviceName={bookingDetails.serviceName}
+                  onPaymentComplete={() => {
+                    setPaymentStatus('success');
+                    setPaymentDetails({ 
+                      payment_id: `custom_upi_${Date.now()}`,
+                      method: 'custom_upi'
+                    });
+                    onPaymentSuccess();
+                  }}
+                />
+              )}
             </div>
           )}
         </div>

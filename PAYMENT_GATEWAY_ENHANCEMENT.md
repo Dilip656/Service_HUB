@@ -137,6 +137,28 @@ Response: {
 - No hardcoded credentials in codebase
 - Secure communication with Razorpay APIs
 
+## Latest Enhancement: Custom UPI QR Code Integration
+
+### ✅ DUAL PAYMENT OPTIONS IMPLEMENTED
+- **Razorpay Gateway**: Full payment gateway with all Indian payment methods
+- **Custom UPI QR Code**: Direct UPI payment using your personal QR code
+- **User Choice**: Seamless switching between payment methods
+- **Enhanced UI**: Clean payment method selection interface
+
+### Custom UPI QR Features
+- **Your QR Code**: Integrated the QR code image you provided
+- **UPI Deep Linking**: Automatic UPI app integration
+- **Payment Instructions**: Clear step-by-step payment guide
+- **Payment Confirmation**: Manual confirmation workflow
+- **Mobile Optimized**: Perfect for mobile UPI app scanning
+
+### How It Works
+1. **Payment Method Selection**: Users choose between Razorpay or UPI QR
+2. **QR Code Display**: Your custom QR code is displayed prominently
+3. **UPI App Integration**: Users scan with any UPI app (GPay, PhonePe, Paytm, BHIM)
+4. **Payment Completion**: Users confirm payment manually after successful transaction
+5. **Booking Confirmation**: System processes the booking completion
+
 ## Conclusion
 
-The payment gateway has been successfully enhanced with real Razorpay integration. The system can now process actual payments while maintaining robust security and error handling. The platform is ready for production deployment with live payment processing capabilities.
+The payment gateway now offers maximum flexibility with both automated Razorpay processing and your custom UPI QR code option. Users can choose their preferred payment method, and the system handles both seamlessly. The platform is ready for production deployment with comprehensive payment processing capabilities.
