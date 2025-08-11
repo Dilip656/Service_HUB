@@ -18,6 +18,9 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
   });
+  console.log('🔧 Razorpay initialized with Key ID:', process.env.RAZORPAY_KEY_ID?.substring(0, 10) + '...');
+} else {
+  console.log('⚠️  Razorpay not initialized - missing credentials. Running in demo mode.');
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {

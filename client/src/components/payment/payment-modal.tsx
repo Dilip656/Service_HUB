@@ -200,9 +200,23 @@ export default function PaymentModal({ isOpen, onClose, bookingDetails, onPaymen
       const userStr = localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : {};
 
+      // Get Razorpay key from backend for real payments
+      let razorpayKey = orderData.key;
+      if (!orderData.isDemoMode) {
+        try {
+          const keyResponse = await fetch('/api/razorpay/key');
+          if (keyResponse.ok) {
+            const keyData = await keyResponse.json();
+            razorpayKey = keyData.key || orderData.key;
+          }
+        } catch (error) {
+          console.error('Failed to get Razorpay key:', error);
+        }
+      }
+
       // Configure Razorpay options
       const options: RazorpayOptions = {
-        key: orderData.key,
+        key: razorpayKey,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'ServiceHub',
