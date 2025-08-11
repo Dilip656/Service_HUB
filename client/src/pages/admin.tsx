@@ -169,6 +169,18 @@ export default function Admin() {
               {loginMutation.isPending ? 'Signing In...' : 'Access Admin Panel'}
             </button>
           </form>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Need to create an admin account?{' '}
+              <button
+                onClick={() => setLocation('/admin-register')}
+                className="font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                Register here
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     );
