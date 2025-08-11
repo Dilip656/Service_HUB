@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { authAPI } from '@/lib/api';
 import { useNotification } from '@/components/ui/notification';
@@ -44,6 +44,13 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showProviderPassword, setShowProviderPassword] = useState(false);
+
+  // Fetch services for provider registration
+  const { data: services = [] } = useQuery({
+    queryKey: ['/api/services'],
+    queryFn: () => fetch('/api/services?active=true').then(res => res.json()),
+    enabled: isSignup && isProvider
+  });
 
   // Check URL params
   const urlParams = new URLSearchParams(window.location.search);
@@ -410,12 +417,11 @@ export default function Auth() {
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                   >
                     <option value="">Select your primary service</option>
-                    <option value="Plumbing">Plumbing</option>
-                    <option value="Electrical Work">Electrical Work</option>
-                    <option value="Painting">Painting</option>
-                    <option value="Home Cleaning">Home Cleaning</option>
-                    <option value="Photography">Photography</option>
-                    <option value="IT Support">IT Support</option>
+                    {services.map((service: any) => (
+                      <option key={service.id} value={service.name}>
+                        {service.name}
+                      </option>
+                    ))}
                   </select>
                   {formErrors.serviceName && <p className="text-red-500 text-sm mt-1">{formErrors.serviceName}</p>}
                 </div>
